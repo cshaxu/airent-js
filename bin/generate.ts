@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import * as ejs from "ejs";
-import * as fs from "fs";
-import * as yaml from "js-yaml";
-import * as path from "path";
+const ejs = require("ejs");
+const fs = require("fs");
+const yaml = require("js-yaml");
+const path = require("path");
 
 type Import = { name?: string; package: string };
 
@@ -26,32 +26,44 @@ type Schema = {
   };
 };
 
-async function loadBaseTemplate() {
-  const baseTemplatePath = path.join(
-    __dirname,
-    "../templates/base-template.ts.ejs"
-  );
-  return await fs.promises.readFile(baseTemplatePath, "utf8");
+const BASE_TEMPLATE_PATH = path.join(
+  __dirname,
+  "../templates/base-template.ts.ejs"
+);
+
+const ENTITY_TEMPLATE_PATH = path.join(
+  __dirname,
+  "../templates/entity-template.ts.ejs"
+);
+
+async function sequential<T>(functions: (() => Promise<T>)[]): Promise<T[]> {
+  const results = new Array<T>();
+  for (const func of functions) {
+    const result = await func();
+    results.push(result);
+  }
+  return results;
 }
 
-async function loadEntityTemplate() {
-  const entityTemplatePath = path.join(
-    __dirname,
-    "../templates/entity-template.ts.ejs"
+async function loadTemplates() {
+  const baseTemplate = await fs.promises.readFile(BASE_TEMPLATE_PATH, "utf8");
+  const entityTemplate = await fs.promises.readFile(
+    ENTITY_TEMPLATE_PATH,
+    "utf8"
   );
-  return await fs.promises.readFile(entityTemplatePath, "utf8");
+  return { baseTemplate, entityTemplate };
 }
 
 async function loadConfig() {
   const projectRoot = process.cwd();
   const configFilePath = path.join(projectRoot, "airent.config.ts");
-  return await import(configFilePath);
+  const { config } = require(configFilePath);
+  return config;
 }
 
 async function createGeneratedDirectory(outputPath: string) {
-  return await fs.promises.mkdir(path.join(outputPath, "generated"), {
-    recursive: true,
-  });
+  const outputGeneratedPath: string = path.join(outputPath, "generated");
+  return await fs.promises.mkdir(outputGeneratedPath, { recursive: true });
 }
 
 async function getSchemaFilePaths(schemaPath: string) {
@@ -60,11 +72,11 @@ async function getSchemaFilePaths(schemaPath: string) {
 
   // Filter only YAML files (with .yml or .yaml extension)
   return allFileNames
-    .filter((fileName) => {
+    .filter((fileName: string) => {
       const extname = path.extname(fileName).toLowerCase();
       return extname === ".yml" || extname === ".yaml";
     })
-    .map((fileName) => path.join(schemaPath, fileName));
+    .map((fileName: string) => path.join(schemaPath, fileName));
 }
 
 async function getSchemaParams(schemaFilePath: string) {
@@ -119,8 +131,7 @@ async function generate(
 
 async function execute() {
   // Load templates
-  const baseTemplate = await loadBaseTemplate();
-  const entityTemplate = await loadEntityTemplate();
+  const { baseTemplate, entityTemplate } = await loadTemplates();
 
   // Load configuration
   const { schemaPath, outputPath } = await loadConfig();
@@ -130,10 +141,13 @@ async function execute() {
   const schemaFiles = await getSchemaFilePaths(schemaPath);
 
   // Loop through each YAML file and generate code
-  const promises = schemaFiles.map((schemaFilePath) =>
-    generate(schemaFilePath, baseTemplate, entityTemplate, outputPath)
+  const functions = schemaFiles.map(
+    (schemaFilePath: string) => () =>
+      generate(schemaFilePath, baseTemplate, entityTemplate, outputPath)
   );
-  await Promise.all(promises);
+  await sequential(functions);
 }
 
-await execute();
+execute().catch((error: any) => {
+  console.error(error);
+});

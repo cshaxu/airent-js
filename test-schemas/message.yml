@@ -1,0 +1,35 @@
+entity: Message
+model:
+  name: PrismaMessage
+  import:
+    name: Message
+    package: "@prisma/client"
+response:
+  name: MessageResponse
+  import:
+    package: "@/types/message.js"
+fields:
+  - id: 1
+    name: id
+    type: string
+    strategy: primitive
+  - id: 2
+    name: createdAt
+    type: Date
+    strategy: primitive
+  - id: 3
+    name: userId
+    type: string
+    strategy: primitive
+  - id: 4
+    name: content
+    type: string | null
+    strategy: primitive
+  - id: 5
+    name: user
+    type: UserEntity
+    strategy: association
+  - id: 6
+    name: isContentEmpty
+    type: boolean
+    strategy: computed_sync
