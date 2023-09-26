@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "schemaPath": "test-schemas",
   "outputPath": "test-output"
 }

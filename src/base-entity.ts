@@ -1,4 +1,4 @@
-import { AsyncLock } from "./async-lock.js";
+import AsyncLock from "./async-lock";
 
 // https://stackoverflow.com/questions/34098023
 type Constructor<MODEL, ENTITY> = {
@@ -13,7 +13,7 @@ type LoadParams<ENTITY, LOADED> = {
   after?: () => Promise<void>;
 };
 
-export class BaseEntity<MODEL, RESPONSE = MODEL> {
+export default class BaseEntity<MODEL, RESPONSE = MODEL> {
   protected _group: BaseEntity<MODEL, RESPONSE>[];
   protected _lock: AsyncLock;
 

@@ -16,7 +16,7 @@ import { <%= model._import.name && model._import.name !== model.name ? `${model.
 import { <%= response._import.name && response._import.name !== response.name ? `${response._import.name} as ` : '' %><%= response.name %> } from '<%= response._import.package %>';<% } %>
 
 <% if (fields.some(isAssociationField)) { %>/** associations */<% } %>
-<% fields.filter(isAssociationField).forEach((field) => { %>import { <%= field.type.replace(/\[|\]/g, '') %> } from '../<%= toKababCase(field.type.split('Entity')[0]) %>.js';<% }); %>
+<% fields.filter(isAssociationField).forEach((field) => { %>import { <%= field.type.replace(/\[|\]/g, '') %> } from '../<%= toKababCase(field.type.split('Entity')[0]) %><%= isModule ? '.js' : '' %>';<% }); %>
 
 <% if (fields.some((field) => isImportableField(field) && !isAssociationField(field))) { %>/** fields */<% } %>
 <% fields.filter((field) => isImportableField(field) && !isAssociationField(field)).flatMap((field) => field.imports).filter((_import) => _import.name).forEach((_import) => { %>import { <%= _import.name %> } from '<%= _import.package %>';<% }); %>
