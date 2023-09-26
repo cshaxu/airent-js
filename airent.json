@@ -1,4 +1,4 @@
 {
   "schemaPath": "test-schemas",
-  "outputPath": "dist/test-entities"
+  "outputPath": "test-output"
 }

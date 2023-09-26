@@ -1,17 +1,14 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "esModuleInterop": true,
-    "lib": ["esnext"],
-    "module": "NodeNext",
+    "declaration": true,
+    "module": "CommonJS",
     "noImplicitAny": true,
     "outDir": "dist",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
     "target": "es5"
   },
-  "include": ["lib/**/*"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }
