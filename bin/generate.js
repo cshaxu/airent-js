@@ -67,10 +67,14 @@ async function loadTemplates() {
 }
 
 async function loadConfig() {
-  const configFilePath = path.join(PROJECT_PATH, "airent.json");
-  const configContent = fs.readFileSync(configFilePath, "utf8");
-  const { schemaPath, outputPath } = JSON.parse(configContent);
-  return { relativeSchemaPath: schemaPath, relativeOutputPath: outputPath };
+  const airentConfigFilePath = path.join(PROJECT_PATH, "airent.json");
+  const airentConfigContent = fs.readFileSync(airentConfigFilePath, "utf8");
+  const { type, schemaPath, outputPath } = JSON.parse(airentConfigContent);
+  return {
+    isModule: type === "module",
+    relativeSchemaPath: schemaPath,
+    relativeOutputPath: outputPath,
+  };
 }
 
 async function createGeneratedDirectory(outputPath) {
@@ -115,10 +119,12 @@ async function generate(
   schemaFilePath,
   baseTemplate,
   entityTemplate,
+  isModule,
   outputPath
 ) {
   console.log(`[AIRENT/INFO] Generating from ${schemaFilePath} ...`);
-  const params = await getSchemaParams(schemaFilePath);
+  const schemaParams = await getSchemaParams(schemaFilePath);
+  const params = { ...schemaParams, isModule };
 
   const entityFileName = `${toKababCase(params.entityName)}.ts`;
   const baseClassOutputPath = path.join(outputPath, "generated");
@@ -146,7 +152,9 @@ async function execute() {
   const { baseTemplate, entityTemplate } = await loadTemplates();
 
   // Load configuration
-  const { relativeSchemaPath, relativeOutputPath } = await loadConfig();
+  const { isModule, relativeSchemaPath, relativeOutputPath } =
+    await loadConfig();
+  console.log(isModule);
   const schemaPath = path.join(PROJECT_PATH, relativeSchemaPath);
   const outputPath = path.join(PROJECT_PATH, relativeOutputPath);
 
@@ -157,7 +165,13 @@ async function execute() {
   // Loop through each YAML file and generate code
   const functions = schemaFiles.map(
     (schemaFilePath) => async () =>
-      generate(schemaFilePath, baseTemplate, entityTemplate, outputPath)
+      generate(
+        schemaFilePath,
+        baseTemplate,
+        entityTemplate,
+        isModule,
+        outputPath
+      )
   );
   await sequential(functions);
 }
