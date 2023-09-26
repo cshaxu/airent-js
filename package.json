@@ -4,11 +4,12 @@
   "description": "Airent Framework for JavaScript Backend - a lightweight data entity and presentation framework",
   "main": "index.js",
   "bin": {
-    "airent": "ts-node ./bin/generate.ts --clear-screen=false"
+    "airent": "./bin/generate.js"
   },
   "scripts": {
     "build": "rm -rf ./dist/ && tsc -p tsconfig.json",
-    "test": "rm -rf ./dist/test-entities && ts-node ./bin/generate.ts --clear-screen=false"
+    "test": "rm -rf ./dist/test-entities && node ./bin/generate.js",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -41,5 +42,19 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "files": [
+    "bin",
+    "dist",
+    "lib",
+    "templates",
+    "test-schemas",
+    "LICENSE",
+    "README.md",
+    "airent.json",
+    "index.d.ts",
+    "index.js",
+    "package.json",
+    "tsconfig.json"
+  ]
 }
