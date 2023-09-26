@@ -5,26 +5,36 @@ const fs = require("fs");
 const yaml = require("js-yaml");
 const path = require("path");
 
-type Import = { name?: string; package: string };
+// Custom defined types in comments
+/** @typedef {Object} Import
+ *  @property {?string} name
+ *  @property {string} package
+ */
 
-type Schema = {
-  entity: string;
-  model: { name: string; import?: Import };
-  response?: { name: string; import?: Import };
-  fields: {
-    [key: string]: {
-      id: number;
-      name: string;
-      type: string;
-      imports?: Import[];
-      strategy:
-        | "primitive"
-        | "association"
-        | "computed_sync"
-        | "computed_async";
-    };
-  };
-};
+/** @typedef {Object} Field
+ *  @property {number} id
+ *  @property {string} name
+ *  @property {string} type
+ *  @property {Import[]} [imports]
+ *  @property {"primitive" | "association" | "computed_sync" | "computed_async"} strategy
+ */
+
+/** @typedef {Object} Model
+ *  @property {string} name
+ *  @property {Import} [import]
+ */
+
+/** @typedef {Object} Response
+ *  @property {string} name
+ *  @property {Import} [import]
+ */
+
+/** @typedef {Object} Schema
+ *  @property {string} entity
+ *  @property {Model} model
+ *  @property {Response} [response]
+ *  @property {Object.<string, Field>} fields
+ */
 
 const BASE_TEMPLATE_PATH = path.join(
   __dirname,
@@ -36,8 +46,10 @@ const ENTITY_TEMPLATE_PATH = path.join(
   "../templates/entity-template.ts.ejs"
 );
 
-async function sequential<T>(functions: (() => Promise<T>)[]): Promise<T[]> {
-  const results = new Array<T>();
+const PROJECT_PATH = process.cwd();
+
+async function sequential(functions) {
+  const results = [];
   for (const func of functions) {
     const result = await func();
     results.push(result);
@@ -55,33 +67,33 @@ async function loadTemplates() {
 }
 
 async function loadConfig() {
-  const projectRoot = process.cwd();
-  const configFilePath = path.join(projectRoot, "airent.config.ts");
-  const { config } = require(configFilePath);
-  return config;
+  const configFilePath = path.join(PROJECT_PATH, "airent.json");
+  const configContent = fs.readFileSync(configFilePath, "utf8");
+  const { schemaPath, outputPath } = JSON.parse(configContent);
+  return { relativeSchemaPath: schemaPath, relativeOutputPath: outputPath };
 }
 
-async function createGeneratedDirectory(outputPath: string) {
-  const outputGeneratedPath: string = path.join(outputPath, "generated");
+async function createGeneratedDirectory(outputPath) {
+  const outputGeneratedPath = path.join(outputPath, "generated");
   return await fs.promises.mkdir(outputGeneratedPath, { recursive: true });
 }
 
-async function getSchemaFilePaths(schemaPath: string) {
+async function getSchemaFilePaths(schemaPath) {
   // Read all files in the YAML directory
   const allFileNames = await fs.promises.readdir(schemaPath);
 
   // Filter only YAML files (with .yml or .yaml extension)
   return allFileNames
-    .filter((fileName: string) => {
+    .filter((fileName) => {
       const extname = path.extname(fileName).toLowerCase();
       return extname === ".yml" || extname === ".yaml";
     })
-    .map((fileName: string) => path.join(schemaPath, fileName));
+    .map((fileName) => path.join(schemaPath, fileName));
 }
 
-async function getSchemaParams(schemaFilePath: string) {
+async function getSchemaParams(schemaFilePath) {
   const schemaContent = await fs.promises.readFile(schemaFilePath, "utf8");
-  const schema = yaml.load(schemaContent) as Schema;
+  const schema = yaml.load(schemaContent);
 
   const entityName = schema.entity;
   const model = { name: schema.model.name, _import: schema.model.import };
@@ -92,7 +104,7 @@ async function getSchemaParams(schemaFilePath: string) {
   return { entityName, model, response, fields };
 }
 
-function toKababCase(s: string) {
+function toKababCase(s) {
   return s
     .replace(/_/g, "-")
     .replace(/([a-z])([A-Z])/g, "$1-$2")
@@ -100,10 +112,10 @@ function toKababCase(s: string) {
 }
 
 async function generate(
-  schemaFilePath: string,
-  baseTemplate: string,
-  entityTemplate: string,
-  outputPath: string
+  schemaFilePath,
+  baseTemplate,
+  entityTemplate,
+  outputPath
 ) {
   console.log(`[AIRENT/INFO] Generating from ${schemaFilePath} ...`);
   const params = await getSchemaParams(schemaFilePath);
@@ -134,7 +146,9 @@ async function execute() {
   const { baseTemplate, entityTemplate } = await loadTemplates();
 
   // Load configuration
-  const { schemaPath, outputPath } = await loadConfig();
+  const { relativeSchemaPath, relativeOutputPath } = await loadConfig();
+  const schemaPath = path.join(PROJECT_PATH, relativeSchemaPath);
+  const outputPath = path.join(PROJECT_PATH, relativeOutputPath);
 
   // Ensure the output directory exists
   await createGeneratedDirectory(outputPath);
@@ -142,12 +156,12 @@ async function execute() {
 
   // Loop through each YAML file and generate code
   const functions = schemaFiles.map(
-    (schemaFilePath: string) => () =>
+    (schemaFilePath) => async () =>
       generate(schemaFilePath, baseTemplate, entityTemplate, outputPath)
   );
   await sequential(functions);
 }
 
-execute().catch((error: any) => {
+execute().catch((error) => {
   console.error(error);
 });

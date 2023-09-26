@@ -1,5 +1,4 @@
-import { BaseEntity } from '@/airent/base.js';
-import { AsyncLock } from '@/lib/async-lock.js';
+import { AsyncLock, BaseEntity } from 'airent';
 
 <% function isPrimitiveField(field) { return field.strategy === 'primitive'; } %>
 <% function isAssociationField(field) { return field.strategy === 'association'; } %>
