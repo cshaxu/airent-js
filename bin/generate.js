@@ -67,9 +67,12 @@ async function loadTemplates() {
 }
 
 async function loadConfig() {
-  const airentConfigFilePath = path.join(PROJECT_PATH, "airent.config.js");
-  const config = require(airentConfigFilePath);
-  const { type, schemaPath, outputPath } = config;
+  const airentConfigFilePath = path.join(PROJECT_PATH, "airent.config.json");
+  const airentConfigContent = await fs.promises.readFile(
+    airentConfigFilePath,
+    "utf8"
+  );
+  const { type, schemaPath, outputPath } = JSON.parse(airentConfigContent);
   return {
     isModule: type === "module",
     relativeSchemaPath: schemaPath,
