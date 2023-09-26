@@ -1,5 +1,5 @@
 // https://betterprogramming.pub/implementing-lock-using-promise-d7ed4ce19207
-export class AsyncLock {
+export default class AsyncLock {
   private promise: Promise<void>;
 
   private resolve: (() => void) | undefined;

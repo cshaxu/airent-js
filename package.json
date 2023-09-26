@@ -2,19 +2,12 @@
   "name": "airent",
   "version": "0.0.2",
   "description": "Airent Framework for JavaScript Backend - a lightweight data entity and presentation framework",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/mjs/index.js",
-  "exports": {
-    ".": {
-      "import": "./dist/mjs/index.js",
-      "require": "./dist/cjs/index.js"
-    }
-  },
+  "main": "./lib/index.js",
   "bin": {
     "airent": "./bin/generate.js"
   },
   "scripts": {
-    "build": "rm -rf ./dist && tsc -p tsconfig-mjs.json && tsc -p tsconfig-cjs.json && bash ./fix-build.sh",
+    "build": "rm -rf ./lib && tsc -p tsconfig.json",
     "test": "rm -rf ./test-output && node ./bin/generate.js",
     "prepublishOnly": "npm run build"
   },
@@ -30,7 +23,7 @@
     "api",
     "pojo"
   ],
-  "author": "Xu Ha",
+  "author": "cshaxu",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/cshaxu/airent-js/issues"
@@ -46,12 +39,9 @@
     "@types/node": "^20.7.0",
     "typescript": "^5.2.2"
   },
-  "engines": {
-    "node": ">=18"
-  },
   "files": [
     "bin",
-    "dist",
+    "lib",
     "templates"
   ]
 }

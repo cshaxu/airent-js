@@ -154,7 +154,7 @@ async function execute() {
   // Load configuration
   const { isModule, relativeSchemaPath, relativeOutputPath } =
     await loadConfig();
-  console.log(isModule);
+  console.log({ isModule });
   const schemaPath = path.join(PROJECT_PATH, relativeSchemaPath);
   const outputPath = path.join(PROJECT_PATH, relativeOutputPath);
 
