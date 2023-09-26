@@ -1,0 +1,43 @@
+entity: User
+model:
+  name: PrismaUser
+  import:
+    name: User
+    package: "@prisma/client"
+response:
+  name: UserResponse
+  import:
+    package: "@/types/user.js"
+fields:
+  - id: 1
+    name: id
+    type: string
+    strategy: primitive
+  - id: 2
+    name: createdAt
+    type: Date
+    strategy: primitive
+  - id: 3
+    name: updatedAt
+    type: Date
+    strategy: primitive
+  - id: 4
+    name: email
+    type: string
+    strategy: primitive
+  - id: 5
+    name: firstName
+    type: string | null
+    strategy: primitive
+  - id: 6
+    name: lastName
+    type: string | null
+    strategy: primitive
+  - id: 7
+    name: imageUrl
+    type: string | null
+    strategy: primitive
+  - id: 8
+    name: messages
+    type: MessageEntity[]
+    strategy: association
