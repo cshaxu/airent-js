@@ -1,4 +1,4 @@
-import { AsyncLock, BaseEntity } from 'airent';
+import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
 
 <% function toKababCase(string) {
   return string
@@ -125,7 +125,7 @@ import { <%= _import.name %> } from '<%= _import.package %>';
 <% }); -%>
 
 export class <%= getEntityStrings().baseClass %> extends BaseEntity<
-  <%= model.name %><%= internal ? '' : `, ${getEntityStrings().responseClass}` %>
+  <%= model.name %><%= internal ? '' : `, ${getEntityStrings().fieldRequestClass}, ${getEntityStrings().responseClass}` %>
 > {
 <% fields.filter(isPrimitiveField).forEach((field) => { -%>
   public <%= field.name %>: <%= field.type %>;

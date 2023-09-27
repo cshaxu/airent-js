@@ -13,21 +13,28 @@ type LoadParams<ENTITY, LOADED> = {
   after?: () => Promise<void>;
 };
 
-export default class BaseEntity<MODEL, RESPONSE = MODEL> {
-  protected _group: BaseEntity<MODEL, RESPONSE>[];
+export default class BaseEntity<
+  MODEL,
+  FIELD_REQUEST = undefined,
+  RESPONSE = MODEL
+> {
+  protected _group: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[];
   protected _lock: AsyncLock;
 
-  protected constructor(group: BaseEntity<MODEL, RESPONSE>[], lock: AsyncLock) {
+  protected constructor(
+    group: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[],
+    lock: AsyncLock
+  ) {
     this._group = group;
     this._lock = lock;
   }
 
-  public async present(_format?: string): Promise<RESPONSE> {
+  public async present(_request?: FIELD_REQUEST | true): Promise<RESPONSE> {
     throw new Error("not implemented");
   }
 
   protected async load<LOADED>(
-    params: LoadParams<BaseEntity<MODEL, RESPONSE>, LOADED>
+    params: LoadParams<BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>, LOADED>
   ): Promise<void> {
     if (params.before) {
       await params.before();

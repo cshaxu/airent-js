@@ -87,11 +87,13 @@ async function loadConfig() {
     airentConfigFilePath,
     "utf8"
   );
-  const { type, schemaPath, outputPath } = JSON.parse(airentConfigContent);
+  const { type, schemaPath, outputPath, airentPackage } =
+    JSON.parse(airentConfigContent);
   return {
     isModule: type === "module",
     relativeSchemaPath: schemaPath,
     relativeOutputPath: outputPath,
+    airentPackage: airentPackage ?? "airent",
   };
 }
 
@@ -130,11 +132,12 @@ async function generate(
   entityTemplate,
   responseTemplate,
   isModule,
+  airentPackage,
   outputPath
 ) {
   console.log(`[AIRENT/INFO] Generating from ${schemaFilePath} ...`);
   const schemaParams = await getSchemaParams(schemaFilePath);
-  const params = { ...schemaParams, isModule };
+  const params = { ...schemaParams, isModule, airentPackage };
 
   const generatedOutputPath = path.join(outputPath, "generated");
 
@@ -179,8 +182,8 @@ async function execute() {
   // Load configuration
   const config = await loadConfig();
   console.log(config);
-  const { isModule, relativeSchemaPath, relativeOutputPath } =
-    await loadConfig();
+  const { isModule, relativeSchemaPath, relativeOutputPath, airentPackage } =
+    config;
   const schemaPath = path.join(PROJECT_PATH, relativeSchemaPath);
   const outputPath = path.join(PROJECT_PATH, relativeOutputPath);
 
@@ -197,6 +200,7 @@ async function execute() {
         entityTemplate,
         responseTemplate,
         isModule,
+        airentPackage,
         outputPath
       )
   );
