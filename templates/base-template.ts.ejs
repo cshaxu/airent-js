@@ -83,13 +83,13 @@ import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
     getter = `await ${getterFunction}`;
   } else if (isAssociationField(field)) {
     if (field.type.endsWith('[]')) {
-      getter = `await ${getterFunction}.then((a) => Promise.all(a.map((one) => one.present())))`;
+      getter = `await ${getterFunction}.then((a) => Promise.all(a.map((one) => one.present(${queryCondition}))))`;
     } else if (field.type.endsWith('[] | null')) {
-      getter = `await ${getterFunction}.then((a) => a ? Promise.all(a.map((one) => one.present()) : Promise.resolve(null)))`;
+      getter = `await ${getterFunction}.then((a) => a ? Promise.all(a.map((one) => one.present(${queryCondition})) : Promise.resolve(null)))`;
     } else if (field.type.endsWith(' | null')) {
-      getter = `await ${getterFunction}.then((one) => one ? one.present() : Promise.resolve(null))`;
+      getter = `await ${getterFunction}.then((one) => one ? one.present(${queryCondition}) : Promise.resolve(null))`;
     } else {
-      getter = `await ${getterFunction}.then((one) => one.present())`;
+      getter = `await ${getterFunction}.then((one) => one.present(${queryCondition}))`;
     }
   }
   
@@ -148,7 +148,10 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
   }
 
 <% if (!internal) { -%>
-  public async present(request?: <%= getEntityStrings().fieldRequestClass %> | true): Promise<<%= getEntityStrings().responseClass %>> {
+  public async present(request?: <%= getEntityStrings().fieldRequestClass %> | boolean): Promise<<%= getEntityStrings().responseClass %>> {
+    if (request === false) {
+      throw new Error('unprocessable request');
+    }
     const isDefaultFormat = request === true || request === undefined;
     return {
 <% fields.filter(isExternalField).forEach((field) => { -%>
