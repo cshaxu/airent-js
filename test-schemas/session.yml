@@ -1,8 +1,9 @@
-entity: Message
+entity: Session
+internal: true
 model:
-  name: PrismaMessage
+  name: PrismaSession
   import:
-    name: Message
+    name: Session
     package: "@prisma/client"
 fields:
   - id: 1
@@ -10,23 +11,14 @@ fields:
     type: string
     strategy: primitive
   - id: 2
-    name: createdAt
-    type: Date
+    name: sid
+    type: string
     strategy: primitive
   - id: 3
     name: userId
     type: string
     strategy: primitive
   - id: 4
-    name: content
-    type: string | null
-    strategy: primitive
-  - id: 5
     name: user
     type: User
     strategy: association
-  - id: 6
-    name: isContentEmpty
-    type: boolean
-    strategy: computed_sync
-    internal: true

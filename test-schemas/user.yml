@@ -4,10 +4,6 @@ model:
   import:
     name: User
     package: "@prisma/client"
-response:
-  name: UserResponse
-  import:
-    package: "@/types/user.js"
 fields:
   - id: 1
     name: id
@@ -39,5 +35,14 @@ fields:
     strategy: primitive
   - id: 8
     name: messages
-    type: MessageEntity[]
+    type: Message[]
+    strategy: association
+  - id: 9
+    name: sessions
+    type: Session[]
+    strategy: association
+    internal: true
+  - id: 10
+    name: firstMessage
+    type: Message | null
     strategy: association
