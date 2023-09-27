@@ -1,51 +1,176 @@
 import { AsyncLock, BaseEntity } from 'airent';
 
-<% function isPrimitiveField(field) { return field.strategy === 'primitive'; } %>
-<% function isAssociationField(field) { return field.strategy === 'association'; } %>
-<% function isComputedSyncField(field) { return field.strategy === 'computed_sync'; } %>
-<% function isComputedAsyncField(field) { return field.strategy === 'computed_async'; } %>
-<% function isImportableField(field) { return isAssociationField(field) || field.imports?.length; } %>
-<% function toKababCase(string) { return string.replace(/_/g, '-').replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase(); } %>
-<% function toTitleCase(string) { return string.charAt(0).toUpperCase()+ string.slice(1); } %>
+<% function toKababCase(string) {
+  return string
+    .replace(/_/g, '-')
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .toLowerCase();
+} -%>
+<% function toTitleCase(string) { 
+  return string.charAt(0).toUpperCase() + string.slice(1); 
+} -%>
 
-<% if (model._import) { %>
+<% function isPrimitiveField(field) { return field.strategy === 'primitive'; } -%>
+<% function isAssociationField(field) { return field.strategy === 'association'; } -%>
+<% function isComputedSyncField(field) { return field.strategy === 'computed_sync'; } -%>
+<% function isComputedAsyncField(field) { return field.strategy === 'computed_async'; } -%>
+<% function isImportableField(field) { return isAssociationField(field) || field.imports?.length; } -%>
+<% function isExternalField(field) { return !field.internal; } -%>
+<% function isSyncField(field) { return isPrimitiveField(field) || isComputedSyncField(field); } -%>
+
+<% function getModuleSuffix() { return isModule ? '.js' : ''; } -%>
+<% function getEntityStrings() {
+  const prefix = toKababCase(entityName);
+  const suffix = getModuleSuffix();
+  
+  return {
+    entName: entityName,
+    baseClass: `${entityName}EntityBase`,
+    entityClass: `${entityName}Entity`,
+    fieldRequestClass: `${entityName}FieldRequest`,
+    responseClass: `${entityName}Response`,
+    basePackage: `${prefix}-base${suffix}`,
+    entityPackage: `${prefix}${suffix}`,
+    typePackage: `${prefix}-type${suffix}`,
+  };
+} -%>
+<% function getAssociationStrings(field) {
+  const entName = toTitleCase(field.type.split("|")[0].split("[]")[0].trim());
+
+  const prefix = toKababCase(entName);
+  const suffix = getModuleSuffix();
+
+  const entityClass = `${entName}Entity`;
+  const responseClass = `${entName}Response`;
+
+  return {
+    entName,
+    entityClass,
+    fieldRequestClass: `${entName}FieldRequest`,
+    responseClass,
+    entityPackage: `${prefix}${suffix}`,
+    typePackage: `${prefix}-type${suffix}`,
+    entityFieldType: field.type.replace(entName, entityClass),
+    responseFieldType: field.type.replace(entName, responseClass),
+  };
+} -%>
+
+<% function getModelClass() {
+  if (!model._import) {
+    return '';
+  }
+  const prefix =
+    (model._import.name && model._import.name !== model.name) 
+      ? `${model._import.name} as ` : '';
+  return `${prefix}${model.name}`;
+} -%>
+
+<% function getFieldPresenter(field) {
+  const isDefaultField = isSyncField(field);
+  const queryCondition = `request?.${field.name}`;
+  const condition = isDefaultField
+    ? `isDefaultFormat || ${queryCondition}`
+    : `!isDefaultFormat && ${queryCondition}`;
+  let getter = 'undefined';
+
+  if (isPrimitiveField(field)) {
+    getter = `this.${field.name}`;
+  }
+  const getterFunction = `this.get${toTitleCase(field.name)}()`;
+  if (isComputedSyncField(field)) {
+    getter = getterFunction;
+  } else if (isComputedAsyncField(field)) {
+    getter = `await ${getterFunction}`;
+  } else if (isAssociationField(field)) {
+    if (field.type.endsWith('[]')) {
+      getter = `await ${getterFunction}.then((a) => Promise.all(a.map((one) => one.present())))`;
+    } else if (field.type.endsWith('[] | null')) {
+      getter = `await ${getterFunction}.then((a) => a ? Promise.all(a.map((one) => one.present()) : Promise.resolve(null)))`;
+    } else if (field.type.endsWith(' | null')) {
+      getter = `await ${getterFunction}.then((one) => one ? one.present() : Promise.resolve(null))`;
+    } else {
+      getter = `await ${getterFunction}.then((one) => one.present())`;
+    }
+  }
+  
+  return `${condition} ? ${getter} : undefined`;
+} -%>
+
+<% if (model._import) { -%>
 /** model */
-import { <%= model._import.name && model._import.name !== model.name ? `${model._import.name} as ` : '' %><%= model.name %> } from '<%= model._import.package %>';<% } %>
-<% if (response?._import) { %>
+import { <%= getModelClass() %> } from '<%= model._import.package %>';
+<% } -%>
+
+<% if (!internal) { -%>
 /** response */
-import { <%= response._import.name && response._import.name !== response.name ? `${response._import.name} as ` : '' %><%= response.name %> } from '<%= response._import.package %>';<% } %>
+import { <%= getEntityStrings().fieldRequestClass %>, <%= getEntityStrings().responseClass %> } from './<%= getEntityStrings().typePackage %>';
+<% } -%>
 
-<% if (fields.some(isAssociationField)) { %>/** associations */<% } %>
-<% fields.filter(isAssociationField).forEach((field) => { %>import { <%= field.type.replace(/\[|\]/g, '') %> } from '../<%= toKababCase(field.type.split('Entity')[0]) %><%= isModule ? '.js' : '' %>';<% }); %>
+<% if (fields.some(isAssociationField)) { -%>
+/** associations */
+<% } -%>
+<% fields.filter(isAssociationField).forEach((field) => { -%>
+import { <%= getAssociationStrings(field).entityClass %> } from '../<%= getAssociationStrings(field).entityPackage %>';
+<% }); -%>
 
-<% if (fields.some((field) => isImportableField(field) && !isAssociationField(field))) { %>/** fields */<% } %>
-<% fields.filter((field) => isImportableField(field) && !isAssociationField(field)).flatMap((field) => field.imports).filter((_import) => _import.name).forEach((_import) => { %>import { <%= _import.name %> } from '<%= _import.package %>';<% }); %>
+<% if (fields.some((field) => isImportableField(field) && !isAssociationField(field))) { -%>
+/** fields */
+<% } -%>
+<% fields
+  .filter((field) => isImportableField(field) && !isAssociationField(field))
+  .flatMap((field) => field.imports)
+  .filter((_import) => _import.name)
+  .forEach((_import) => { -%>
+import { <%= _import.name %> } from '<%= _import.package %>';
+<% }); -%>
 
-export class <%= entityName %>EntityBase extends BaseEntity<<%= model.name %><%= response ? `, ${response.name}` : '' %>> {
-<% fields.filter(isPrimitiveField).forEach((field) => { %>  public <%= field.name %>: <%= field.type %>;
-<% }); %>
-<% fields.filter(isAssociationField).forEach((field) => { %>  protected <%= field.name %>?: <%= field.type %>;
-<% }); %>
+export class <%= getEntityStrings().baseClass %> extends BaseEntity<
+  <%= model.name %><%= internal ? '' : `, ${getEntityStrings().responseClass}` %>
+> {
+<% fields.filter(isPrimitiveField).forEach((field) => { -%>
+  public <%= field.name %>: <%= field.type %>;
+<% }); -%>
+
+<% fields.filter(isAssociationField).forEach((field) => { -%>
+  protected <%= field.name %>?: <%= getAssociationStrings(field).entityFieldType %>;
+<% }); -%>
 
   public constructor(
     model: <%= model.name %>,
-    group: <%= entityName %>EntityBase[],
+    group: <%= getEntityStrings().baseClass %>[],
     lock: AsyncLock,
   ) {
     super(group, lock);
-<% fields.filter(isPrimitiveField).forEach((field) => { %>
-    this.<%= field.name %> = model.<%= field.name %><%= field.cast ? ` as ${field.type}` : '' %>;<% }); %>
+
+<% fields.filter(isPrimitiveField).forEach((field) => { -%>
+    this.<%= field.name %> = model.<%= field.name %><%= field.cast ? ` as ${field.type}` : '' %>;
+<% }); -%>
   }
-<% if (fields.some(isAssociationField)) { %>
-  /** associations */<% } %>
-<% fields.filter(isAssociationField).forEach((field) => { %>
+
+<% if (!internal) { -%>
+  public async present(request?: <%= getEntityStrings().fieldRequestClass %> | true): Promise<<%= getEntityStrings().responseClass %>> {
+    const isDefaultFormat = request === true || request === undefined;
+    return {
+<% fields.filter(isExternalField).forEach((field) => { -%>
+      <%= field.name %>: <%- getFieldPresenter(field) %>,
+<% }); -%>
+    };
+  }
+<% } -%>
+
+<% if (fields.some(isAssociationField)) { -%>
+  /** associations */
+<% } -%>
+
+<% fields.filter(isAssociationField).forEach((field) => { -%>
+
   protected <%= field.name %>Params = {};
 
   protected async load<%= toTitleCase(field.name) %>(): Promise<void> {
     await this.load(this.<%= field.name %>Params);
   }
 
-  public async get<%= toTitleCase(field.name) %>(): Promise<<%= field.type %>> {
+  public async get<%= toTitleCase(field.name) %>(): Promise<<%= getAssociationStrings(field).entityFieldType %>> {
     if (this.<%= field.name %> !== undefined) {
       return this.<%= field.name %>;
     }
@@ -53,22 +178,29 @@ export class <%= entityName %>EntityBase extends BaseEntity<<%= model.name %><%=
     return this.<%= field.name %>!;
   }
 
-  public set<%= toTitleCase(field.name) %>(<%= field.name %>?: <%= field.type %>): void {
+  public set<%= toTitleCase(field.name) %>(<%= field.name %>?: <%= getAssociationStrings(field).entityFieldType %>): void {
     this.<%= field.name %> = <%= field.name %>;
   }
-<% }); %>
-<% if (fields.some(isComputedSyncField)) { %>
-  /** computed sync fields */<% } %>
-  <% fields.filter(isComputedSyncField).forEach((field) => { %>
+<% }); -%>
+
+<% if (fields.some(isComputedSyncField)) { -%>
+  /** computed sync fields */
+<% } -%>
+
+<% fields.filter(isComputedSyncField).forEach((field) => { -%>
+
   public get<%= toTitleCase(field.name) %>(): <%= field.type %> {
     throw new Error('not implemented');
   }
-<% }); %>
-<% if (fields.some(isComputedAsyncField)) { %>
-  /** computed async fields */<% } %>
-<% fields.filter(isComputedAsyncField).forEach((field) => { %>
+<% }); -%>
+
+<% if (fields.some(isComputedAsyncField)) { -%>
+  /** computed async fields */
+<% } -%>
+<% fields.filter(isComputedAsyncField).forEach((field) => { -%>
+
   public async get<%= toTitleCase(field.name) %>(): Promise<<%= field.type %>> {
     throw new Error('not implemented');
   }
-<% }); %>
+<% }); -%>
 }

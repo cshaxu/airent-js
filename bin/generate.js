@@ -21,19 +21,14 @@ const path = require("path");
 
 /** @typedef {Object} Model
  *  @property {string} name
- *  @property {Import} [import]
- */
-
-/** @typedef {Object} Response
- *  @property {string} name
- *  @property {Import} [import]
+ *  @property {Import} import
  */
 
 /** @typedef {Object} Schema
  *  @property {string} entity
+ *  @property {boolean} internal
  *  @property {Model} model
- *  @property {Response} [response]
- *  @property {Object.<string, Field>} fields
+ *  @property {Field[]} [fields]
  */
 
 const BASE_TEMPLATE_PATH = path.join(
@@ -46,7 +41,23 @@ const ENTITY_TEMPLATE_PATH = path.join(
   "../templates/entity-template.ts.ejs"
 );
 
+const RESPONSE_TEMPLATE_PATH = path.join(
+  __dirname,
+  "../templates/type-template.ts.ejs"
+);
+
 const PROJECT_PATH = process.cwd();
+
+function toTitleCase(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function toKababCase(s) {
+  return s
+    .replace(/_/g, "-")
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .toLowerCase();
+}
 
 async function sequential(functions) {
   const results = [];
@@ -63,7 +74,11 @@ async function loadTemplates() {
     ENTITY_TEMPLATE_PATH,
     "utf8"
   );
-  return { baseTemplate, entityTemplate };
+  const responseTemplate = await fs.promises.readFile(
+    RESPONSE_TEMPLATE_PATH,
+    "utf8"
+  );
+  return { baseTemplate, entityTemplate, responseTemplate };
 }
 
 async function loadConfig() {
@@ -102,26 +117,18 @@ async function getSchemaParams(schemaFilePath) {
   const schemaContent = await fs.promises.readFile(schemaFilePath, "utf8");
   const schema = yaml.load(schemaContent);
 
-  const entityName = schema.entity;
+  const entityName = toTitleCase(schema.entity);
+  const internal = schema.internal;
   const model = { name: schema.model.name, _import: schema.model.import };
-  const response = schema.response
-    ? { name: schema.response.name, _import: schema.response.import }
-    : undefined;
   const fields = schema.fields;
-  return { entityName, model, response, fields };
-}
-
-function toKababCase(s) {
-  return s
-    .replace(/_/g, "-")
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .toLowerCase();
+  return { entityName, internal, model, fields };
 }
 
 async function generate(
   schemaFilePath,
   baseTemplate,
   entityTemplate,
+  responseTemplate,
   isModule,
   outputPath
 ) {
@@ -129,30 +136,45 @@ async function generate(
   const schemaParams = await getSchemaParams(schemaFilePath);
   const params = { ...schemaParams, isModule };
 
-  const entityFileName = `${toKababCase(params.entityName)}.ts`;
-  const baseClassOutputPath = path.join(outputPath, "generated");
+  const generatedOutputPath = path.join(outputPath, "generated");
 
   // Generate base class
-  const baseClassContent = ejs.render(baseTemplate, params);
-  const baseClassPath = path.join(baseClassOutputPath, entityFileName);
-  await fs.promises.writeFile(baseClassPath, baseClassContent);
-  console.log(`  - Generated base class '${baseClassPath}'`);
+  const baseFileName = `${toKababCase(params.entityName)}-base.ts`;
+  const baseFilePath = path.join(generatedOutputPath, baseFileName);
+
+  const baseContent = ejs.render(baseTemplate, params);
+  await fs.promises.writeFile(baseFilePath, baseContent);
+  console.log(`  - Generated base class '${baseFilePath}'`);
 
   // Generate entity class
-  const entityClassContent = ejs.render(entityTemplate, params);
-  const entityClassPath = path.join(outputPath, entityFileName);
+  const entityFileName = `${toKababCase(params.entityName)}.ts`;
+  const entityFilePath = path.join(outputPath, entityFileName);
 
-  if (fs.existsSync(entityClassPath)) {
-    console.log(`  - Skipped entity class '${entityClassPath}'`);
-    return; // Skip if already exists
+  if (fs.existsSync(entityFilePath)) {
+    console.log(`  - Skipped entity class '${entityFilePath}'`);
+  } else {
+    const entityContent = ejs.render(entityTemplate, params);
+    await fs.promises.writeFile(entityFilePath, entityContent);
+    console.log(`  - Generated entity class '${entityFilePath}'`);
   }
-  await fs.promises.writeFile(entityClassPath, entityClassContent);
-  console.log(`  - Generated entity class '${entityClassPath}'`);
+
+  // Generate entity class
+  const responseFileName = `${toKababCase(params.entityName)}-type.ts`;
+  const responseFilePath = path.join(generatedOutputPath, responseFileName);
+
+  if (params.internal) {
+    console.log(`  - Skipped response class '${responseFilePath}'`);
+  } else {
+    const responseContent = ejs.render(responseTemplate, params);
+    await fs.promises.writeFile(responseFilePath, responseContent);
+    console.log(`  - Generated response class '${responseFilePath}'`);
+  }
 }
 
 async function execute() {
   // Load templates
-  const { baseTemplate, entityTemplate } = await loadTemplates();
+  const { baseTemplate, entityTemplate, responseTemplate } =
+    await loadTemplates();
 
   // Load configuration
   const config = await loadConfig();
@@ -173,6 +195,7 @@ async function execute() {
         schemaFilePath,
         baseTemplate,
         entityTemplate,
+        responseTemplate,
         isModule,
         outputPath
       )
