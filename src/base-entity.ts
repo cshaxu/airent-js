@@ -29,7 +29,7 @@ export default class BaseEntity<
     this._lock = lock;
   }
 
-  public async present(_request?: FIELD_REQUEST | true): Promise<RESPONSE> {
+  public async present(_request?: FIELD_REQUEST | boolean): Promise<RESPONSE> {
     throw new Error("not implemented");
   }
 
