@@ -66,11 +66,7 @@ import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
 } -%>
 
 <% function getFieldPresenter(field) {
-  const isDefaultField = isSyncField(field);
-  const queryCondition = `request?.${field.name}`;
-  const condition = isDefaultField
-    ? `isDefaultFormat || ${queryCondition}`
-    : `!isDefaultFormat && ${queryCondition}`;
+  const condition = `fieldRequest?.${field.name}`;
   let getter = 'undefined';
 
   if (isPrimitiveField(field)) {
@@ -83,13 +79,13 @@ import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
     getter = `await ${getterFunction}`;
   } else if (isAssociationField(field)) {
     if (field.type.endsWith('[]')) {
-      getter = `await ${getterFunction}.then((a) => Promise.all(a.map((one) => one.present(${queryCondition}))))`;
+      getter = `await ${getterFunction}.then((a) => Promise.all(a.map((one) => one.present(${condition}))))`;
     } else if (field.type.endsWith('[] | null')) {
-      getter = `await ${getterFunction}.then((a) => a ? Promise.all(a.map((one) => one.present(${queryCondition})) : Promise.resolve(null)))`;
+      getter = `await ${getterFunction}.then((a) => a ? Promise.all(a.map((one) => one.present(${condition})) : Promise.resolve(null)))`;
     } else if (field.type.endsWith(' | null')) {
-      getter = `await ${getterFunction}.then((one) => one ? one.present(${queryCondition}) : Promise.resolve(null))`;
+      getter = `await ${getterFunction}.then((one) => one ? one.present(${condition}) : Promise.resolve(null))`;
     } else {
-      getter = `await ${getterFunction}.then((one) => one.present(${queryCondition}))`;
+      getter = `await ${getterFunction}.then((one) => one.present(${condition}))`;
     }
   }
   
@@ -148,11 +144,17 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
   }
 
 <% if (!internal) { -%>
+  protected defaultFieldRequest: <%= getEntityStrings().fieldRequestClass %> = {
+<% fields.filter((field) => isExternalField(field) && isSyncField(field)).forEach((field) => { -%>
+    <%= field.name %>: true,
+<% }); -%>
+  };
+
   public async present(request?: <%= getEntityStrings().fieldRequestClass %> | boolean): Promise<<%= getEntityStrings().responseClass %>> {
     if (request === false) {
-      throw new Error('unprocessable request');
+      throw new Error('unprocessable field request');
     }
-    const isDefaultFormat = request === true || request === undefined;
+    const fieldRequest = request === true || request === undefined ? this.defaultFieldRequest : request;
     return {
 <% fields.filter(isExternalField).forEach((field) => { -%>
       <%= field.name %>: <%- getFieldPresenter(field) %>,
