@@ -13,7 +13,7 @@ export default class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MOD
     protected _group: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[];
     protected _lock: AsyncLock;
     protected constructor(group: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[], lock: AsyncLock);
-    present(_request?: FIELD_REQUEST | true): Promise<RESPONSE>;
+    present(_request?: FIELD_REQUEST | boolean): Promise<RESPONSE>;
     protected load<LOADED>(params: LoadParams<BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>, LOADED>): Promise<void>;
     /** factories */
     static fromOne<MODEL, ENTITY>(this: Constructor<MODEL, ENTITY>, model: MODEL): ENTITY;

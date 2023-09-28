@@ -149,10 +149,9 @@ const user = await prisma.user.findUnique({ where: { id: 123 } });
 const userEntity = UserEntity.fromOne(user);
 const response = await userEntity.present({ id: true, firstMessage: true });
 
-
 const users = await prisma.user.findMany({ where: { id: lt: 100 } });
 const userEntities = UserEntity.fromArray(users);
 const responses = await Promise.all(userEntities.map((u) => u.present()));
 ```
 
-That is it. Enjoy!
+This is it. Have fun!
