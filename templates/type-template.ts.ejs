@@ -1,18 +1,28 @@
-<% /** string utils */ -%>
-<% function toKababCase(string) {
+<%
+/** string utils */
+
+function toKababCase(string) {
   return string
     .replace(/_/g, '-')
     .replace(/([a-z])([A-Z])/g, '$1-$2')
     .toLowerCase();
-} -%>
-<% function toTitleCase(string) { return string.charAt(0).toUpperCase()+ string.slice(1); } -%>
-<% /** field utils */ -%>
-<% function isAssociationField(field) { return field.strategy === 'association'; } -%>
-<% function isImportableField(field) { return isAssociationField(field) || field.imports?.length; } -%>
-<% function isExternalField(field) { return !field.internal; } -%>
-<% /** class utils */ -%>
-<% function getModuleSuffix() { return isModule ? '.js' : ''; } -%>
-<% function getEntityStrings() {
+}
+
+function toTitleCase(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+/** field utils */
+
+function isAssociationField(field) { return field.strategy === 'association'; }
+function isImportableField(field) { return isAssociationField(field) || field.imports?.length; }
+function isExternalField(field) { return !field.internal; }
+
+/** class utils */
+
+function getModuleSuffix() { return isModule ? '.js' : ''; }
+
+function getEntityStrings() {
   const prefix = toKababCase(entityName);
   const suffix = getModuleSuffix();
   return {
@@ -25,8 +35,9 @@
     entityPackage: `${prefix}${suffix}`,
     typePackage: `${prefix}-type${suffix}`,
   };
-} -%>
-<% function getAssociationStrings(field) {
+}
+
+function getAssociationStrings(field) {
   const entName = toTitleCase(field.type.split("|")[0].split("[]")[0].trim());
 
   const prefix = toKababCase(entName);
@@ -45,22 +56,27 @@
     entityFieldType: field.type.replace(entName, entityClass),
     responseFieldType: field.type.replace(entName, responseClass),
   };
-} -%>
-<% /** type template specific utils */ -%>
-<% function getFieldRequestType(field) {
+}
+
+/** type template specific utils */
+
+function getFieldRequestType(field) {
   if (isAssociationField(field)) {
     const { fieldRequestClass } = getAssociationStrings(field);
     return `${fieldRequestClass} | boolean`;
   }
   return 'boolean';
-} -%>
-<% function getFieldResponseType(field) {
+}
+
+function getFieldResponseType(field) {
   if (isAssociationField(field)) {
     return getAssociationStrings(field).responseFieldType;
   }
   return field.type;
-} -%>
-<% /** type template follows */ -%>
+}
+
+/** type template follows */
+-%>
 <% fields
   .filter((field) => isExternalField(field) && isAssociationField(field))
   .forEach((field) => { -%>

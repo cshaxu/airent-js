@@ -1,19 +1,29 @@
-<% /** string utils */ -%>
-<% function toKababCase(string) {
+<%
+/** string utils */
+
+function toKababCase(string) {
   return string
     .replace(/_/g, '-')
     .replace(/([a-z])([A-Z])/g, '$1-$2')
     .toLowerCase();
-} -%>
-<% function toTitleCase(string) { return string.charAt(0).toUpperCase() + string.slice(1); } -%>
-<% /** field utils */ -%>
-<% function isAssociationField(field) { return field.strategy === 'association'; } -%>
-<% function isComputedSyncField(field) { return field.strategy === 'computed_sync'; } -%>
-<% function isComputedAsyncField(field) { return field.strategy === 'computed_async'; } -%>
-<% function isImportableField(field) { return isAssociationField(field) || field.imports?.length; } -%>
-<% /** class utils */ -%>
-<% function getModuleSuffix() { return isModule ? '.js' : ''; } -%>
-<% function getEntityStrings() {
+}
+
+function toTitleCase(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+/** field utils */
+
+function isAssociationField(field) { return field.strategy === 'association'; }
+function isComputedSyncField(field) { return field.strategy === 'computed_sync'; }
+function isComputedAsyncField(field) { return field.strategy === 'computed_async'; }
+function isImportableField(field) { return isAssociationField(field) || field.imports?.length; }
+
+/** class utils */
+
+function getModuleSuffix() { return isModule ? '.js' : ''; }
+
+function getEntityStrings() {
   const prefix = toKababCase(entityName);
   const suffix = getModuleSuffix();
   return {
@@ -26,8 +36,9 @@
     entityPackage: `${prefix}${suffix}`,
     typePackage: `${prefix}-type${suffix}`,
   };
-} -%>
-<% function getAssociationStrings(field) {
+}
+
+function getAssociationStrings(field) {
   const entName = toTitleCase(field.type.split("|")[0].split("[]")[0].trim());
 
   const prefix = toKababCase(entName);
@@ -46,8 +57,18 @@
     entityFieldType: field.type.replace(entName, entityClass),
     responseFieldType: field.type.replace(entName, responseClass),
   };
-} -%>
-<% /** entity template follows */ -%>
+}
+
+/** entity template specific utils */
+
+function getFieldParamsName(field) {
+  const className = getEntityStrings().entityClass;
+  const fieldName = field.name;
+  return `${className}.${fieldName}`;
+}
+
+/** entity template follows */
+-%>
 import { <%= getEntityStrings().baseClass %> } from './generated/<%= getEntityStrings().basePackage %>';
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 import { <%= getAssociationStrings(field).entityClass %> } from './<%= getAssociationStrings(field).entityPackage %>';
@@ -68,18 +89,16 @@ export class <%= getEntityStrings().entityClass %> extends <%= getEntityStrings(
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 
   protected <%= field.name %>Params = {
-    name: '<%= getEntityStrings().entityClass %>.<%= field.name %>',
-    before: undefined,
+    name: '<%= getFieldParamsName(field) %>',
     filter: (one: <%= getEntityStrings().entityClass %>) => {
-      throw new Error('not implemented');
+      throw new Error('<%= getFieldParamsName(field) %> filter not implemented');
     },
     loader: async (array: <%= getEntityStrings().entityClass %>[]) => {
-      throw new Error('not implemented');
+      throw new Error('<%= getFieldParamsName(field) %> loader not implemented');
     },
     setter: (array: <%= getEntityStrings().entityClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => {
-      throw new Error('not implemented');
+      throw new Error('<%= getFieldParamsName(field) %> setter not implemented');
     },
-    after: undefined,
   };
 <% }); -%>
 <% if (fields.some(isComputedSyncField)) { -%>
