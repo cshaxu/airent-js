@@ -6,6 +6,7 @@ type Constructor<MODEL, ENTITY> = {
 };
 
 type LoadParams<ENTITY, LOADED> = {
+  name?: string;
   before?: () => Promise<void>;
   filter?: (one: ENTITY) => boolean;
   loader?: (array: ENTITY[]) => Promise<LOADED[]>;
@@ -36,26 +37,31 @@ export default class BaseEntity<
   protected async load<LOADED>(
     params: LoadParams<BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>, LOADED>
   ): Promise<void> {
-    if (params.before) {
-      await params.before();
+    const { name, before, filter, loader, setter, after } = params;
+    if (!filter || !loader || !setter) {
+      throw new Error(`missing association filter/loader/setter (${name})`);
+    }
+
+    if (before) {
+      await before();
     }
 
     this._lock.acquire();
 
     try {
-      const array = this._group.filter(params.filter!);
+      const array = this._group.filter(filter);
       if (!array.length) {
         return;
       }
 
-      const loaded = await params.loader!(array);
-      params.setter!(array, loaded);
+      const loaded = await loader(array);
+      setter(array, loaded);
     } finally {
       this._lock.release();
     }
 
-    if (params.after) {
-      await params.after();
+    if (after) {
+      await after();
     }
   }
 
