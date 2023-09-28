@@ -16,12 +16,14 @@
     "url": "git+https://github.com/cshaxu/airent-js.git"
   },
   "keywords": [
+    "api",
+    "backend",
     "data",
     "entity",
+    "framework",
     "orm",
-    "presentation",
-    "api",
-    "pojo"
+    "pojo",
+    "presentation"
   ],
   "author": "cshaxu",
   "license": "MIT",
