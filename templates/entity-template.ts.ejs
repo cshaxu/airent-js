@@ -1,3 +1,4 @@
+<% /** string utils */ -%>
 <% function toKababCase(string) {
   return string
     .replace(/_/g, '-')
@@ -5,18 +6,16 @@
     .toLowerCase();
 } -%>
 <% function toTitleCase(string) { return string.charAt(0).toUpperCase() + string.slice(1); } -%>
-
+<% /** field utils */ -%>
 <% function isAssociationField(field) { return field.strategy === 'association'; } -%>
 <% function isComputedSyncField(field) { return field.strategy === 'computed_sync'; } -%>
 <% function isComputedAsyncField(field) { return field.strategy === 'computed_async'; } -%>
-<% function isComputedField(field) { return isComputedSyncField(field) || isComputedAsyncField(field); } -%>
 <% function isImportableField(field) { return isAssociationField(field) || field.imports?.length; } -%>
-
+<% /** class utils */ -%>
 <% function getModuleSuffix() { return isModule ? '.js' : ''; } -%>
 <% function getEntityStrings() {
   const prefix = toKababCase(entityName);
   const suffix = getModuleSuffix();
-  
   return {
     entName: entityName,
     baseClass: `${entityName}EntityBase`,
@@ -48,7 +47,7 @@
     responseFieldType: field.type.replace(entName, responseClass),
   };
 } -%>
-
+<% /** entity template follows */ -%>
 import { <%= getEntityStrings().baseClass %> } from './generated/<%= getEntityStrings().basePackage %>';
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 import { <%= getAssociationStrings(field).entityClass %> } from './<%= getAssociationStrings(field).entityPackage %>';
@@ -63,12 +62,13 @@ import { <%= _import.name %> } from '<%= _import.package %>';
 
 export class <%= getEntityStrings().entityClass %> extends <%= getEntityStrings().baseClass %> {
 <% if (fields.some(isAssociationField)) { -%>
+
   /** associations */
 <% } -%>
-
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 
   protected <%= field.name %>Params = {
+    name: '<%= getEntityStrings().entityClass %>.<%= field.name %>',
     before: undefined,
     filter: (one: <%= getEntityStrings().entityClass %>) => {
       throw new Error('not implemented');
@@ -82,22 +82,20 @@ export class <%= getEntityStrings().entityClass %> extends <%= getEntityStrings(
     after: undefined,
   };
 <% }); -%>
-
 <% if (fields.some(isComputedSyncField)) { -%>
+
   /** computed sync fields */
 <% } -%>
-
 <% fields.filter(isComputedSyncField).forEach((field) => { -%>
 
   public get<%= toTitleCase(field.name) %>(): <%= field.type %> {
     throw new Error('not implemented');
   }
 <% }); -%>
-
 <% if (fields.some(isComputedAsyncField)) { -%>
+
   /** computed async fields */
 <% } -%>
-
 <% fields.filter(isComputedAsyncField).forEach((field) => { -%>
 
   public async get<%= toTitleCase(field.name) %>(): Promise<<%= field.type %>> {

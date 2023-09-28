@@ -1,28 +1,24 @@
-import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
-
+<% /** string utils */ -%>
 <% function toKababCase(string) {
   return string
     .replace(/_/g, '-')
     .replace(/([a-z])([A-Z])/g, '$1-$2')
     .toLowerCase();
 } -%>
-<% function toTitleCase(string) { 
-  return string.charAt(0).toUpperCase() + string.slice(1); 
-} -%>
-
-<% function isPrimitiveField(field) { return field.strategy === 'primitive'; } -%>
+<% function toTitleCase(string) { return string.charAt(0).toUpperCase() + string.slice(1); } -%>
+<% /** field utils */ -%>
 <% function isAssociationField(field) { return field.strategy === 'association'; } -%>
 <% function isComputedSyncField(field) { return field.strategy === 'computed_sync'; } -%>
 <% function isComputedAsyncField(field) { return field.strategy === 'computed_async'; } -%>
 <% function isImportableField(field) { return isAssociationField(field) || field.imports?.length; } -%>
+<% function isPrimitiveField(field) { return field.strategy === 'primitive'; } -%>
 <% function isExternalField(field) { return !field.internal; } -%>
 <% function isSyncField(field) { return isPrimitiveField(field) || isComputedSyncField(field); } -%>
-
+<% /** class utils */ -%>
 <% function getModuleSuffix() { return isModule ? '.js' : ''; } -%>
 <% function getEntityStrings() {
   const prefix = toKababCase(entityName);
   const suffix = getModuleSuffix();
-  
   return {
     entName: entityName,
     baseClass: `${entityName}EntityBase`,
@@ -54,7 +50,7 @@ import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
     responseFieldType: field.type.replace(entName, responseClass),
   };
 } -%>
-
+<% /** base template specific utils */ -%>
 <% function getModelClass() {
   if (!model._import) {
     return '';
@@ -64,7 +60,6 @@ import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
       ? `${model._import.name} as ` : '';
   return `${prefix}${model.name}`;
 } -%>
-
 <% function getFieldPresenter(field) {
   const condition = `fieldRequest?.${field.name}`;
   let getter = 'undefined';
@@ -91,25 +86,27 @@ import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
   
   return `${condition} ? ${getter} : undefined`;
 } -%>
-
+<% /** base template follows */ -%>
+import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
 <% if (model._import) { -%>
+
 /** model */
 import { <%= getModelClass() %> } from '<%= model._import.package %>';
 <% } -%>
-
 <% if (!internal) { -%>
+
 /** response */
 import { <%= getEntityStrings().fieldRequestClass %>, <%= getEntityStrings().responseClass %> } from './<%= getEntityStrings().typePackage %>';
 <% } -%>
-
 <% if (fields.some(isAssociationField)) { -%>
+
 /** associations */
 <% } -%>
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 import { <%= getAssociationStrings(field).entityClass %> } from '../<%= getAssociationStrings(field).entityPackage %>';
 <% }); -%>
-
 <% if (fields.some((field) => isImportableField(field) && !isAssociationField(field))) { -%>
+
 /** fields */
 <% } -%>
 <% fields
@@ -142,8 +139,8 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
     this.<%= field.name %> = model.<%= field.name %><%= field.cast ? ` as ${field.type}` : '' %>;
 <% }); -%>
   }
-
 <% if (!internal) { -%>
+
   protected defaultFieldRequest: <%= getEntityStrings().fieldRequestClass %> = {
 <% fields.filter((field) => isExternalField(field) && isSyncField(field)).forEach((field) => { -%>
     <%= field.name %>: true,
@@ -162,14 +159,13 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
     };
   }
 <% } -%>
-
 <% if (fields.some(isAssociationField)) { -%>
+
   /** associations */
 <% } -%>
-
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 
-  protected <%= field.name %>Params = {};
+  protected <%= field.name %>Params = { name: '<%= getEntityStrings().baseClass %>.<%= field.name %>'};
 
   protected async load<%= toTitleCase(field.name) %>(): Promise<void> {
     await this.load(this.<%= field.name %>Params);
@@ -187,19 +183,18 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
     this.<%= field.name %> = <%= field.name %>;
   }
 <% }); -%>
-
 <% if (fields.some(isComputedSyncField)) { -%>
+
   /** computed sync fields */
 <% } -%>
-
 <% fields.filter(isComputedSyncField).forEach((field) => { -%>
 
   public get<%= toTitleCase(field.name) %>(): <%= field.type %> {
     throw new Error('not implemented');
   }
 <% }); -%>
-
 <% if (fields.some(isComputedAsyncField)) { -%>
+
   /** computed async fields */
 <% } -%>
 <% fields.filter(isComputedAsyncField).forEach((field) => { -%>

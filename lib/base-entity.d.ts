@@ -3,6 +3,7 @@ type Constructor<MODEL, ENTITY> = {
     new (model: MODEL, group: ENTITY[], lock: AsyncLock): ENTITY;
 };
 type LoadParams<ENTITY, LOADED> = {
+    name?: string;
     before?: () => Promise<void>;
     filter?: (one: ENTITY) => boolean;
     loader?: (array: ENTITY[]) => Promise<LOADED[]>;
