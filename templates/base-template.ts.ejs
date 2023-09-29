@@ -41,11 +41,11 @@ function getFieldGetter(prefix, field) {
 }
 
 function queryField(fieldName) {
-  return fields.find((field) => field.name === fieldName);
-}
-
-function hasAssociationKeys(field) {
-  return getSourceFields(field).length && field.targetFields?.length;
+  return fields.find((field) => field.name === fieldName) ?? {
+    name: fieldName,
+    type: 'any',
+    strategy: 'primitive',
+  };
 }
 
 function getSourceFields(field) {
@@ -55,7 +55,7 @@ function getSourceFields(field) {
     .filter(isSyncField);
 }
 
-function getSourceAssociationKey(field) {
+function getSourceKey(field) {
   const getters = getSourceFields(field)
     .map((sf) => getFieldGetter('one.', sf))
   if (getters.length === 1) {
@@ -64,13 +64,31 @@ function getSourceAssociationKey(field) {
   return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
 }
 
-function getTargetAssociationKey(field) {
+function getTargetKey(field) {
   const getters = (field.targetFields ?? [])
     .map((fieldName) => `one.${fieldName}`);
   if (getters.length === 1) {
     return getters[0];
   }
   return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
+}
+
+function hasSourceKey(field) {
+  return getSourceFields(field).length;
+}
+
+function hasTargetKey(field) {
+  return field.targetFields?.length;
+}
+
+function hasAssociationKeys(field) {
+  return hasSourceKey(field) && hasTargetKey(field);
+}
+
+function getFieldParamsName(field) {
+  const className = getEntityStrings().entityClass;
+  const fieldName = field.name;
+  return `${className}.${fieldName}`;
 }
 
 /** class utils */
@@ -111,14 +129,6 @@ function getAssociationStrings(field) {
     entityFieldType: field.type.replace(entName, entityClass),
     responseFieldType: field.type.replace(entName, responseClass),
   };
-}
-
-/** association utils */
-
-function getFieldParamsName(field) {
-  const className = getEntityStrings().entityClass;
-  const fieldName = field.name;
-  return `${className}.${fieldName}`;
 }
 
 /** base template specific utils */
@@ -237,7 +247,7 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
     filter: (one: <%= getEntityStrings().baseClass %>) => one.<%= field.name %> === undefined,
     // TODO: build your association data loader
     // loader: async (array: <%= getEntityStrings().baseClass %>[]) => {
-<% if (hasAssociationKeys(field)) { -%>
+<% if (hasSourceKey(field)) { -%>
 <% getSourceFields(field).forEach((sourceField) => { -%>
     //   const <%= sourceField.name %>s = buildUniqueNonNullArray(array, (one) => one.<%= getFieldGetterName(sourceField) %>);
 <% }); -%>
@@ -246,34 +256,21 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
     //   const loadedModels = ...;
     //   return <%= getAssociationStrings(field).entityClass %>.fromArray(loadedModels);
     // },
-<% if (hasAssociationKeys(field)) { -%>
-    setter: (array: <%= getEntityStrings().baseClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => {
-<% if (isArrayField(field)) { -%>
-      const map = buildArrayMap(
-<% } else { -%>
-      const map = buildObjectMap(
-<% } -%>
-        loaded,
-        (one) => <%= getTargetAssociationKey(field) %>,
-        (one) => one
-      );
-      array.forEach((one) => (one.<%= field.name %> = map.get(<%= getSourceAssociationKey(field) %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
-    },
-<% } else { -%>
+<% if (!hasAssociationKeys(field)) { -%>
     // TODO: build your association data setter
-    // setter: (array: <%= getEntityStrings().baseClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => {
+<% } -%>
+    <%= hasAssociationKeys(field) ? '' : '// ' %>setter: (array: <%= getEntityStrings().baseClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => {
 <% if (isArrayField(field)) { -%>
-    //   const map = buildArrayMap(
+    <%= hasAssociationKeys(field) ? '' : '// ' %>  const map = buildArrayMap(
 <% } else { -%>
-    //   const map = buildObjectMap(
+    <%= hasAssociationKeys(field) ? '' : '// ' %>  const map = buildObjectMap(
 <% } -%>
-    //     loaded,
-    //     (one) => ...,
-    //     (one) => one
-    //   );
-    //   array.forEach((one) => (one.<%= field.name %> = map.get(...)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
-    // },
-<% } -%>
+    <%= hasAssociationKeys(field) ? '' : '// ' %>    loaded,
+    <%= hasAssociationKeys(field) ? '' : '// ' %>    (one) => <%- hasTargetKey(field) ? getTargetKey(field) : '\'TODO: map your target entity to key\'' %>,
+    <%= hasAssociationKeys(field) ? '' : '// ' %>    (one) => one
+    <%= hasAssociationKeys(field) ? '' : '// ' %>  );
+    <%= hasAssociationKeys(field) ? '' : '// ' %>  array.forEach((one) => (one.<%= field.name %> = map.get(<%- hasSourceKey(field) ? getSourceKey(field) : '\'TODO: map your source entity to key\'' %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
+    <%= hasAssociationKeys(field) ? '' : '// ' %>},
   };
 
   protected async load<%= toTitleCase(field.name) %>(): Promise<void> {

@@ -15,10 +15,8 @@ fields:
     type: string
     strategy: primitive
   - id: 3
-    name: userId
-    type: string
-    strategy: primitive
-  - id: 4
     name: user
     type: User
     strategy: association
+    sourceFields:
+      - apiAccount!.userId

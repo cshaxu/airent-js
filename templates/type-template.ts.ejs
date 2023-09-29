@@ -21,6 +21,75 @@ function isImportableField(field) { return isAssociationField(field) || field.im
 function isPrimitiveField(field) { return field.strategy === 'primitive'; }
 function isExternalField(field) { return !field.internal; }
 function isSyncField(field) { return isPrimitiveField(field) || isComputedSyncField(field); }
+function isArrayField(field) { return field.type.endsWith('[]'); }
+function isNullableField(field) { return field.type.endsWith(' | null'); }
+
+function getFieldGetterName(field) {
+  if (isPrimitiveField(field)) {
+    return `${field.name}`;
+  }
+  return `get${toTitleCase(field.name)}()`;
+}
+
+function getFieldGetter(prefix, field) {
+  const getterName = `${prefix}${getFieldGetterName(field)}`;
+  if (isSyncField(field)) {
+    return getterName;
+  } else {
+    return `await ${getterName}`;
+  }
+}
+
+function queryField(fieldName) {
+  return fields.find((field) => field.name === fieldName) ?? {
+    name: fieldName,
+    type: 'any',
+    strategy: 'primitive',
+  };
+}
+
+function getSourceFields(field) {
+  return (field.sourceFields ?? [])
+    .map(queryField)
+    .filter(Boolean)
+    .filter(isSyncField);
+}
+
+function getSourceKey(field) {
+  const getters = getSourceFields(field)
+    .map((sf) => getFieldGetter('one.', sf))
+  if (getters.length === 1) {
+    return getters[0];
+  }
+  return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
+}
+
+function getTargetKey(field) {
+  const getters = (field.targetFields ?? [])
+    .map((fieldName) => `one.${fieldName}`);
+  if (getters.length === 1) {
+    return getters[0];
+  }
+  return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
+}
+
+function hasSourceKey(field) {
+  return getSourceFields(field).length;
+}
+
+function hasTargetKey(field) {
+  return field.targetFields?.length;
+}
+
+function hasAssociationKeys(field) {
+  return hasSourceKey(field) && hasTargetKey(field);
+}
+
+function getFieldParamsName(field) {
+  const className = getEntityStrings().entityClass;
+  const fieldName = field.name;
+  return `${className}.${fieldName}`;
+}
 
 /** class utils */
 
@@ -60,14 +129,6 @@ function getAssociationStrings(field) {
     entityFieldType: field.type.replace(entName, entityClass),
     responseFieldType: field.type.replace(entName, responseClass),
   };
-}
-
-/** association utils */
-
-function getFieldParamsName(field) {
-  const className = getEntityStrings().entityClass;
-  const fieldName = field.name;
-  return `${className}.${fieldName}`;
 }
 
 /** type template specific utils */

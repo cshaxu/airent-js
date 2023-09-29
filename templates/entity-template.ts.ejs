@@ -41,11 +41,11 @@ function getFieldGetter(prefix, field) {
 }
 
 function queryField(fieldName) {
-  return fields.find((field) => field.name === fieldName);
-}
-
-function hasAssociationKeys(field) {
-  return getSourceFields(field).length && field.targetFields?.length;
+  return fields.find((field) => field.name === fieldName) ?? {
+    name: fieldName,
+    type: 'any',
+    strategy: 'primitive',
+  };
 }
 
 function getSourceFields(field) {
@@ -55,7 +55,7 @@ function getSourceFields(field) {
     .filter(isSyncField);
 }
 
-function getSourceAssociationKey(field) {
+function getSourceKey(field) {
   const getters = getSourceFields(field)
     .map((sf) => getFieldGetter('one.', sf))
   if (getters.length === 1) {
@@ -64,13 +64,31 @@ function getSourceAssociationKey(field) {
   return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
 }
 
-function getTargetAssociationKey(field) {
+function getTargetKey(field) {
   const getters = (field.targetFields ?? [])
     .map((fieldName) => `one.${fieldName}`);
   if (getters.length === 1) {
     return getters[0];
   }
   return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
+}
+
+function hasSourceKey(field) {
+  return getSourceFields(field).length;
+}
+
+function hasTargetKey(field) {
+  return field.targetFields?.length;
+}
+
+function hasAssociationKeys(field) {
+  return hasSourceKey(field) && hasTargetKey(field);
+}
+
+function getFieldParamsName(field) {
+  const className = getEntityStrings().entityClass;
+  const fieldName = field.name;
+  return `${className}.${fieldName}`;
 }
 
 /** class utils */
@@ -113,14 +131,6 @@ function getAssociationStrings(field) {
   };
 }
 
-/** association utils */
-
-function getFieldParamsName(field) {
-  const className = getEntityStrings().entityClass;
-  const fieldName = field.name;
-  return `${className}.${fieldName}`;
-}
-
 /** entity template follows */
 -%>
 import { buildArrayMap, buildObjectMap, buildUniqueNonNullArray } from '<%= airentPackage %>';
@@ -145,7 +155,7 @@ export class <%= getEntityStrings().entityClass %> extends <%= getEntityStrings(
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 
     this.<%= field.name %>Params.loader = async (array: <%= getEntityStrings().baseClass %>[]) => {    
-<% if (hasAssociationKeys(field)) { -%>
+<% if (hasSourceKey(field)) { -%>
 <% getSourceFields(field).forEach((sourceField) => { -%>
       const <%= sourceField.name %>s = buildUniqueNonNullArray(array, (one) => one.<%= getFieldGetterName(sourceField) %>);
 <% }); -%>
@@ -158,19 +168,18 @@ export class <%= getEntityStrings().entityClass %> extends <%= getEntityStrings(
     };
 <% if (!hasAssociationKeys(field)) { -%>
 
-    this.<%= field.name %>Params.setter = (array: <%= getEntityStrings().baseClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => {
+    this.<%= field.name %>Params.setter = ((array: <%= getEntityStrings().entityClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => {
 <% if (isArrayField(field)) { -%>
       const map = buildArrayMap(
 <% } else { -%>
       const map = buildObjectMap(
 <% } -%>
         loaded,
-        (one) => '', // TODO: map your target entities to keys
+        (one) => <%- hasTargetKey(field) ? getTargetKey(field) : '\'TODO: map your target entity to key\'' %>,
         (one) => one
       );
-      // TODO: map your source entities to keys
-      array.forEach((one) => (one.<%= field.name %> = map.get('')<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
-    };
+      array.forEach((one) => (one.<%= field.name %> = map.get(<%- hasSourceKey(field) ? getSourceKey(field) : '\'TODO: map your source entity to key\'' %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
+    }) as (array: <%= getEntityStrings().baseClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => Promise<void>;
 <% } -%>
 <% }); -%>
   }

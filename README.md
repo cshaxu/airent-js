@@ -80,6 +80,10 @@ fields:
     name: messages
     type: Message[] # you need to create message.yml for this entity
     strategy: association # this field is loaded from db by foreign keys
+    sourceFields:
+      - id # the key field in User entity
+    targetFields:
+      - userId # the key field in Message entity
   - id: 9
     name: lastMessage
     type: Message | null
