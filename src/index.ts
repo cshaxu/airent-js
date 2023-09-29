@@ -7,7 +7,7 @@ type Constructor<MODEL, ENTITY> = {
 
 type LoadParams<ENTITY, LOADED> = {
   name: string;
-  filter?: (one: ENTITY) => boolean;
+  filter: (one: ENTITY) => boolean;
   loader?: (array: ENTITY[]) => Promise<LOADED[]>;
   setter?: (array: ENTITY[], loaded: LOADED[]) => void;
 };
@@ -24,17 +24,36 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     this._lock = lock;
   }
 
+  protected initialize(): void {}
+
   public async present(_request?: FIELD_REQUEST | boolean): Promise<RESPONSE> {
     throw new Error("not implemented");
   }
 
-  protected async load<LOADED>(
-    params: LoadParams<BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>, LOADED>
-  ): Promise<void> {
-    const { name, filter, loader, setter } = params;
-    if (!filter || !loader || !setter) {
-      throw new Error(`${name} loadParams not implemented`);
+  protected async load<
+    ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>,
+    LOADED
+  >(params: LoadParams<ENTITY, LOADED>): Promise<void> {
+    const { name, loader: loaderRaw, setter: setterRaw } = params;
+    const filter = params.filter as (
+      one: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>
+    ) => boolean;
+
+    if (!loaderRaw) {
+      throw new Error(`${name} loader not implemented`);
     }
+    const loader = loaderRaw as (
+      array: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[]
+    ) => Promise<LOADED[]>;
+
+    if (!setterRaw) {
+      throw new Error(`${name} setter not implemented`);
+    }
+    const setter = setterRaw as (
+      array: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[],
+      loaded: LOADED[]
+    ) => void;
+
     await this._lock.acquire(name, async () => {
       const array = this._group.filter(filter);
       if (!array.length) {
@@ -67,6 +86,63 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     models.forEach((model) => group.push(new this(model, group, lock)));
     return group;
   }
+
+  public static async presentMany<
+    MODEL,
+    FIELD_REQUEST,
+    RESPONSE,
+    ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>
+  >(entities: ENTITY[], request?: FIELD_REQUEST | boolean): Promise<any[]> {
+    return await Promise.all(entities.map((one) => one.present(request)));
+  }
 }
 
-export { AsyncLock, BaseEntity };
+function buildArrayMap<OBJECT, KEY, VALUE>(
+  objects: OBJECT[],
+  keyMapper: (object: OBJECT) => KEY,
+  valueMapper: (object: OBJECT) => VALUE
+): Map<KEY, VALUE[]> {
+  return objects.reduce((map, object) => {
+    const key = keyMapper(object);
+    const value = valueMapper(object);
+    const array = map.get(key) ?? new Array<VALUE>();
+    array.push(value);
+    map.set(key, array);
+    return map;
+  }, new Map<KEY, VALUE[]>());
+}
+
+function buildObjectMap<OBJECT, KEY, VALUE>(
+  objects: OBJECT[],
+  keyMapper: (object: OBJECT) => KEY,
+  valueMapper: (object: OBJECT) => VALUE
+): Map<KEY, VALUE> {
+  return new Map(objects.map((o) => [keyMapper(o), valueMapper(o)]));
+}
+
+function buildUniqueNonNullArray<OBJECT, VALUE>(
+  objects: OBJECT[],
+  mapper: (object: OBJECT) => VALUE
+): NonNullable<VALUE>[] {
+  const set = new Set<VALUE>();
+  return objects
+    .filter(Boolean)
+    .map(mapper)
+    .filter((v) => {
+      if (set.has(v)) {
+        return false;
+      }
+      set.add(v);
+      return true;
+    })
+    .map((o) => o!);
+}
+
+export {
+  AsyncLock,
+  BaseEntity,
+  LoadParams,
+  buildArrayMap,
+  buildObjectMap,
+  buildUniqueNonNullArray,
+};

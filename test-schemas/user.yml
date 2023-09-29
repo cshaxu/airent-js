@@ -37,10 +37,18 @@ fields:
     name: messages
     type: Message[]
     strategy: association
+    sourceFields:
+      - id
+    targetFields:
+      - userId
   - id: 9
     name: sessions
     type: Session[]
     strategy: association
+    sourceFields:
+      - id
+    targetFields:
+      - userId
     internal: true
   - id: 10
     name: firstMessage

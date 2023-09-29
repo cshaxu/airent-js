@@ -25,6 +25,12 @@ fields:
     name: user
     type: User
     strategy: association
+    sourceFields:
+      - userId
+      - content
+    targetFields:
+      - id
+      - email
   - id: 6
     name: isContentEmpty
     type: boolean

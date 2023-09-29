@@ -21,6 +21,57 @@ function isImportableField(field) { return isAssociationField(field) || field.im
 function isPrimitiveField(field) { return field.strategy === 'primitive'; }
 function isExternalField(field) { return !field.internal; }
 function isSyncField(field) { return isPrimitiveField(field) || isComputedSyncField(field); }
+function isArrayField(field) { return field.type.endsWith('[]'); }
+function isNullableField(field) { return field.type.endsWith(' | null'); }
+
+function getFieldGetterName(field) {
+  if (isPrimitiveField(field)) {
+    return `${field.name}`;
+  }
+  return `get${toTitleCase(field.name)}()`;
+}
+
+function getFieldGetter(prefix, field) {
+  const getterName = `${prefix}${getFieldGetterName(field)}`;
+  if (isSyncField(field)) {
+    return getterName;
+  } else {
+    return `await ${getterName}`;
+  }
+}
+
+function queryField(fieldName) {
+  return fields.find((field) => field.name === fieldName);
+}
+
+function hasAssociationKeys(field) {
+  return getSourceFields(field).length && field.targetFields?.length;
+}
+
+function getSourceFields(field) {
+  return (field.sourceFields ?? [])
+    .map(queryField)
+    .filter(Boolean)
+    .filter(isSyncField);
+}
+
+function getSourceAssociationKey(field) {
+  const getters = getSourceFields(field)
+    .map((sf) => getFieldGetter('one.', sf))
+  if (getters.length === 1) {
+    return getters[0];
+  }
+  return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
+}
+
+function getTargetAssociationKey(field) {
+  const getters = (field.targetFields ?? [])
+    .map((fieldName) => `one.${fieldName}`);
+  if (getters.length === 1) {
+    return getters[0];
+  }
+  return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
+}
 
 /** class utils */
 
@@ -62,6 +113,14 @@ function getAssociationStrings(field) {
   };
 }
 
+/** association utils */
+
+function getFieldParamsName(field) {
+  const className = getEntityStrings().entityClass;
+  const fieldName = field.name;
+  return `${className}.${fieldName}`;
+}
+
 /** base template specific utils */
 
 function getModelClass() {
@@ -76,40 +135,24 @@ function getModelClass() {
 
 function getFieldPresenter(field) {
   const condition = `fieldRequest?.${field.name}`;
-  let getter = 'undefined';
+  let getter = getFieldGetter('this.', field);
 
-  if (isPrimitiveField(field)) {
-    getter = `this.${field.name}`;
-  }
-  const getterFunction = `this.get${toTitleCase(field.name)}()`;
-  if (isComputedSyncField(field)) {
-    getter = getterFunction;
-  } else if (isComputedAsyncField(field)) {
-    getter = `await ${getterFunction}`;
-  } else if (isAssociationField(field)) {
-    if (field.type.endsWith('[]')) {
-      getter = `await ${getterFunction}.then((a) => Promise.all(a.map((one) => one.present(${condition}))))`;
-    } else if (field.type.endsWith('[] | null')) {
-      getter = `await ${getterFunction}.then((a) => a ? Promise.all(a.map((one) => one.present(${condition})) : Promise.resolve(null)))`;
-    } else if (field.type.endsWith(' | null')) {
-      getter = `await ${getterFunction}.then((one) => one ? one.present(${condition}) : Promise.resolve(null))`;
+  if (isAssociationField(field)) {
+    if (isArrayField(field)) {
+      getter += `.then((a) => Promise.all(a.map((one) => one.present(${condition}))))`;
+    } else if (isNullableField(field)) {
+      getter += `.then((one) => one ? one.present(${condition}) : Promise.resolve(null))`;
     } else {
-      getter = `await ${getterFunction}.then((one) => one.present(${condition}))`;
+      getter += `.then((one) => one.present(${condition}))`;
     }
   }
-  
-  return `${condition} ? ${getter} : undefined`;
-}
 
-function getFieldParamsName(field) {
-  const className = getEntityStrings().baseClass;
-  const fieldName = field.name;
-  return `${className}.${fieldName}`;
+  return `${condition} ? ${getter} : undefined`;
 }
 
 /** base template follows */
 -%>
-import { AsyncLock, BaseEntity } from '<%= airentPackage %>';
+import { AsyncLock, BaseEntity, LoadParams, buildArrayMap, buildObjectMap } from '<%= airentPackage %>';
 <% if (model._import) { -%>
 
 /** model */
@@ -160,10 +203,12 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
 <% fields.filter(isPrimitiveField).forEach((field) => { -%>
     this.<%= field.name %> = model.<%= field.name %><%= field.cast ? ` as ${field.type}` : '' %>;
 <% }); -%>
+
+    this.initialize();
   }
 <% if (!internal) { -%>
 
-  protected defaultFieldRequest: <%= getEntityStrings().fieldRequestClass %> = {
+  public static defaultFieldRequest: <%= getEntityStrings().fieldRequestClass %> = {
 <% fields.filter((field) => isExternalField(field) && isSyncField(field)).forEach((field) => { -%>
     <%= field.name %>: true,
 <% }); -%>
@@ -173,7 +218,7 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
     if (request === false) {
       throw new Error('unprocessable field request');
     }
-    const fieldRequest = request === true || request === undefined ? this.defaultFieldRequest : request;
+    const fieldRequest = request === true || request === undefined ? <%= getEntityStrings().baseClass %>.defaultFieldRequest : request;
     return {
 <% fields.filter(isExternalField).forEach((field) => { -%>
       <%= field.name %>: <%- getFieldPresenter(field) %>,
@@ -187,7 +232,49 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
 <% } -%>
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 
-  protected <%= field.name %>Params = { name: '<%= getFieldParamsName(field) %>' };
+  protected <%= field.name %>Params: LoadParams<<%= getEntityStrings().baseClass %>, <%= getAssociationStrings(field).entityClass %>> = {
+    name: '<%= getFieldParamsName(field) %>',
+    filter: (one: <%= getEntityStrings().baseClass %>) => one.<%= field.name %> === undefined,
+    // TODO: build your association data loader
+    // loader: async (array: <%= getEntityStrings().baseClass %>[]) => {
+<% if (hasAssociationKeys(field)) { -%>
+<% getSourceFields(field).forEach((sourceField) => { -%>
+    //   const <%= sourceField.name %>s = buildUniqueNonNullArray(array, (one) => one.<%= getFieldGetterName(sourceField) %>);
+<% }); -%>
+    //   // TODO: load models with the above keys
+<% } -%>
+    //   const loadedModels = ...;
+    //   return <%= getAssociationStrings(field).entityClass %>.fromArray(loadedModels);
+    // },
+<% if (hasAssociationKeys(field)) { -%>
+    setter: (array: <%= getEntityStrings().baseClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => {
+<% if (isArrayField(field)) { -%>
+      const map = buildArrayMap(
+<% } else { -%>
+      const map = buildObjectMap(
+<% } -%>
+        loaded,
+        (one) => <%= getTargetAssociationKey(field) %>,
+        (one) => one
+      );
+      array.forEach((one) => (one.<%= field.name %> = map.get(<%= getSourceAssociationKey(field) %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
+    },
+<% } else { -%>
+    // TODO: build your association data setter
+    // setter: (array: <%= getEntityStrings().baseClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => {
+<% if (isArrayField(field)) { -%>
+    //   const map = buildArrayMap(
+<% } else { -%>
+    //   const map = buildObjectMap(
+<% } -%>
+    //     loaded,
+    //     (one) => ...,
+    //     (one) => one
+    //   );
+    //   array.forEach((one) => (one.<%= field.name %> = map.get(...)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
+    // },
+<% } -%>
+  };
 
   protected async load<%= toTitleCase(field.name) %>(): Promise<void> {
     await this.load(this.<%= field.name %>Params);
