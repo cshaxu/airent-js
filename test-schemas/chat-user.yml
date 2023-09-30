@@ -1,16 +1,12 @@
-entity: Message
-model: PrismaMessage
+entity: ChatUser
+model: PrismaChatUser
 types:
-  - name: Message as PrismaMessage
+  - name: ChatUser as PrismaChatUser
     import: "@prisma/client"
-  - name: Chat
-    entity: true
   - name: User
     entity: true
-  - name: Attachment
-    define: "{ [key: string] : string }"
-  - name: SenderType
-    enum: '{ USER = "USER", CHATBOT = "CHATBOT" }'
+  - name: Chat
+    entity: true
 fields:
   - id: 1
     name: id
@@ -21,23 +17,18 @@ fields:
     type: Date
     strategy: primitive
   - id: 3
+    name: updatedAt
+    type: Date
+    strategy: primitive
+  - id: 4
     name: chatId
     type: string
     strategy: primitive
-  - id: 4
+  - id: 5
     name: userId
     type: string
     strategy: primitive
-  - id: 5
-    name: content
-    type: string | null
-    strategy: primitive
   - id: 6
-    name: attachment
-    type: Attachment | null
-    strategy: primitive
-    cast: true
-  - id: 7
     name: chat
     type: Chat
     strategy: association
@@ -45,7 +36,7 @@ fields:
       - chatId
     targetFields:
       - id
-  - id: 8
+  - id: 7
     name: user
     type: User
     strategy: association
@@ -53,8 +44,3 @@ fields:
       - userId
     targetFields:
       - id
-  - id: 9
-    name: hasContent
-    type: boolean
-    strategy: computed_sync
-    internal: true

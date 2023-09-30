@@ -12,12 +12,18 @@ function toTitleCase(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+/** type utils */
+function isEntityType(type) { return !!type.entity; }
+function isDefinableType(type) { return !!type.define?.length; }
+function isEnumerableType(type) { return !!type.enum?.length; }
+function isInternalType(type) { return isDefinableType(type) || isEnumerableType(type); }
+function isImportableType(type) { return !!type.import?.length; }
+
 /** field utils */
 
 function isAssociationField(field) { return field.strategy === 'association'; }
 function isComputedSyncField(field) { return field.strategy === 'computed_sync'; }
 function isComputedAsyncField(field) { return field.strategy === 'computed_async'; }
-function isImportableField(field) { return isAssociationField(field) || field.imports?.length; }
 function isPrimitiveField(field) { return field.strategy === 'primitive'; }
 function isExternalField(field) { return !field.internal; }
 function isSyncField(field) { return isPrimitiveField(field) || isComputedSyncField(field); }
@@ -95,6 +101,28 @@ function getFieldParamsName(field) {
 
 function getModuleSuffix() { return isModule ? '.js' : ''; }
 
+function getTypeStrings(type) {
+  if (isEntityType(type)) {
+    const prefix = `${toKababCase(type.name)}`;
+    const suffix = getModuleSuffix();
+    return {
+      entityClass: `${type.name}Entity`,
+      entityPackage: `${prefix}${suffix}`,
+      fieldRequestClass: `${type.name}FieldRequest`,
+      responseClass: `${type.name}Response`,
+      typePackage: `${prefix}-type${suffix}`,
+    };
+  } else if (isImportableType(type)) {
+    return { externalClass: type.name, externalPackage: type.import };
+  } else if (isDefinableType(type)) {
+    return { typeName: type.name, typeDefinition: type.define };
+  } else if (isEnumerableType(type)) {
+    return { typeName: type.name, typeDefinition: type.enum };
+  } else {
+    throw new Error(`invalid type ${type.name}`);
+  }
+}
+
 function getEntityStrings() {
   const prefix = toKababCase(entityName);
   const suffix = getModuleSuffix();
@@ -131,20 +159,39 @@ function getAssociationStrings(field) {
   };
 }
 
+/** entity template specific utils */
+
 /** entity template follows */
 -%>
 import { buildArrayMap, buildObjectMap, buildUniqueNonNullArray } from '<%= airentPackage %>';
+
+/** generated */
 import { <%= getEntityStrings().baseClass %> } from './generated/<%= getEntityStrings().basePackage %>';
-<% fields.filter(isAssociationField).forEach((field) => { -%>
-import { <%= getAssociationStrings(field).entityClass %> } from './<%= getAssociationStrings(field).entityPackage %>';
+<% if (!internal || fields.some(isInternalType)) { -%>
+import {
+<% if (!internal) { -%>
+  <%= getEntityStrings().fieldRequestClass %>,
+  <%= getEntityStrings().responseClass %>,
+<% } -%>
+<% types.filter(isInternalType).forEach((type) => { -%>
+  <%= getTypeStrings(type).typeName %>,
 <% }); -%>
-<% fields
-  .filter((field) => isImportableField(field) && !isAssociationField(field))
-  .flatMap((field) => field.imports)
-  .filter((_import) => _import.name)
-  .forEach((_import) => { -%>
-import { <%= _import.name %> } from '<%= _import.package %>';
+} from './generated/<%= getEntityStrings().typePackage %>';
+<% } -%>
+<% if (types.some(isEntityType)) { -%>
+
+/** associations */
+<% types.filter(isEntityType).forEach((type) => { -%>
+import { <%= getTypeStrings(type).entityClass %> } from './<%= getTypeStrings(type).entityPackage %>';
 <% }); -%>
+<% } -%>
+<% if (types.some(isImportableType)) { -%>
+
+/** external types */
+<% types.filter(isImportableType).forEach((type) => { -%>
+import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
+<% }); -%>
+<% } -%>
 
 export class <%= getEntityStrings().entityClass %> extends <%= getEntityStrings().baseClass %> {
 <% if (fields.some(isAssociationField)) { -%>
