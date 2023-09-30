@@ -23,11 +23,13 @@ Then, create the configuration file `airent.config.js` in the root directory of 
 
 ```json
 {
-  "type": "module", // optional, defaults to "commonjs"
+  "type": "commonjs",
   "schemaPath": "schemas",
   "outputPath": "src/entities"
 }
 ```
+
+You may specify `"type": "module"` if you are using ES modules.
 
 ## Build your data application with Airent
 
@@ -37,13 +39,15 @@ Create a new YAML file in your schema directory, e.g. `schemas/User.yaml`:
 
 ```yaml
 entity: User
-# internal: true             # set internal to true if you do not want to
-# generate API response for this entity
-model:
-  name: PrismaUser
-  import:
-    name: User
-    package: "@prisma/client"
+# internal: true # set internal to true if you do not want to generate API response for this entity
+model: PrismaUser
+types:
+  - name: User as PrismaUser
+    import: "@prisma/client"
+  - name: ChatUser # you need to create chat-user.yml for this entity
+    entity: true
+  - name: Message # you need to create message.yml for this entity
+    entity: true
 fields:
   - id: 1
     name: id
@@ -62,28 +66,44 @@ fields:
     type: string
     strategy: primitive
   - id: 5
-    name: image
-    type: string | null
-    strategy: primitive
-  - id: 6
     name: firstName
     type: string | null
     strategy: primitive
+  - id: 6
+    name: lastName
+    type: string | null
+    strategy: primitive
   - id: 7
+    name: imageUrl
+    type: string | null
+    strategy: primitive
+  - id: 8
     name: isAdmin
     type: boolean
-    strategy:
-      computed_sync # this field is computed from primitive fields
-      # without extra data loading
+    strategy: computed_sync # this field is computed from primitive fields without extra data loading
     internal: true # this field will not be exposed to the API response
-  - id: 8
-    name: messages
-    type: Message[] # you need to create message.yml for this entity
-    strategy: association # this field is loaded from db by foreign keys
   - id: 9
-    name: lastMessage
+    name: chatUsers
+    type: ChatUser[] # the ChatUser entity is defined in the types section above
+    strategy: association # this field is to be loaded from db by foreign keys
+    sourceFields:
+      - id # the key field in User entity
+    targetFields:
+      - userId # the key field in ChatUser entity
+    internal: true
+  - id: 10
+    name: messages
+    type: Message[] # the Messsage entity is defined in the types section above
+    strategy: association # this field is to be loaded from db by foreign keys
+    sourceFields:
+      - id # the key field in User entity
+    targetFields:
+      - userId # the key field in Message entity
+    internal: true
+  - id: 11
+    name: firstMessage
     type: Message | null
-    strategy: computed_async # this field is computed based on "messages" field
+    strategy: association # custom loading logic without foreign keys specified
 ```
 
 #### Generate your data entity classes and types
@@ -151,7 +171,7 @@ const response = await userEntity.present({ id: true, firstMessage: true });
 
 const users = await prisma.user.findMany({ where: { id: lt: 100 } });
 const userEntities = UserEntity.fromArray(users);
-const responses = await Promise.all(userEntities.map((u) => u.present()));
+const responses = await UserEntity.presentMany(userEntities);
 ```
 
 This is it. Have fun!

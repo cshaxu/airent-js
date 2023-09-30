@@ -1,7 +1,7 @@
-entity: User
-model: PrismaUser
+entity: Chat
+model: PrismaChat
 types:
-  - name: User as PrismaUser
+  - name: Chat as PrismaChat
     import: "@prisma/client"
   - name: ChatUser
     entity: true
@@ -21,44 +21,22 @@ fields:
     type: Date
     strategy: primitive
   - id: 4
-    name: email
-    type: string
+    name: deletedAt
+    type: Date | null
     strategy: primitive
   - id: 5
-    name: firstName
-    type: string | null
-    strategy: primitive
-  - id: 6
-    name: lastName
-    type: string | null
-    strategy: primitive
-  - id: 7
-    name: imageUrl
-    type: string | null
-    strategy: primitive
-  - id: 8
-    name: isAdmin
-    type: boolean
-    strategy: computed_sync
-    internal: true
-  - id: 9
     name: chatUsers
     type: ChatUser[]
     strategy: association
     sourceFields:
       - id
     targetFields:
-      - userId
-  - id: 10
+      - chatId
+  - id: 6
     name: messages
     type: Message[]
     strategy: association
     sourceFields:
       - id
     targetFields:
-      - userId
-    internal: true
-  - id: 11
-    name: firstMessage
-    type: Message | null
-    strategy: association
+      - chatId

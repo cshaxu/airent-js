@@ -6,28 +6,28 @@ const yaml = require("js-yaml");
 const path = require("path");
 
 // Custom defined types in comments
-/** @typedef {Object} Import
- *  @property {?string} name
- *  @property {string} package
+/** @typedef {Object} Type
+ *  @property {string} name
+ *  @property {?string} import
+ *  @property {?string} define
+ *  @property {?boolean} entity
  */
 
 /** @typedef {Object} Field
  *  @property {number} id
  *  @property {string} name
  *  @property {string} type
- *  @property {Import[]} [imports]
+ *  @property {?boolean} cast
  *  @property {"primitive" | "association" | "computed_sync" | "computed_async"} strategy
- */
-
-/** @typedef {Object} Model
- *  @property {string} name
- *  @property {Import} import
+ *  @property {?string[]} [sourceFields]
+ *  @property {?string[]} [targetFields]
  */
 
 /** @typedef {Object} Schema
  *  @property {string} entity
+ *  @property {string} model
  *  @property {boolean} internal
- *  @property {Model} model
+ *  @property {Type[]} [types]
  *  @property {Field[]} [fields]
  */
 
@@ -120,10 +120,11 @@ async function getSchemaParams(schemaFilePath) {
   const schema = yaml.load(schemaContent);
 
   const entityName = toTitleCase(schema.entity);
+  const modelName = toTitleCase(schema.model);
   const internal = schema.internal;
-  const model = { name: schema.model.name, _import: schema.model.import };
+  const types = schema.types;
   const fields = schema.fields;
-  return { entityName, internal, model, fields };
+  return { entityName, modelName, internal, types, fields };
 }
 
 async function generate(

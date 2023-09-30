@@ -12,19 +12,116 @@ function toTitleCase(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+/** type utils */
+function isEntityType(type) { return !!type.entity; }
+function isDefinableType(type) { return !!type.define?.length; }
+function isEnumerableType(type) { return !!type.enum?.length; }
+function isInternalType(type) { return isDefinableType(type) || isEnumerableType(type); }
+function isImportableType(type) { return !!type.import?.length; }
+
 /** field utils */
 
 function isAssociationField(field) { return field.strategy === 'association'; }
 function isComputedSyncField(field) { return field.strategy === 'computed_sync'; }
 function isComputedAsyncField(field) { return field.strategy === 'computed_async'; }
-function isImportableField(field) { return isAssociationField(field) || field.imports?.length; }
 function isPrimitiveField(field) { return field.strategy === 'primitive'; }
 function isExternalField(field) { return !field.internal; }
 function isSyncField(field) { return isPrimitiveField(field) || isComputedSyncField(field); }
+function isArrayField(field) { return field.type.endsWith('[]'); }
+function isNullableField(field) { return field.type.endsWith(' | null'); }
+
+function getFieldGetterName(field) {
+  if (isPrimitiveField(field)) {
+    return `${field.name}`;
+  }
+  return `get${toTitleCase(field.name)}()`;
+}
+
+function getFieldGetter(prefix, field) {
+  const getterName = `${prefix}${getFieldGetterName(field)}`;
+  if (isSyncField(field)) {
+    return getterName;
+  } else {
+    return `await ${getterName}`;
+  }
+}
+
+function queryField(fieldName) {
+  return fields.find((field) => field.name === fieldName) ?? {
+    name: fieldName,
+    type: 'any',
+    strategy: 'primitive',
+  };
+}
+
+function getSourceFields(field) {
+  return (field.sourceFields ?? [])
+    .map(queryField)
+    .filter(Boolean)
+    .filter(isSyncField);
+}
+
+function getSourceKey(field) {
+  const getters = getSourceFields(field)
+    .map((sf) => getFieldGetter('one.', sf))
+  if (getters.length === 1) {
+    return getters[0];
+  }
+  return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
+}
+
+function getTargetKey(field) {
+  const getters = (field.targetFields ?? [])
+    .map((fieldName) => `one.${fieldName}`);
+  if (getters.length === 1) {
+    return getters[0];
+  }
+  return '`' + getters.map((getter) => `\${${getter}}`).join('*') + '`';
+}
+
+function hasSourceKey(field) {
+  return getSourceFields(field).length;
+}
+
+function hasTargetKey(field) {
+  return field.targetFields?.length;
+}
+
+function hasAssociationKeys(field) {
+  return hasSourceKey(field) && hasTargetKey(field);
+}
+
+function getFieldParamsName(field) {
+  const className = getEntityStrings().entityClass;
+  const fieldName = field.name;
+  return `${className}.${fieldName}`;
+}
 
 /** class utils */
 
 function getModuleSuffix() { return isModule ? '.js' : ''; }
+
+function getTypeStrings(type) {
+  if (isEntityType(type)) {
+    const prefix = `${toKababCase(type.name)}`;
+    const suffix = getModuleSuffix();
+    return {
+      entityClass: `${type.name}Entity`,
+      entityPackage: `${prefix}${suffix}`,
+      fieldRequestClass: `${type.name}FieldRequest`,
+      responseClass: `${type.name}Response`,
+      typePackage: `${prefix}-type${suffix}`,
+    };
+  } else if (isImportableType(type)) {
+    return { externalClass: type.name, externalPackage: type.import };
+  } else if (isDefinableType(type)) {
+    return { typeName: type.name, typeDefinition: type.define };
+  } else if (isEnumerableType(type)) {
+    return { typeName: type.name, typeDefinition: type.enum };
+  } else {
+    throw new Error(`invalid type ${type.name}`);
+  }
+}
 
 function getEntityStrings() {
   const prefix = toKababCase(entityName);
@@ -62,14 +159,6 @@ function getAssociationStrings(field) {
   };
 }
 
-/** association utils */
-
-function getFieldParamsName(field) {
-  const className = getEntityStrings().entityClass;
-  const fieldName = field.name;
-  return `${className}.${fieldName}`;
-}
-
 /** type template specific utils */
 
 function getFieldRequestType(field) {
@@ -89,18 +178,28 @@ function getFieldResponseType(field) {
 
 /** type template follows */
 -%>
-<% fields
-  .filter((field) => isExternalField(field) && isAssociationField(field))
-  .forEach((field) => { -%>
-import { <%= getAssociationStrings(field).fieldRequestClass %>, <%= getAssociationStrings(field).responseClass %> } from './<%= getAssociationStrings(field).typePackage %>';
+<% types.filter(isEntityType).forEach((type) => { -%>
+import { <%= getTypeStrings(type).fieldRequestClass %>, <%= getTypeStrings(type).responseClass %> } from './<%= getTypeStrings(type).typePackage %>';
 <% }); -%>
-<% fields
-  .filter((field) => isExternalField(field) && isImportableField(field) && !isAssociationField(field))
-  .flatMap((field) => field.imports)
-  .filter((_import) => _import.name)
-  .forEach((_import) => { -%>
-import { <%= _import.name %> } from '<%= _import.package %>';
+<% types.filter(isImportableType).forEach((type) => { -%>
+import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
 <% }); -%>
+<% if (types.some(isEnumerableType)) { -%>
+
+/** enums */
+<% types.filter(isEnumerableType).forEach((type) => { -%>
+
+export enum <%= getTypeStrings(type).typeName %> <%- getTypeStrings(type).typeDefinition %>;
+<% }); -%>
+<% } -%>
+<% if (types.some(isDefinableType)) { -%>
+
+/** structs */
+<% types.filter(isDefinableType).forEach((type) => { -%>
+
+export type <%= getTypeStrings(type).typeName %> = <%- getTypeStrings(type).typeDefinition %>;
+<% }); -%>
+<% } -%>
 
 export type <%= getEntityStrings().fieldRequestClass %> = {
 <% fields.filter(isExternalField).forEach((field) => { -%>
