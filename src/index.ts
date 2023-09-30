@@ -92,10 +92,7 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     FIELD_REQUEST,
     RESPONSE,
     ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>
-  >(
-    entities: ENTITY[],
-    request?: FIELD_REQUEST | boolean
-  ): Promise<RESPONSE[]> {
+  >(entities: ENTITY[], request?: FIELD_REQUEST | boolean): Promise<any[]> {
     return await Promise.all(entities.map((one) => one.present(request)));
   }
 }
