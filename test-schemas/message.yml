@@ -26,7 +26,7 @@ fields:
     strategy: primitive
   - id: 4
     name: userId
-    type: string
+    type: string | null
     strategy: primitive
   - id: 5
     name: content
@@ -47,7 +47,7 @@ fields:
       - id
   - id: 8
     name: user
-    type: User
+    type: User | null
     strategy: association
     sourceFields:
       - userId

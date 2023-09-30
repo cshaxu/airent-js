@@ -97,6 +97,21 @@ function getFieldParamsName(field) {
   return `${className}.${fieldName}`;
 }
 
+function getNullableCondition(field) {
+  if (!isNullableField(field)) {
+    return '';
+  }
+  const sourceFields = getSourceFields(field);
+  if (sourceFields?.length !== 1) {
+    return '';
+  }
+  const sourceField = sourceFields[0];
+  if (!isNullableField(sourceField)) {
+    return '';
+  }
+  return `${getFieldGetter('one.', sourceField)} === null ? null : `;
+}
+
 /** class utils */
 
 function getModuleSuffix() { return isModule ? '.js' : ''; }
@@ -164,8 +179,6 @@ function getAssociationStrings(field) {
 /** entity template follows */
 -%>
 import { buildArrayMap, buildObjectMap, buildUniqueNonNullArray } from '<%= airentPackage %>';
-
-/** generated */
 import { <%= getEntityStrings().baseClass %> } from './generated/<%= getEntityStrings().basePackage %>';
 <% if (!internal || fields.some(isInternalType)) { -%>
 import {
@@ -178,20 +191,12 @@ import {
 <% }); -%>
 } from './generated/<%= getEntityStrings().typePackage %>';
 <% } -%>
-<% if (types.some(isEntityType)) { -%>
-
-/** associations */
 <% types.filter(isEntityType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).entityClass %> } from './<%= getTypeStrings(type).entityPackage %>';
 <% }); -%>
-<% } -%>
-<% if (types.some(isImportableType)) { -%>
-
-/** external types */
 <% types.filter(isImportableType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
 <% }); -%>
-<% } -%>
 
 export class <%= getEntityStrings().entityClass %> extends <%= getEntityStrings().baseClass %> {
 <% if (fields.some(isAssociationField)) { -%>
@@ -225,7 +230,7 @@ export class <%= getEntityStrings().entityClass %> extends <%= getEntityStrings(
         (one) => <%- hasTargetKey(field) ? getTargetKey(field) : '\'TODO: map your target entity to key\'' %>,
         (one) => one
       );
-      array.forEach((one) => (one.<%= field.name %> = map.get(<%- hasSourceKey(field) ? getSourceKey(field) : '\'TODO: map your source entity to key\'' %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
+      array.forEach((one) => (one.<%= field.name %> = <%= getNullableCondition(field) %>map.get(<%- hasSourceKey(field) ? getSourceKey(field) : '\'TODO: map your source entity to key\'' %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
     }) as (array: <%= getEntityStrings().baseClass %>[], loaded: <%= getAssociationStrings(field).entityClass %>[]) => Promise<void>;
 <% } -%>
 <% }); -%>

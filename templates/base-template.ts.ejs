@@ -97,6 +97,21 @@ function getFieldParamsName(field) {
   return `${className}.${fieldName}`;
 }
 
+function getNullableCondition(field) {
+  if (!isNullableField(field)) {
+    return '';
+  }
+  const sourceFields = getSourceFields(field);
+  if (sourceFields?.length !== 1) {
+    return '';
+  }
+  const sourceField = sourceFields[0];
+  if (!isNullableField(sourceField)) {
+    return '';
+  }
+  return `${getFieldGetter('one.', sourceField)} === null ? null : `;
+}
+
 /** class utils */
 
 function getModuleSuffix() { return isModule ? '.js' : ''; }
@@ -264,7 +279,7 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
     // loader: async (array: <%= getEntityStrings().baseClass %>[]) => {
 <% if (hasSourceKey(field)) { -%>
 <% getSourceFields(field).forEach((sourceField) => { -%>
-    //   const <%= sourceField.name %>s = buildUniqueNonNullArray(array, (one) => one.<%= getFieldGetterName(sourceField) %>);
+    //   const <%= sourceField.name %>s = buildUniqueNonNullArray(array, (one) => <%= getFieldGetter('one.', sourceField) %>);
 <% }); -%>
     //   // TODO: load models with the above keys
 <% } -%>
@@ -284,7 +299,7 @@ export class <%= getEntityStrings().baseClass %> extends BaseEntity<
     <%= hasAssociationKeys(field) ? '' : '// ' %>    (one) => <%- hasTargetKey(field) ? getTargetKey(field) : '\'TODO: map your target entity to key\'' %>,
     <%= hasAssociationKeys(field) ? '' : '// ' %>    (one) => one
     <%= hasAssociationKeys(field) ? '' : '// ' %>  );
-    <%= hasAssociationKeys(field) ? '' : '// ' %>  array.forEach((one) => (one.<%= field.name %> = map.get(<%- hasSourceKey(field) ? getSourceKey(field) : '\'TODO: map your source entity to key\'' %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
+    <%= hasAssociationKeys(field) ? '' : '// ' %>  array.forEach((one) => (one.<%= field.name %> = <%= getNullableCondition(field) %>map.get(<%- hasSourceKey(field) ? getSourceKey(field) : '\'TODO: map your source entity to key\'' %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
     <%= hasAssociationKeys(field) ? '' : '// ' %>},
   };
 
