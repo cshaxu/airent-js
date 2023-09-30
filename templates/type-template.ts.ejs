@@ -97,6 +97,21 @@ function getFieldParamsName(field) {
   return `${className}.${fieldName}`;
 }
 
+function getNullableCondition(field) {
+  if (!isNullableField(field)) {
+    return '';
+  }
+  const sourceFields = getSourceFields(field);
+  if (sourceFields?.length !== 1) {
+    return '';
+  }
+  const sourceField = sourceFields[0];
+  if (!isNullableField(sourceField)) {
+    return '';
+  }
+  return `${getFieldGetter('one.', sourceField)} === null ? null : `;
+}
+
 /** class utils */
 
 function getModuleSuffix() { return isModule ? '.js' : ''; }
