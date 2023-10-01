@@ -20,7 +20,8 @@ declare class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     static fromArray<MODEL, ENTITY>(this: Constructor<MODEL, ENTITY>, models: MODEL[]): ENTITY[];
     static presentMany<MODEL, FIELD_REQUEST, RESPONSE, ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>>(entities: ENTITY[], request?: FIELD_REQUEST | boolean): Promise<any[]>;
 }
-declare function buildArrayMap<OBJECT, KEY, VALUE>(objects: OBJECT[], keyMapper: (object: OBJECT) => KEY, valueMapper: (object: OBJECT) => VALUE): Map<KEY, VALUE[]>;
-declare function buildObjectMap<OBJECT, KEY, VALUE>(objects: OBJECT[], keyMapper: (object: OBJECT) => KEY, valueMapper: (object: OBJECT) => VALUE): Map<KEY, VALUE>;
-declare function buildUniqueNonNullArray<OBJECT, VALUE>(objects: OBJECT[], mapper: (object: OBJECT) => VALUE): NonNullable<VALUE>[];
-export { AsyncLock, BaseEntity, LoadParams, buildArrayMap, buildObjectMap, buildUniqueNonNullArray, };
+declare function nonNull<T>(array: T[]): NonNullable<T>[];
+declare function unique<T>(array: T[]): T[];
+declare function toArrayMap<OBJECT, KEY, VALUE>(objects: OBJECT[], keyMapper: (object: OBJECT) => KEY, valueMapper: (object: OBJECT) => VALUE): Map<KEY, VALUE[]>;
+declare function toObjectMap<OBJECT, KEY, VALUE>(objects: OBJECT[], keyMapper: (object: OBJECT) => KEY, valueMapper: (object: OBJECT) => VALUE): Map<KEY, VALUE>;
+export { AsyncLock, BaseEntity, LoadParams, nonNull, toArrayMap, toObjectMap, unique, };

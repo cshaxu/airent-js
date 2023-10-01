@@ -1,4 +1,4 @@
-import { AsyncLock, BaseEntity, LoadParams, buildArrayMap, buildObjectMap } from '<%= airentPackage %>';
+import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap } from '<%= airentPackage %>';
 <% if (!internal || fields.some(isInternalType)) { -%>
 
 /** generated */
@@ -94,9 +94,9 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
 <% } -%>
     <%= hasAssociationKeys(field) ? '' : '// ' %>setter: (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => {
 <% if (isArrayField(field)) { -%>
-    <%= hasAssociationKeys(field) ? '' : '// ' %>  const map = buildArrayMap(
+    <%= hasAssociationKeys(field) ? '' : '// ' %>  const map = toArrayMap(
 <% } else { -%>
-    <%= hasAssociationKeys(field) ? '' : '// ' %>  const map = buildObjectMap(
+    <%= hasAssociationKeys(field) ? '' : '// ' %>  const map = toObjectMap(
 <% } -%>
     <%= hasAssociationKeys(field) ? '' : '// ' %>    loaded,
     <%= hasAssociationKeys(field) ? '' : '// ' %>    (one) => <%- hasTargetKey(field) ? getTargetKey(field) : '\'TODO: map your target entity to key\'' %>,
