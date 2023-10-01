@@ -31,20 +31,11 @@ const path = require("path");
  *  @property {Field[]} [fields]
  */
 
-const BASE_TEMPLATE_PATH = path.join(
-  __dirname,
-  "../templates/base-template.ts.ejs"
-);
-
-const ENTITY_TEMPLATE_PATH = path.join(
-  __dirname,
-  "../templates/entity-template.ts.ejs"
-);
-
-const RESPONSE_TEMPLATE_PATH = path.join(
-  __dirname,
-  "../templates/type-template.ts.ejs"
-);
+const TEMPLATE_PATH = path.join(__dirname, "../templates");
+const TEMPLATE_UTILS_PATH = path.join(TEMPLATE_PATH, "utils.js");
+const BASE_TEMPLATE_PATH = path.join(TEMPLATE_PATH, "base-template.ts.ejs");
+const ENTITY_TEMPLATE_PATH = path.join(TEMPLATE_PATH, "entity-template.ts.ejs");
+const RESPONSE_TEMPLATE_PATH = path.join(TEMPLATE_PATH, "type-template.ts.ejs");
 
 const PROJECT_PATH = process.cwd();
 
@@ -69,15 +60,15 @@ async function sequential(functions) {
 }
 
 async function loadTemplates() {
-  const baseTemplate = await fs.promises.readFile(BASE_TEMPLATE_PATH, "utf8");
-  const entityTemplate = await fs.promises.readFile(
-    ENTITY_TEMPLATE_PATH,
-    "utf8"
-  );
-  const responseTemplate = await fs.promises.readFile(
-    RESPONSE_TEMPLATE_PATH,
-    "utf8"
-  );
+  const templateUtils =
+    "<% " + (await fs.promises.readFile(TEMPLATE_UTILS_PATH, "utf8")) + "-%>\n";
+  const baseTemplate =
+    templateUtils + (await fs.promises.readFile(BASE_TEMPLATE_PATH, "utf8"));
+  const entityTemplate =
+    templateUtils + (await fs.promises.readFile(ENTITY_TEMPLATE_PATH, "utf8"));
+  const responseTemplate =
+    templateUtils +
+    (await fs.promises.readFile(RESPONSE_TEMPLATE_PATH, "utf8"));
   return { baseTemplate, entityTemplate, responseTemplate };
 }
 

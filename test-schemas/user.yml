@@ -61,4 +61,4 @@ fields:
   - id: 11
     name: firstMessage
     type: Message | null
-    strategy: association
+    strategy: computed_async
