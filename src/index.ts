@@ -97,8 +97,12 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
   }
 }
 
+function exists(object: any) {
+  return object !== undefined && object !== null;
+}
+
 function nonNull<T>(array: T[]): NonNullable<T>[] {
-  return array.filter(Boolean).map((o) => o!);
+  return array.filter(exists).map((o) => o!);
 }
 
 function unique<T>(array: T[]): T[] {
@@ -132,6 +136,7 @@ export {
   AsyncLock,
   BaseEntity,
   LoadParams,
+  exists,
   nonNull,
   toArrayMap,
   toObjectMap,
