@@ -29,7 +29,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
     this.<%= field.name %>Params.loader = async (array: <%= getThisEntityStrings().baseClass %>[]) => {    
 <% if (hasSourceKey(field)) { -%>
 <% getSourceFields(field).forEach((sourceField) => { -%>
-      const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
+      const <%= sourceField.name %>s = unique((nonNull(array.map((one) => <%= getFieldGetter('one.', sourceField) %>))));
 <% }); -%>
       // TODO: load models with the above keys
 <% } else { -%>

@@ -82,7 +82,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     // loader: async (array: <%= getThisEntityStrings().baseClass %>[]) => {
 <% if (hasSourceKey(field)) { -%>
 <% getSourceFields(field).forEach((sourceField) => { -%>
-    //   const <%= sourceField.name %>s = buildUniqueNonNullArray(array, (one) => <%= getFieldGetter('one.', sourceField) %>);
+    //   const <%= sourceField.name %>s = unique((nonNull(array.map((one) => <%= getFieldGetter('one.', sourceField) %>))));
 <% }); -%>
     //   // TODO: load models with the above keys
 <% } -%>
