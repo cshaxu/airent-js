@@ -103,7 +103,7 @@ fields:
   - id: 11
     name: firstMessage
     type: Message | null
-    strategy: association # custom loading logic without foreign keys specified
+    strategy: computed_async # custom async load for this field
 ```
 
 #### Generate your data entity classes and types
