@@ -14,7 +14,7 @@ import {
 <% types.filter(isEntityType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).entityClass %> } from './<%= getTypeStrings(type).entityPackage %>';
 <% }); -%>
-<% types.filter(isImportableType).forEach((type) => { -%>
+<% types.filter(isExternalType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
 <% }); -%>
 
@@ -29,7 +29,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
     this.<%= field.name %>Params.loader = async (array: <%= getThisEntityStrings().baseClass %>[]) => {    
 <% if (hasSourceKey(field)) { -%>
 <% getSourceFields(field).forEach((sourceField) => { -%>
-      const <%= sourceField.name %>s = unique((nonNull(array.map((one) => <%= getFieldGetter('one.', sourceField) %>))));
+      const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
 <% }); -%>
       // TODO: load models with the above keys
 <% } else { -%>
@@ -62,7 +62,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 <% } -%>
 <% fields.filter(isComputedSyncField).forEach((field) => { -%>
 
-  public get<%= toTitleCase(field.name) %>(): <%= field.type %> {
+  public <%= getFieldStrings(field).fieldGetterName %>: <%= getFieldStrings(field).fieldType %> {
     throw new Error('not implemented');
   }
 <% }); -%>
@@ -72,7 +72,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 <% } -%>
 <% fields.filter(isComputedAsyncField).forEach((field) => { -%>
 
-  public async get<%= toTitleCase(field.name) %>(): Promise<<%= field.type %>> {
+  public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     throw new Error('not implemented');
   }
 <% }); -%>
