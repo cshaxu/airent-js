@@ -17,10 +17,10 @@ import {
 import { <%= getTypeStrings(type).entityClass %> } from '../<%= getTypeStrings(type).entityPackage %>';
 <% }); -%>
 <% } -%>
-<% if (types.some(isImportableType)) { -%>
+<% if (types.some(isExternalType)) { -%>
 
 /** external types */
-<% types.filter(isImportableType).forEach((type) => { -%>
+<% types.filter(isExternalType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
 <% }); -%>
 <% } -%>
@@ -64,7 +64,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     const fieldRequest = request === true || request === undefined ? <%= getThisEntityStrings().baseClass %>.defaultFieldRequest : request;
     return {
 <% fields.filter(isExternalField).forEach((field) => { -%>
-      <%= field.name %>: <%- getFieldPresenter(field) %>,
+      <%= field.name %>: <%- getFieldStrings(field).fieldPresenter %>,
 <% }); -%>
     };
   }
@@ -82,7 +82,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     // loader: async (array: <%= getThisEntityStrings().baseClass %>[]) => {
 <% if (hasSourceKey(field)) { -%>
 <% getSourceFields(field).forEach((sourceField) => { -%>
-    //   const <%= sourceField.name %>s = unique((nonNull(array.map((one) => <%= getFieldGetter('one.', sourceField) %>))));
+    //   const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
 <% }); -%>
     //   // TODO: load models with the above keys
 <% } -%>

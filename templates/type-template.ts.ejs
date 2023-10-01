@@ -1,7 +1,7 @@
 <% types.filter(isEntityType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).fieldRequestClass %>, <%= getTypeStrings(type).responseClass %> } from './<%= getTypeStrings(type).typePackage %>';
 <% }); -%>
-<% types.filter(isImportableType).forEach((type) => { -%>
+<% types.filter(isExternalType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
 <% }); -%>
 <% if (types.some(isEnumerableType)) { -%>

@@ -28,7 +28,7 @@ function isEnumerableType(type) {
 function isInternalType(type) {
   return isDefinableType(type) || isEnumerableType(type);
 }
-function isImportableType(type) {
+function isExternalType(type) {
   return !!type.import?.length;
 }
 
@@ -98,8 +98,8 @@ function getSourceFields(field) {
 }
 
 function getSourceKey(field) {
-  const getters = getSourceFields(field).map((sf) =>
-    getFieldGetter("one.", sf)
+  const getters = getSourceFields(field).map(
+    (sf) => `one.${getFieldGetterName(sf)}`
   );
   if (getters.length === 1) {
     return getters[0];
@@ -147,7 +147,7 @@ function getNullableCondition(field) {
   if (!isNullableField(sourceField)) {
     return "";
   }
-  return `${getFieldGetter("one.", sourceField)} === null ? null : `;
+  return `one.${getFieldGetterName(sourceField)} === null ? null : `;
 }
 
 /** object utils */
@@ -203,7 +203,7 @@ function getTypeStrings(type) {
       responseClass: `${type.name}Response`,
       typePackage: `${prefix}-type${suffix}`,
     };
-  } else if (isImportableType(type)) {
+  } else if (isExternalType(type)) {
     return { externalClass: type.name, externalPackage: type.import };
   } else if (isDefinableType(type)) {
     return { typeName: type.name, typeDefinition: type.define };
@@ -216,38 +216,34 @@ function getTypeStrings(type) {
 
 function getFieldStrings(field) {
   const fieldGetterName = getFieldGetterName(field);
+
+  const presentCondition = `fieldRequest?.${field.name}`;
+  let fieldGetter = getFieldGetter("this.", field);
+
   if (isEntityTypeField(field)) {
+    if (isArrayField(field)) {
+      fieldGetter += `.then((a) => Promise.all(a.map((one) => one.present(${presentCondition}))))`;
+    } else if (isNullableField(field)) {
+      fieldGetter += `.then((one) => one ? one.present(${presentCondition}) : Promise.resolve(null))`;
+    } else {
+      fieldGetter += `.then((one) => one.present(${presentCondition}))`;
+    }
+
     const otherEntityStrings = getOtherEntityStrings(field);
     return {
       fieldGetterName,
       fieldType: otherEntityStrings.entityFieldType,
       fieldRequestType: `${otherEntityStrings.fieldRequestClass} | boolean`,
       fieldResponseType: otherEntityStrings.responseFieldType,
+      fieldPresenter: `${presentCondition} ? ${fieldGetter} : undefined`,
+    };
+  } else {
+    return {
+      fieldGetterName,
+      fieldType: field.type,
+      fieldRequestType: "boolean",
+      fieldResponseType: field.type,
+      fieldPresenter: `${presentCondition} ? ${fieldGetter} : undefined`,
     };
   }
-  return {
-    fieldGetterName,
-    fieldType: field.type,
-    fieldRequestType: "boolean",
-    fieldResponseType: field.type,
-  };
-}
-
-/** base template specific utils */
-
-function getFieldPresenter(field) {
-  const condition = `fieldRequest?.${field.name}`;
-  let getter = getFieldGetter("this.", field);
-
-  if (isEntityTypeField(field)) {
-    if (isArrayField(field)) {
-      getter += `.then((a) => Promise.all(a.map((one) => one.present(${condition}))))`;
-    } else if (isNullableField(field)) {
-      getter += `.then((one) => one ? one.present(${condition}) : Promise.resolve(null))`;
-    } else {
-      getter += `.then((one) => one.present(${condition}))`;
-    }
-  }
-
-  return `${condition} ? ${getter} : undefined`;
 }
