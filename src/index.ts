@@ -97,7 +97,15 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
   }
 }
 
-function buildArrayMap<OBJECT, KEY, VALUE>(
+function nonNull<T>(array: T[]): NonNullable<T>[] {
+  return array.filter(Boolean).map((o) => o!);
+}
+
+function unique<T>(array: T[]): T[] {
+  return Array.from(new Set(array));
+}
+
+function toArrayMap<OBJECT, KEY, VALUE>(
   objects: OBJECT[],
   keyMapper: (object: OBJECT) => KEY,
   valueMapper: (object: OBJECT) => VALUE
@@ -112,7 +120,7 @@ function buildArrayMap<OBJECT, KEY, VALUE>(
   }, new Map<KEY, VALUE[]>());
 }
 
-function buildObjectMap<OBJECT, KEY, VALUE>(
+function toObjectMap<OBJECT, KEY, VALUE>(
   objects: OBJECT[],
   keyMapper: (object: OBJECT) => KEY,
   valueMapper: (object: OBJECT) => VALUE
@@ -120,29 +128,12 @@ function buildObjectMap<OBJECT, KEY, VALUE>(
   return new Map(objects.map((o) => [keyMapper(o), valueMapper(o)]));
 }
 
-function buildUniqueNonNullArray<OBJECT, VALUE>(
-  objects: OBJECT[],
-  mapper: (object: OBJECT) => VALUE
-): NonNullable<VALUE>[] {
-  const set = new Set<VALUE>();
-  return objects
-    .filter(Boolean)
-    .map(mapper)
-    .filter((v) => {
-      if (set.has(v)) {
-        return false;
-      }
-      set.add(v);
-      return true;
-    })
-    .map((o) => o!);
-}
-
 export {
   AsyncLock,
   BaseEntity,
   LoadParams,
-  buildArrayMap,
-  buildObjectMap,
-  buildUniqueNonNullArray,
+  nonNull,
+  toArrayMap,
+  toObjectMap,
+  unique,
 };
