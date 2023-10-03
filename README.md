@@ -35,7 +35,7 @@ You may specify `"type": "module"` if you are using ES modules.
 
 ### Define your entity schema
 
-Create a new YAML file in your schema directory, e.g. `schemas/User.yaml`:
+Create a new YAML file in your schema directory, e.g. `schemas/user.yml`:
 
 ```yaml
 entity: User
