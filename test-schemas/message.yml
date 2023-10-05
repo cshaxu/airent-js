@@ -1,11 +1,13 @@
 entity: Message
-model: PrismaMessage
+model: MessageModel
 types:
-  - name: Message as PrismaMessage
-    import: "@prisma/client"
+  - name: MessageModel
+    define: "{ [key: string] : any }"
   - name: Chat
     entity: true
   - name: User
+    entity: true
+  - name: Message
     entity: true
   - name: Attachment
     define: "{ [key: string] : string }"
@@ -58,3 +60,15 @@ fields:
     type: boolean
     strategy: computed_sync
     internal: true
+  - id: 10
+    name: parentMessageId
+    type: string | null
+    strategy: primitive
+  - id: 11
+    name: parentMessage
+    type: Message | null
+    strategy: association
+    sourceFields:
+      - parentMessageId
+    targetFields:
+      - id

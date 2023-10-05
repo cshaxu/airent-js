@@ -11,7 +11,7 @@ import {
 <% }); -%>
 } from './generated/<%= getThisEntityStrings().typePackage %>';
 <% } -%>
-<% types.filter(isEntityType).forEach((type) => { -%>
+<% types.filter(isEntityType).filter((type) => type.name !== entityName).forEach((type) => { -%>
 import { <%= getTypeStrings(type).entityClass %> } from './<%= getTypeStrings(type).entityPackage %>';
 <% }); -%>
 <% types.filter(isExternalType).forEach((type) => { -%>

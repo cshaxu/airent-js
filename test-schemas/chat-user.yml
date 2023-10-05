@@ -1,8 +1,8 @@
 entity: ChatUser
-model: PrismaChatUser
+model: ChatUserModel
 types:
-  - name: ChatUser as PrismaChatUser
-    import: "@prisma/client"
+  - name: ChatUserModel
+    define: "{ [key: string] : any }"
   - name: User
     entity: true
   - name: Chat
