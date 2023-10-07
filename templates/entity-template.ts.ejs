@@ -18,6 +18,9 @@ import { <%= getTypeStrings(type).entityClass %> } from './<%= getTypeStrings(ty
 import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
 <% }); -%>
 
+<% if (deprecated) { -%>
+/** @deprecated */
+<% } -%>
 export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntityStrings().baseClass %> {
 <% if (fields.some(isAssociationField)) { -%>
   protected initialize() {
@@ -62,6 +65,9 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 <% } -%>
 <% fields.filter(isComputedSyncField).forEach((field) => { -%>
 
+  <% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   public <%= getFieldStrings(field).fieldGetterName %>: <%= getFieldStrings(field).fieldType %> {
     throw new Error('not implemented');
   }
@@ -72,6 +78,9 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 <% } -%>
 <% fields.filter(isComputedAsyncField).forEach((field) => { -%>
 
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     throw new Error('not implemented');
   }

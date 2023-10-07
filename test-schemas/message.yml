@@ -36,6 +36,7 @@ fields:
     strategy: primitive
   - id: 6
     name: attachment
+    aliasOf: attachmentJson
     type: Attachment | null
     strategy: primitive
     cast: true

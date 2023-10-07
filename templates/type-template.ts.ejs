@@ -9,6 +9,9 @@ import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(ty
 /** enums */
 <% types.filter(isEnumerableType).forEach((type) => { -%>
 
+<% if (type.deprecated) { -%>
+/** @deprecated */
+<% } -%>
 export enum <%= getTypeStrings(type).typeName %> <%- getTypeStrings(type).typeDefinition %>;
 <% }); -%>
 <% } -%>
@@ -17,18 +20,27 @@ export enum <%= getTypeStrings(type).typeName %> <%- getTypeStrings(type).typeDe
 /** structs */
 <% types.filter(isDefinableType).forEach((type) => { -%>
 
+<% if (type.deprecated) { -%>
+/** @deprecated */
+<% } -%>
 export type <%= getTypeStrings(type).typeName %> = <%- getTypeStrings(type).typeDefinition %>;
 <% }); -%>
 <% } -%>
 
 export type <%= getThisEntityStrings().fieldRequestClass %> = {
 <% fields.filter(isExternalField).forEach((field) => { -%>
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   <%= field.name %>?: <%= getFieldStrings(field).fieldRequestType %>;
 <% }); -%>
 };
 
 export type <%= getThisEntityStrings().responseClass %> = {
 <% fields.filter(isExternalField).forEach((field) => { -%>
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   <%= field.name %>?: <%= getFieldStrings(field).fieldResponseType %>;
 <% }); -%>
 };

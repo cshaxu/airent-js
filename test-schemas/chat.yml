@@ -28,6 +28,7 @@ fields:
     name: chatUsers
     type: ChatUser[]
     strategy: association
+    deprecated: true
     sourceFields:
       - id
     targetFields:
