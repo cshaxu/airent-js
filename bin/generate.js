@@ -11,13 +11,16 @@ const path = require("path");
  *  @property {?string} import
  *  @property {?string} define
  *  @property {?boolean} entity
+ *  @property {?boolean} deprecated
  */
 
 /** @typedef {Object} Field
  *  @property {number} id
  *  @property {string} name
+ *  @property {?string} [aliasOf]
  *  @property {string} type
  *  @property {?boolean} cast
+ *  @property {?boolean} deprecated
  *  @property {"primitive" | "association" | "computed_sync" | "computed_async"} strategy
  *  @property {?string[]} [sourceFields]
  *  @property {?string[]} [targetFields]
@@ -27,6 +30,7 @@ const path = require("path");
  *  @property {string} entity
  *  @property {string} model
  *  @property {boolean} internal
+ *  @property {?boolean} deprecated
  *  @property {Type[]} [types]
  *  @property {Field[]} [fields]
  */
@@ -112,10 +116,11 @@ async function getSchemaParams(schemaFilePath) {
 
   const entityName = toTitleCase(schema.entity);
   const modelName = toTitleCase(schema.model);
+  const deprecated = schema.deprecated;
   const internal = schema.internal;
   const types = schema.types;
   const fields = schema.fields;
-  return { entityName, modelName, internal, types, fields };
+  return { entityName, modelName, deprecated, internal, types, fields };
 }
 
 async function generate(

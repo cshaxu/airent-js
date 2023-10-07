@@ -34,6 +34,7 @@ fields:
     strategy: primitive
   - id: 7
     name: imageUrl
+    aliasOf: image
     type: string | null
     strategy: primitive
   - id: 8
@@ -45,6 +46,7 @@ fields:
     name: chatUsers
     type: ChatUser[]
     strategy: association
+    deprecated: true
     sourceFields:
       - id
     targetFields:
@@ -62,3 +64,4 @@ fields:
     name: firstMessage
     type: Message | null
     strategy: computed_async
+    deprecated: true

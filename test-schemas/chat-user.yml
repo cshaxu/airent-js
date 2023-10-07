@@ -1,8 +1,10 @@
 entity: ChatUser
 model: ChatUserModel
+deprecated: true
 types:
   - name: ChatUserModel
     define: "{ [key: string] : any }"
+    deprecated: true
   - name: User
     entity: true
   - name: Chat
@@ -20,6 +22,7 @@ fields:
     name: updatedAt
     type: Date
     strategy: primitive
+    deprecated: true
   - id: 4
     name: chatId
     type: string

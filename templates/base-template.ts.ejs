@@ -25,14 +25,23 @@ import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(ty
 <% }); -%>
 <% } -%>
 
+<% if (deprecated) { -%>
+/** @deprecated */
+<% } -%>
 export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%= modelName %><%= internal ? '' : `, ${getThisEntityStrings().fieldRequestClass}, ${getThisEntityStrings().responseClass}` %>
 > {
 <% fields.filter(isPrimitiveField).forEach((field) => { -%>
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   public <%= field.name %>: <%= getFieldStrings(field).fieldType %>;
 <% }); -%>
 
 <% fields.filter(isAssociationField).forEach((field) => { -%>
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   protected <%= field.name %>?: <%= getOtherEntityStrings(field).entityFieldType %>;
 <% }); -%>
 
@@ -44,7 +53,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     super(group, lock);
 
 <% fields.filter(isPrimitiveField).forEach((field) => { -%>
-    this.<%= field.name %> = model.<%= field.name %><%= field.cast ? ` as ${getFieldStrings(field).fieldType}` : '' %>;
+    this.<%= field.name %> = model.<%= field.aliasOf ?? field.name %><%= field.cast ? ` as ${getFieldStrings(field).fieldType}` : '' %>;
 <% }); -%>
 
     this.initialize();
@@ -74,7 +83,9 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   /** associations */
 <% } -%>
 <% fields.filter(isAssociationField).forEach((field) => { -%>
-
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   protected <%= field.name %>Params: LoadParams<<%= getThisEntityStrings().baseClass %>, <%= getOtherEntityStrings(field).entityClass %>> = {
     name: '<%= getFieldParamsName(field) %>',
     filter: (one: <%= getThisEntityStrings().baseClass %>) => one.<%= field.name %> === undefined,
@@ -106,10 +117,16 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     <%= hasAssociationKeys(field) ? '' : '// ' %>},
   };
 
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   protected async load<%= toTitleCase(field.name) %>(): Promise<void> {
     await this.load(this.<%= field.name %>Params);
   }
 
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     if (this.<%= field.name %> !== undefined) {
       return this.<%= field.name %>;
@@ -118,6 +135,9 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     return this.<%= field.name %>!;
   }
 
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   public set<%= toTitleCase(field.name) %>(<%= field.name %>?: <%= getFieldStrings(field).fieldType %>): void {
     this.<%= field.name %> = <%= field.name %>;
   }
@@ -128,6 +148,9 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
 <% } -%>
 <% fields.filter(isComputedSyncField).forEach((field) => { -%>
 
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   public <%= getFieldStrings(field).fieldGetterName %>: <%= getFieldStrings(field).fieldType %> {
     throw new Error('not implemented');
   }
@@ -138,6 +161,9 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
 <% } -%>
 <% fields.filter(isComputedAsyncField).forEach((field) => { -%>
 
+<% if (field.deprecated) { -%>
+  /** @deprecated */
+<% } -%>
   public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     throw new Error('not implemented');
   }
