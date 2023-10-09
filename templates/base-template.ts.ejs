@@ -83,6 +83,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   /** associations */
 <% } -%>
 <% fields.filter(isAssociationField).forEach((field) => { -%>
+
 <% if (field.deprecated) { -%>
   /** @deprecated */
 <% } -%>

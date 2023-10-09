@@ -73,6 +73,7 @@ export class UserEntityBase extends BaseEntity<
   }
 
   /** associations */
+
   /** @deprecated */
   protected chatUsersParams: LoadParams<UserEntityBase, ChatUserEntity> = {
     name: 'UserEntity.chatUsers',
@@ -112,6 +113,7 @@ export class UserEntityBase extends BaseEntity<
   public setChatUsers(chatUsers?: ChatUserEntity[]): void {
     this.chatUsers = chatUsers;
   }
+
   protected messagesParams: LoadParams<UserEntityBase, MessageEntity> = {
     name: 'UserEntity.messages',
     filter: (one: UserEntityBase) => one.messages === undefined,

@@ -81,6 +81,7 @@ export class MessageEntityBase extends BaseEntity<
   }
 
   /** associations */
+
   protected chatParams: LoadParams<MessageEntityBase, ChatEntity> = {
     name: 'MessageEntity.chat',
     filter: (one: MessageEntityBase) => one.chat === undefined,
@@ -116,6 +117,7 @@ export class MessageEntityBase extends BaseEntity<
   public setChat(chat?: ChatEntity): void {
     this.chat = chat;
   }
+
   protected userParams: LoadParams<MessageEntityBase, UserEntity> = {
     name: 'MessageEntity.user',
     filter: (one: MessageEntityBase) => one.user === undefined,
@@ -151,6 +153,7 @@ export class MessageEntityBase extends BaseEntity<
   public setUser(user?: UserEntity | null): void {
     this.user = user;
   }
+
   protected parentMessageParams: LoadParams<MessageEntityBase, MessageEntity> = {
     name: 'MessageEntity.parentMessage',
     filter: (one: MessageEntityBase) => one.parentMessage === undefined,
@@ -186,6 +189,7 @@ export class MessageEntityBase extends BaseEntity<
   public setParentMessage(parentMessage?: MessageEntity | null): void {
     this.parentMessage = parentMessage;
   }
+
   protected mentorParams: LoadParams<MessageEntityBase, UserEntity> = {
     name: 'MessageEntity.mentor',
     filter: (one: MessageEntityBase) => one.mentor === undefined,
