@@ -68,7 +68,7 @@ export class UserEntityBase extends BaseEntity<
       lastName: fieldRequest?.lastName ? this.lastName : undefined,
       imageUrl: fieldRequest?.imageUrl ? this.imageUrl : undefined,
       chatUsers: fieldRequest?.chatUsers ? await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest?.chatUsers)))) : undefined,
-      firstMessage: fieldRequest?.firstMessage ? await this.getFirstMessage().then((one) => one ? one.present(fieldRequest?.firstMessage) : Promise.resolve(null)) : undefined,
+      firstMessage: fieldRequest?.firstMessage ? await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null)) : one.present(fieldRequest?.firstMessage) : undefined,
     };
   }
 

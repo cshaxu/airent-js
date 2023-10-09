@@ -28,6 +28,7 @@ export class MessageEntityBase extends BaseEntity<
   protected chat?: ChatEntity;
   protected user?: UserEntity | null;
   protected parentMessage?: MessageEntity | null;
+  protected mentor?: UserEntity | null;
 
   public constructor(
     model: MessageModel,
@@ -55,6 +56,7 @@ export class MessageEntityBase extends BaseEntity<
     content: true,
     attachment: true,
     parentMessageId: true,
+    mentorId: true,
   };
 
   public async present(request?: MessageFieldRequest | boolean): Promise<MessageResponse> {
@@ -70,9 +72,11 @@ export class MessageEntityBase extends BaseEntity<
       content: fieldRequest?.content ? this.content : undefined,
       attachment: fieldRequest?.attachment ? this.attachment : undefined,
       chat: fieldRequest?.chat ? await this.getChat().then((one) => one.present(fieldRequest?.chat)) : undefined,
-      user: fieldRequest?.user ? await this.getUser().then((one) => one ? one.present(fieldRequest?.user) : Promise.resolve(null)) : undefined,
+      user: fieldRequest?.user ? await this.getUser().then((one) => one === null ? Promise.resolve(null)) : one.present(fieldRequest?.user) : undefined,
       parentMessageId: fieldRequest?.parentMessageId ? this.parentMessageId : undefined,
-      parentMessage: fieldRequest?.parentMessage ? await this.getParentMessage().then((one) => one ? one.present(fieldRequest?.parentMessage) : Promise.resolve(null)) : undefined,
+      parentMessage: fieldRequest?.parentMessage ? await this.getParentMessage().then((one) => one === null ? Promise.resolve(null)) : one.present(fieldRequest?.parentMessage) : undefined,
+      mentorId: fieldRequest?.mentorId ? this.getMentorId() : undefined,
+      mentor: fieldRequest?.mentor ? await this.getMentor().then((one) => one === null ? Promise.resolve(null)) : one.present(fieldRequest?.mentor) : undefined,
     };
   }
 
@@ -182,10 +186,49 @@ export class MessageEntityBase extends BaseEntity<
   public setParentMessage(parentMessage?: MessageEntity | null): void {
     this.parentMessage = parentMessage;
   }
+  protected mentorParams: LoadParams<MessageEntityBase, UserEntity> = {
+    name: 'MessageEntity.mentor',
+    filter: (one: MessageEntityBase) => one.mentor === undefined,
+    // TODO: build your association data loader
+    // loader: async (array: MessageEntityBase[]) => {
+    //   const mentorIds = unique((nonNull(array.map((one) => one.getMentorId()))));
+    //   // TODO: load models with the above keys
+    //   const loadedModels = ...;
+    //   return UserEntity.fromArray(loadedModels);
+    // },
+    setter: (array: MessageEntityBase[], loaded: UserEntity[]) => {
+      const map = toObjectMap(
+        loaded,
+        (one) => one.id,
+        (one) => one
+      );
+      array.forEach((one) => (one.mentor = one.getMentorId() === null ? null : map.get(one.getMentorId()!) ?? null));
+    },
+  };
+
+  protected async loadMentor(): Promise<void> {
+    await this.load(this.mentorParams);
+  }
+
+  public async getMentor(): Promise<UserEntity | null> {
+    if (this.mentor !== undefined) {
+      return this.mentor;
+    }
+    await this.loadMentor();
+    return this.mentor!;
+  }
+
+  public setMentor(mentor?: UserEntity | null): void {
+    this.mentor = mentor;
+  }
 
   /** computed sync fields */
 
   public getHasContent(): boolean {
+    throw new Error('not implemented');
+  }
+
+  public getMentorId(): string | null {
     throw new Error('not implemented');
   }
 }

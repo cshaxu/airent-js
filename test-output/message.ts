@@ -36,11 +36,22 @@ export class MessageEntity extends MessageEntityBase {
       const loadedModels = [];
       return MessageEntity.fromArray(loadedModels);
     };
+
+    this.mentorParams.loader = async (array: MessageEntityBase[]) => {    
+      const mentorIds = unique((nonNull(array.map((one) => one.getMentorId()))));
+      // TODO: load models with the above keys
+      const loadedModels = [];
+      return UserEntity.fromArray(loadedModels);
+    };
   }
 
   /** computed sync fields */
 
     public getHasContent(): boolean {
+    throw new Error('not implemented');
+  }
+
+    public getMentorId(): string | null {
     throw new Error('not implemented');
   }
 }

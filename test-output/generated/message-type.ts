@@ -22,6 +22,8 @@ export type MessageFieldRequest = {
   user?: UserFieldRequest | boolean;
   parentMessageId?: boolean;
   parentMessage?: MessageFieldRequest | boolean;
+  mentorId?: boolean;
+  mentor?: UserFieldRequest | boolean;
 };
 
 export type MessageResponse = {
@@ -35,4 +37,6 @@ export type MessageResponse = {
   user?: UserResponse | null;
   parentMessageId?: string | null;
   parentMessage?: MessageResponse | null;
+  mentorId?: string | null;
+  mentor?: UserResponse | null;
 };
