@@ -53,7 +53,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
         (one) => <%- getTargetGetter(field) %>,
         (one) => one
       );
-      array.forEach((one) => (one.<%= field.name %> = <%= getSourceSetter(field) %>));
+      array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
     }) as (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => Promise<void>;
 <% } -%>
 <% }); -%>
