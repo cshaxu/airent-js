@@ -114,7 +114,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     <%= hasAssociationKeys(field) ? '' : '// ' %>    (one) => <%- getTargetGetter(field) %>,
     <%= hasAssociationKeys(field) ? '' : '// ' %>    (one) => one
     <%= hasAssociationKeys(field) ? '' : '// ' %>  );
-    <%= hasAssociationKeys(field) ? '' : '// ' %>  array.forEach((one) => (one.<%= field.name %> = <%= getSourceSetter(field) %>));
+    <%= hasAssociationKeys(field) ? '' : '// ' %>  array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
     <%= hasAssociationKeys(field) ? '' : '// ' %>},
   };
 
