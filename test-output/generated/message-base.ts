@@ -72,11 +72,11 @@ export class MessageEntityBase extends BaseEntity<
       content: fieldRequest?.content ? this.content : undefined,
       attachment: fieldRequest?.attachment ? this.attachment : undefined,
       chat: fieldRequest?.chat ? await this.getChat().then((one) => one.present(fieldRequest?.chat)) : undefined,
-      user: fieldRequest?.user ? await this.getUser().then((one) => one === null ? Promise.resolve(null)) : one.present(fieldRequest?.user) : undefined,
+      user: fieldRequest?.user ? await this.getUser().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.user)) : undefined,
       parentMessageId: fieldRequest?.parentMessageId ? this.parentMessageId : undefined,
-      parentMessage: fieldRequest?.parentMessage ? await this.getParentMessage().then((one) => one === null ? Promise.resolve(null)) : one.present(fieldRequest?.parentMessage) : undefined,
+      parentMessage: fieldRequest?.parentMessage ? await this.getParentMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.parentMessage)) : undefined,
       mentorId: fieldRequest?.mentorId ? this.getMentorId() : undefined,
-      mentor: fieldRequest?.mentor ? await this.getMentor().then((one) => one === null ? Promise.resolve(null)) : one.present(fieldRequest?.mentor) : undefined,
+      mentor: fieldRequest?.mentor ? await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.mentor)) : undefined,
     };
   }
 
