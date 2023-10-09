@@ -1,5 +1,6 @@
 /** string utils */
 
+// internal
 function toKababCase(string) {
   return string
     .replace(/_/g, "-")
@@ -11,6 +12,7 @@ function toTitleCase(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+// internal
 function toPrimitiveTypeName(string) {
   return string.split("|")[0].split("[]")[0].trim();
 }
@@ -55,9 +57,11 @@ function isSyncField(field) {
 function isArrayField(field) {
   return field.type.endsWith("[]");
 }
+// internal
 function isNullableField(field) {
   return field.type.endsWith(" | null");
 }
+// internal
 function isEntityTypeField(field) {
   const fieldTypeName = toPrimitiveTypeName(field.type);
   const type = types.find((type) => type.name === fieldTypeName);
@@ -71,15 +75,7 @@ function getFieldGetterName(field) {
   return `get${toTitleCase(field.name)}()`;
 }
 
-function getFieldGetter(prefix, field) {
-  const getterName = `${prefix}${getFieldGetterName(field)}`;
-  if (isSyncField(field)) {
-    return getterName;
-  } else {
-    return `await ${getterName}`;
-  }
-}
-
+// internal
 function queryField(fieldName) {
   return (
     fields.find((field) => field.name === fieldName) ?? {
@@ -97,30 +93,11 @@ function getSourceFields(field) {
     .filter(isSyncField);
 }
 
-function getSourceKey(field) {
-  const getters = getSourceFields(field).map(
-    (sf) => `one.${getFieldGetterName(sf)}`
-  );
-  if (getters.length === 1) {
-    return getters[0];
-  }
-  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
-}
-
-function getTargetKey(field) {
-  const getters = (field.targetFields ?? []).map(
-    (fieldName) => `one.${fieldName}`
-  );
-  if (getters.length === 1) {
-    return getters[0];
-  }
-  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
-}
-
 function hasSourceKey(field) {
   return getSourceFields(field).length;
 }
 
+// internal
 function hasTargetKey(field) {
   return field.targetFields?.length;
 }
@@ -135,23 +112,87 @@ function getFieldParamsName(field) {
   return `${className}.${fieldName}`;
 }
 
+// internal
 function getNullableCondition(field) {
   if (!isNullableField(field)) {
     return "";
   }
-  const sourceFields = getSourceFields(field);
-  if (sourceFields?.length !== 1) {
+  const nullableSourceFields = getSourceFields(field);
+  if (nullableSourceFields.length === 0) {
     return "";
   }
-  const sourceField = sourceFields[0];
-  if (!isNullableField(sourceField)) {
-    return "";
+  const condition = nullableSourceFields
+    .map(getFieldGetterName)
+    .map((s) => `one.${s} === null`)
+    .join(" || ");
+  return `${condition} ? null : `;
+}
+
+// internal
+function getSourceKey(field) {
+  const getters = getSourceFields(field).map(
+    (sf) =>
+      `one.${getFieldGetterName(sf)}${
+        isNullableField(sf) && !isPrimitiveField(sf) ? "!" : ""
+      }`
+  );
+  if (getters.length === 1) {
+    return getters[0];
   }
-  return `one.${getFieldGetterName(sourceField)} === null ? null : `;
+  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
+}
+
+// internal
+function getTargetKey(field) {
+  const getters = (field.targetFields ?? []).map(
+    (fieldName) => `one.${fieldName}`
+  );
+  if (getters.length === 1) {
+    return getters[0];
+  }
+  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
+}
+
+function getSourceSetter(field) {
+  const nullableCondition = getNullableCondition(field);
+  const sourceKey = hasSourceKey(field)
+    ? getSourceKey(field)
+    : "'TODO: map your source entity to key'";
+  const fallbackValue = isArrayField(field)
+    ? " ?? []"
+    : isNullableField(field)
+    ? " ?? null"
+    : "!";
+  return `${nullableCondition}map.get(${sourceKey})${fallbackValue}`;
+}
+
+function getTargetGetter(field) {
+  return hasTargetKey(field)
+    ? getTargetKey(field)
+    : "'TODO: map your target entity to key'";
+}
+
+// internal
+function getFieldPresenter(field) {
+  const presentCondition = `fieldRequest?.${field.name}`;
+  const getterName = `this.${getFieldGetterName(field)}`;
+  const getter = isSyncField(field) ? getterName : `await ${getterName}`;
+  let presenter = getter;
+  if (isEntityTypeField(field)) {
+    if (isArrayField(field)) {
+      presenter += `.then((a) => Promise.all(a.map((one) => one.present(${presentCondition}))))`;
+    } else if (isNullableField(field)) {
+      presenter += `.then((one) => one === null ? Promise.resolve(null)) : one.present(${presentCondition})`;
+    } else {
+      presenter += `.then((one) => one.present(${presentCondition}))`;
+    }
+  }
+  return `${presentCondition} ? ${presenter} : undefined`;
 }
 
 /** object utils */
 
+// internal
 function getModuleSuffix() {
   return isModule ? ".js" : "";
 }
@@ -215,35 +256,22 @@ function getTypeStrings(type) {
 }
 
 function getFieldStrings(field) {
-  const fieldGetterName = getFieldGetterName(field);
-
-  const presentCondition = `fieldRequest?.${field.name}`;
-  let fieldGetter = getFieldGetter("this.", field);
-
   if (isEntityTypeField(field)) {
-    if (isArrayField(field)) {
-      fieldGetter += `.then((a) => Promise.all(a.map((one) => one.present(${presentCondition}))))`;
-    } else if (isNullableField(field)) {
-      fieldGetter += `.then((one) => one ? one.present(${presentCondition}) : Promise.resolve(null))`;
-    } else {
-      fieldGetter += `.then((one) => one.present(${presentCondition}))`;
-    }
-
     const otherEntityStrings = getOtherEntityStrings(field);
     return {
-      fieldGetterName,
+      fieldGetterName: getFieldGetterName(field),
       fieldType: otherEntityStrings.entityFieldType,
       fieldRequestType: `${otherEntityStrings.fieldRequestClass} | boolean`,
       fieldResponseType: otherEntityStrings.responseFieldType,
-      fieldPresenter: `${presentCondition} ? ${fieldGetter} : undefined`,
+      fieldPresenter: getFieldPresenter(field),
     };
   } else {
     return {
-      fieldGetterName,
+      fieldGetterName: getFieldGetterName(field),
       fieldType: field.type,
       fieldRequestType: "boolean",
       fieldResponseType: field.type,
-      fieldPresenter: `${presentCondition} ? ${fieldGetter} : undefined`,
+      fieldPresenter: getFieldPresenter(field),
     };
   }
 }

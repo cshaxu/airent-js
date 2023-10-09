@@ -73,3 +73,15 @@ fields:
       - parentMessageId
     targetFields:
       - id
+  - id: 12
+    name: mentorId
+    type: string | null
+    strategy: computed_sync
+  - id: 13
+    name: mentor
+    type: User | null
+    strategy: association
+    sourceFields:
+      - mentorId
+    targetFields:
+      - id

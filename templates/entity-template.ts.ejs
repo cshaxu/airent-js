@@ -50,10 +50,10 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
       const map = buildObjectMap(
 <% } -%>
         loaded,
-        (one) => <%- hasTargetKey(field) ? getTargetKey(field) : '\'TODO: map your target entity to key\'' %>,
+        (one) => <%- getTargetGetter(field) %>,
         (one) => one
       );
-      array.forEach((one) => (one.<%= field.name %> = <%= getNullableCondition(field) %>map.get(<%- hasSourceKey(field) ? getSourceKey(field) : '\'TODO: map your source entity to key\'' %>)<%= isArrayField(field) ? ' ?? []' : isNullableField(field) ? ' ?? null' : '!' %>));
+      array.forEach((one) => (one.<%= field.name %> = <%= getSourceSetter(field) %>));
     }) as (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => Promise<void>;
 <% } -%>
 <% }); -%>
