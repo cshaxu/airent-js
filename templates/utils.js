@@ -182,7 +182,7 @@ function getFieldPresenter(field) {
     if (isArrayField(field)) {
       presenter += `.then((a) => Promise.all(a.map((one) => one.present(${presentCondition}))))`;
     } else if (isNullableField(field)) {
-      presenter += `.then((one) => one === null ? Promise.resolve(null)) : one.present(${presentCondition})`;
+      presenter += `.then((one) => one === null ? Promise.resolve(null) : one.present(${presentCondition}))`;
     } else {
       presenter += `.then((one) => one.present(${presentCondition}))`;
     }
