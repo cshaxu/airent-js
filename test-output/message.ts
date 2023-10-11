@@ -16,42 +16,38 @@ export class MessageEntity extends MessageEntityBase {
 
     /** associations */
 
-    this.chatParams.loader = async (array: MessageEntityBase[]) => {    
+    this.chatParams.loader = async (array: MessageEntityBase[]) => { 
       const chatIds = unique((nonNull(array.map((one) => one.chatId))));
-      // TODO: load models with the above keys
-      const loadedModels = [];
+      const loadedModels = [/* TODO: load associated models with the above keys */];
       return ChatEntity.fromArray(loadedModels);
     };
 
-    this.userParams.loader = async (array: MessageEntityBase[]) => {    
+    this.userParams.loader = async (array: MessageEntityBase[]) => { 
       const userIds = unique((nonNull(array.map((one) => one.userId))));
-      // TODO: load models with the above keys
-      const loadedModels = [];
+      const loadedModels = [/* TODO: load associated models with the above keys */];
       return UserEntity.fromArray(loadedModels);
     };
 
-    this.parentMessageParams.loader = async (array: MessageEntityBase[]) => {    
+    this.parentMessageParams.loader = async (array: MessageEntityBase[]) => { 
       const parentMessageIds = unique((nonNull(array.map((one) => one.parentMessageId))));
-      // TODO: load models with the above keys
-      const loadedModels = [];
+      const loadedModels = [/* TODO: load associated models with the above keys */];
       return MessageEntity.fromArray(loadedModels);
     };
 
-    this.mentorParams.loader = async (array: MessageEntityBase[]) => {    
+    this.mentorParams.loader = async (array: MessageEntityBase[]) => { 
       const mentorIds = unique((nonNull(array.map((one) => one.getMentorId()))));
-      // TODO: load models with the above keys
-      const loadedModels = [];
+      const loadedModels = [/* TODO: load associated models with the above keys */];
       return UserEntity.fromArray(loadedModels);
     };
   }
 
   /** computed sync fields */
 
-    public getHasContent(): boolean {
+  public getHasContent(): boolean {
     throw new Error('not implemented');
   }
 
-    public getMentorId(): string | null {
+  public getMentorId(): string | null {
     throw new Error('not implemented');
   }
 }

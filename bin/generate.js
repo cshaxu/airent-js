@@ -5,7 +5,6 @@ const fs = require("fs");
 const yaml = require("js-yaml");
 const path = require("path");
 
-// Custom defined types in comments
 /** @typedef {Object} Type
  *  @property {string} name
  *  @property {?string} import
@@ -16,12 +15,12 @@ const path = require("path");
 
 /** @typedef {Object} Field
  *  @property {number} id
+ *  @property {string} type
+ *  @property {"primitive" | "association" | "computed_sync" | "computed_async"} strategy
  *  @property {string} name
  *  @property {?string} [aliasOf]
- *  @property {string} type
  *  @property {?boolean} cast
  *  @property {?boolean} deprecated
- *  @property {"primitive" | "association" | "computed_sync" | "computed_async"} strategy
  *  @property {?string[]} [sourceFields]
  *  @property {?string[]} [targetFields]
  */
@@ -35,13 +34,23 @@ const path = require("path");
  *  @property {Field[]} [fields]
  */
 
-const TEMPLATE_PATH = path.join(__dirname, "../templates");
-const TEMPLATE_UTILS_PATH = path.join(TEMPLATE_PATH, "utils.js");
-const BASE_TEMPLATE_PATH = path.join(TEMPLATE_PATH, "base-template.ts.ejs");
-const ENTITY_TEMPLATE_PATH = path.join(TEMPLATE_PATH, "entity-template.ts.ejs");
-const RESPONSE_TEMPLATE_PATH = path.join(TEMPLATE_PATH, "type-template.ts.ejs");
+/** @typedef {Object} Template
+ *  @property {string} name
+ *  @property {string | null} suffix
+ *  @property {boolean} skippable
+ */
+
+/** @typedef {Object} Config
+ *  @property {"commonjs" | "module"} type
+ *  @property {?string} airentPackage
+ *  @property {string} schemaPath
+ *  @property {string} outputPath
+ *  @property {?string[]} [prologues]
+ *  @property {?Template[]} [templates]
+ */
 
 const PROJECT_PATH = process.cwd();
+const AIRENT_PATH = path.join(__dirname, "..");
 
 function toTitleCase(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -63,33 +72,73 @@ async function sequential(functions) {
   return results;
 }
 
-async function loadTemplates() {
-  const templateUtils =
-    "<% " + (await fs.promises.readFile(TEMPLATE_UTILS_PATH, "utf8")) + "-%>\n";
-  const baseTemplate =
-    templateUtils + (await fs.promises.readFile(BASE_TEMPLATE_PATH, "utf8"));
-  const entityTemplate =
-    templateUtils + (await fs.promises.readFile(ENTITY_TEMPLATE_PATH, "utf8"));
-  const responseTemplate =
-    templateUtils +
-    (await fs.promises.readFile(RESPONSE_TEMPLATE_PATH, "utf8"));
-  return { baseTemplate, entityTemplate, responseTemplate };
-}
-
 async function loadConfig() {
   const airentConfigFilePath = path.join(PROJECT_PATH, "airent.config.json");
   const airentConfigContent = await fs.promises.readFile(
     airentConfigFilePath,
     "utf8"
   );
-  const { type, schemaPath, outputPath, airentPackage } =
+  const { type, schemaPath, outputPath, airentPackage, prologues, templates } =
     JSON.parse(airentConfigContent);
   return {
     isModule: type === "module",
     relativeSchemaPath: schemaPath,
     relativeOutputPath: outputPath,
     airentPackage: airentPackage ?? "airent",
+    prologues: prologues ?? [],
+    templates: templates ?? [],
   };
+}
+
+async function loadTemplates(config) {
+  const extProloguePaths = config.prologues.map((p) =>
+    path.join(PROJECT_PATH, p)
+  );
+  const prologuePaths = [
+    path.join(AIRENT_PATH, "templates", "utils.js"),
+    ...extProloguePaths,
+  ];
+  const prologuePromises = prologuePaths.map((p) =>
+    fs.promises.readFile(p, "utf8")
+  );
+  const prologues = await Promise.all(prologuePromises);
+  const prologue = "<% " + prologues.join("\n") + "-%>\n";
+
+  const baseTemplateConfig = {
+    name: path.join(AIRENT_PATH, "templates", "base-template.ts.ejs"),
+    suffix: "base",
+    skippable: false,
+  };
+  const typeTemplateConfig = {
+    name: path.join(AIRENT_PATH, "templates", "type-template.ts.ejs"),
+    suffix: "type",
+    skippable: false,
+  };
+  const entityTemplateConfig = {
+    name: path.join(AIRENT_PATH, "templates", "entity-template.ts.ejs"),
+    suffix: null,
+    skippable: true,
+  };
+  const extTemplateConfigs = config.templates.map((c) => ({
+    ...c,
+    name: path.join(PROJECT_PATH, c.name),
+  }));
+  const templateConfigs = [
+    baseTemplateConfig,
+    typeTemplateConfig,
+    entityTemplateConfig,
+    ...extTemplateConfigs,
+  ];
+  const templateContentPromises = templateConfigs
+    .map((c) => c.name)
+    .map((p) => fs.promises.readFile(p, "utf8"));
+  const tepmlateContents = (await Promise.all(templateContentPromises)).map(
+    (c) => prologue + c
+  );
+  return templateConfigs.map((c, i) => ({
+    ...c,
+    content: tepmlateContents[i],
+  }));
 }
 
 async function createGeneratedDirectory(outputPath) {
@@ -125,9 +174,7 @@ async function getSchemaParams(schemaFilePath) {
 
 async function generate(
   schemaFilePath,
-  baseTemplate,
-  entityTemplate,
-  responseTemplate,
+  templates,
   isModule,
   airentPackage,
   outputPath
@@ -137,45 +184,28 @@ async function generate(
   const params = { ...schemaParams, isModule, airentPackage };
 
   const generatedOutputPath = path.join(outputPath, "generated");
-
-  // Generate base class
-  const baseFileName = `${toKababCase(params.entityName)}-base.ts`;
-  const baseFilePath = path.join(generatedOutputPath, baseFileName);
-
-  const baseContent = ejs.render(baseTemplate, params);
-  await fs.promises.writeFile(baseFilePath, baseContent);
-  console.log(`  - Generated base class '${baseFilePath}'`);
-
-  // Generate entity class
-  const entityFileName = `${toKababCase(params.entityName)}.ts`;
-  const entityFilePath = path.join(outputPath, entityFileName);
-
-  if (fs.existsSync(entityFilePath)) {
-    console.log(`  - Skipped entity class '${entityFilePath}'`);
-  } else {
-    const entityContent = ejs.render(entityTemplate, params);
-    await fs.promises.writeFile(entityFilePath, entityContent);
-    console.log(`  - Generated entity class '${entityFilePath}'`);
-  }
-
-  // Generate entity class
-  const responseFileName = `${toKababCase(params.entityName)}-type.ts`;
-  const responseFilePath = path.join(generatedOutputPath, responseFileName);
-
-  if (params.internal) {
-    console.log(`  - Skipped response class '${responseFilePath}'`);
-  } else {
-    const responseContent = ejs.render(responseTemplate, params);
-    await fs.promises.writeFile(responseFilePath, responseContent);
-    console.log(`  - Generated response class '${responseFilePath}'`);
+  const fileNamePrefix = toKababCase(params.entityName);
+  for (const template of templates) {
+    const fileName =
+      [fileNamePrefix, template.suffix].filter((s) => s?.length).join("-") +
+      ".ts";
+    const dirName = template.skippable ? outputPath : generatedOutputPath;
+    const filePath = path.join(dirName, fileName);
+    if (template.skippable && fs.existsSync(filePath)) {
+      console.log(
+        `  - Skipped ${template.suffix ?? "entity"} class '${filePath}'`
+      );
+    } else {
+      const fileContent = ejs.render(template.content, params);
+      await fs.promises.writeFile(filePath, fileContent);
+      console.log(
+        `  - Generated ${template.suffix ?? "entity"} class '${filePath}'`
+      );
+    }
   }
 }
 
 async function execute() {
-  // Load templates
-  const { baseTemplate, entityTemplate, responseTemplate } =
-    await loadTemplates();
-
   // Load configuration
   const config = await loadConfig();
   console.log(config);
@@ -184,6 +214,9 @@ async function execute() {
   const schemaPath = path.join(PROJECT_PATH, relativeSchemaPath);
   const outputPath = path.join(PROJECT_PATH, relativeOutputPath);
 
+  // Load templates
+  const templates = await loadTemplates(config);
+
   // Ensure the output directory exists
   await createGeneratedDirectory(outputPath);
   const schemaFiles = await getSchemaFilePaths(schemaPath);
@@ -191,15 +224,7 @@ async function execute() {
   // Loop through each YAML file and generate code
   const functions = schemaFiles.map(
     (schemaFilePath) => async () =>
-      generate(
-        schemaFilePath,
-        baseTemplate,
-        entityTemplate,
-        responseTemplate,
-        isModule,
-        airentPackage,
-        outputPath
-      )
+      generate(schemaFilePath, templates, isModule, airentPackage, outputPath)
   );
   await sequential(functions);
 }

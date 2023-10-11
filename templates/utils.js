@@ -1,6 +1,7 @@
 /** string utils */
 
 // internal
+// example: "ChatUser" => "chat-user"
 function toKababCase(string) {
   return string
     .replace(/_/g, "-")
@@ -8,72 +9,62 @@ function toKababCase(string) {
     .toLowerCase();
 }
 
-function toTitleCase(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
 // internal
+// example: "string[] | null" => "string"
 function toPrimitiveTypeName(string) {
   return string.split("|")[0].split("[]")[0].trim();
 }
 
+// example: "chatUser" => "ChatUser"
+function toTitleCase(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 /** type utils */
+
+// internal
+function queryType(typeName) {
+  return (
+    types.find((type) => type.name === typeName) ?? {
+      name: typeName,
+      import: "TODO: import your type",
+    }
+  );
+}
+
+// example
+// - name: User
+//   entity: true
 function isEntityType(type) {
   return !!type.entity;
 }
-function isDefinableType(type) {
-  return !!type.define?.length;
-}
-function isEnumerableType(type) {
-  return !!type.enum?.length;
-}
-function isInternalType(type) {
-  return isDefinableType(type) || isEnumerableType(type);
-}
+
+// example
+// - name: Message as PrismaMessage
+//   import: "@prisma/client"
 function isExternalType(type) {
   return !!type.import?.length;
 }
 
+// example
+// - name: Attachment
+//   define: "{ [key: string] : string }"
+function isDefinableType(type) {
+  return !!type.define?.length;
+}
+
+// example
+// - name: SenderType
+//   enum: '{ USER = "USER", CHATBOT = "CHATBOT" }'
+function isEnumerableType(type) {
+  return !!type.enum?.length;
+}
+
+function isInternalType(type) {
+  return isDefinableType(type) || isEnumerableType(type);
+}
+
 /** field utils */
-
-function isPrimitiveField(field) {
-  return field.strategy === "primitive";
-}
-function isAssociationField(field) {
-  return field.strategy === "association";
-}
-function isComputedSyncField(field) {
-  return field.strategy === "computed_sync";
-}
-function isComputedAsyncField(field) {
-  return field.strategy === "computed_async";
-}
-function isExternalField(field) {
-  return !field.internal;
-}
-function isSyncField(field) {
-  return isPrimitiveField(field) || isComputedSyncField(field);
-}
-function isArrayField(field) {
-  return field.type.endsWith("[]");
-}
-// internal
-function isNullableField(field) {
-  return field.type.endsWith(" | null");
-}
-// internal
-function isEntityTypeField(field) {
-  const fieldTypeName = toPrimitiveTypeName(field.type);
-  const type = types.find((type) => type.name === fieldTypeName);
-  return !!type && isEntityType(type);
-}
-
-function getFieldGetterName(field) {
-  if (isPrimitiveField(field)) {
-    return `${field.name}`;
-  }
-  return `get${toTitleCase(field.name)}()`;
-}
 
 // internal
 function queryField(fieldName) {
@@ -85,6 +76,59 @@ function queryField(fieldName) {
     }
   );
 }
+
+function isPrimitiveField(field) {
+  return field.strategy === "primitive";
+}
+
+function isAssociationField(field) {
+  return field.strategy === "association";
+}
+
+function isComputedSyncField(field) {
+  return field.strategy === "computed_sync";
+}
+
+function isComputedAsyncField(field) {
+  return field.strategy === "computed_async";
+}
+
+function isExternalField(field) {
+  return !field.internal;
+}
+
+function isSyncField(field) {
+  return isPrimitiveField(field) || isComputedSyncField(field);
+}
+
+function isDefaultPresentableField(field) {
+  return isExternalField(field) && isSyncField(field);
+}
+
+function isArrayField(field) {
+  return field.type.endsWith("[]");
+}
+
+// internal
+function isNullableField(field) {
+  return field.type.endsWith(" | null");
+}
+
+// internal
+function isEntityTypeField(field) {
+  const fieldTypeName = toPrimitiveTypeName(field.type);
+  const type = queryType(fieldTypeName);
+  return isEntityType(type);
+}
+
+function getFieldGetterName(field) {
+  if (isPrimitiveField(field)) {
+    return `${field.name}`;
+  }
+  return `get${toTitleCase(field.name)}()`;
+}
+
+/** field association utils */
 
 function getSourceFields(field) {
   return (field.sourceFields ?? [])
@@ -102,7 +146,19 @@ function hasTargetKey(field) {
   return field.targetFields?.length;
 }
 
-function hasAssociationKeys(field) {
+function isLoaderGeneratable(field) {
+  return hasSourceKey(field) && hasTargetKey(field) && false;
+}
+
+function getTargetLoadedModels(field) {
+  if (hasSourceKey(field)) {
+    return "[/* TODO: load associated models with the above keys */]";
+  } else {
+    return "[/* TODO: load associated models here */]";
+  }
+}
+
+function isSetterGeneratable(field) {
   return hasSourceKey(field) && hasTargetKey(field);
 }
 
@@ -142,17 +198,6 @@ function getSourceKey(field) {
   return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
 }
 
-// internal
-function getTargetKey(field) {
-  const getters = (field.targetFields ?? []).map(
-    (fieldName) => `one.${fieldName}`
-  );
-  if (getters.length === 1) {
-    return getters[0];
-  }
-  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
-}
-
 function getSourceSetter(field) {
   const nullableCondition = getNullableCondition(field);
   const sourceKey = hasSourceKey(field)
@@ -166,11 +211,20 @@ function getSourceSetter(field) {
   return `${nullableCondition}map.get(${sourceKey})${fallbackValue}`;
 }
 
-function getTargetGetter(field) {
-  return hasTargetKey(field)
-    ? getTargetKey(field)
-    : "'TODO: map your target entity to key'";
+function getTargetMap(field) {
+  const mapBuilder = isArrayField(field) ? "toArrayMap" : "toObjectMap";
+  const targetGetters = (field.targetFields ?? []).map(
+    (fieldName) => `one.${fieldName}`
+  );
+  const targetKey = !hasTargetKey(field)
+    ? "'TODO: map your target entity to key'"
+    : targetGetters.length === 1
+    ? targetGetters[0]
+    : "`" + targetGetters.map((getter) => `\${${getter}}`).join("*") + "`";
+  return `${mapBuilder}(loaded, (one) => ${targetKey}, (one) => one)`;
 }
+
+/** field presentation utils */
 
 // internal
 function getFieldPresenter(field) {
@@ -256,22 +310,30 @@ function getTypeStrings(type) {
 }
 
 function getFieldStrings(field) {
+  const fieldStrings = {
+    fieldGetterName: getFieldGetterName(field),
+    fieldPresenter: getFieldPresenter(field),
+  };
   if (isEntityTypeField(field)) {
     const otherEntityStrings = getOtherEntityStrings(field);
     return {
-      fieldGetterName: getFieldGetterName(field),
+      ...fieldStrings,
       fieldType: otherEntityStrings.entityFieldType,
       fieldRequestType: `${otherEntityStrings.fieldRequestClass} | boolean`,
       fieldResponseType: otherEntityStrings.responseFieldType,
-      fieldPresenter: getFieldPresenter(field),
     };
   } else {
+    const fieldModelName = field.aliasOf ?? field.name;
+    const fieldAliasSuffix = field.cast ? ` as ${field.type}` : "";
+    const fieldInitializer = isPrimitiveField(field)
+      ? `model.${fieldModelName}${fieldAliasSuffix}`
+      : undefined;
     return {
-      fieldGetterName: getFieldGetterName(field),
+      ...fieldStrings,
+      fieldInitializer,
       fieldType: field.type,
       fieldRequestType: "boolean",
       fieldResponseType: field.type,
-      fieldPresenter: getFieldPresenter(field),
     };
   }
 }

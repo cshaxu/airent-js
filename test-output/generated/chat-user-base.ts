@@ -53,7 +53,9 @@ export class ChatUserEntityBase extends BaseEntity<
     if (request === false) {
       throw new Error('unprocessable field request');
     }
-    const fieldRequest = request === true || request === undefined ? ChatUserEntityBase.defaultFieldRequest : request;
+    const fieldRequest = request === true || request === undefined
+      ? ChatUserEntityBase.defaultFieldRequest
+      : request;
     return {
       id: fieldRequest?.id ? this.id : undefined,
       createdAt: fieldRequest?.createdAt ? this.createdAt : undefined,
@@ -73,16 +75,11 @@ export class ChatUserEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (array: ChatUserEntityBase[]) => {
     //   const chatIds = unique((nonNull(array.map((one) => one.chatId))));
-    //   // TODO: load models with the above keys
-    //   const loadedModels = ...;
+    //   const loadedModels = [/* TODO: load associated models with the above keys */];
     //   return ChatEntity.fromArray(loadedModels);
     // },
     setter: (array: ChatUserEntityBase[], loaded: ChatEntity[]) => {
-      const map = toObjectMap(
-        loaded,
-        (one) => one.id,
-        (one) => one
-      );
+      const map = toObjectMap(loaded, (one) => one.id, (one) => one);
       array.forEach((one) => (one.chat = map.get(one.chatId)!));
     },
   };
@@ -109,16 +106,11 @@ export class ChatUserEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (array: ChatUserEntityBase[]) => {
     //   const userIds = unique((nonNull(array.map((one) => one.userId))));
-    //   // TODO: load models with the above keys
-    //   const loadedModels = ...;
+    //   const loadedModels = [/* TODO: load associated models with the above keys */];
     //   return UserEntity.fromArray(loadedModels);
     // },
     setter: (array: ChatUserEntityBase[], loaded: UserEntity[]) => {
-      const map = toObjectMap(
-        loaded,
-        (one) => one.id,
-        (one) => one
-      );
+      const map = toObjectMap(loaded, (one) => one.id, (one) => one);
       array.forEach((one) => (one.user = map.get(one.userId)!));
     },
   };

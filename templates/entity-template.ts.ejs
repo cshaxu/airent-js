@@ -28,31 +28,20 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 
     /** associations */
 <% fields.filter(isAssociationField).forEach((field) => { -%>
+<% if (!isLoaderGeneratable(field)) { -%>
 
-    this.<%= field.name %>Params.loader = async (array: <%= getThisEntityStrings().baseClass %>[]) => {    
-<% if (hasSourceKey(field)) { -%>
+    this.<%= field.name %>Params.loader = async (array: <%= getThisEntityStrings().baseClass %>[]) => { 
 <% getSourceFields(field).forEach((sourceField) => { -%>
       const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
 <% }); -%>
-      // TODO: load models with the above keys
-<% } else { -%>
-      // TODO: build your association data loader
-<% } -%>
-      const loadedModels = [];
+      const loadedModels = <%- getTargetLoadedModels(field) %>;
       return <%= getOtherEntityStrings(field).entityClass %>.fromArray(loadedModels);
     };
-<% if (!hasAssociationKeys(field)) { -%>
+<% } -%>
+<% if (!isSetterGeneratable(field)) { -%>
 
     this.<%= field.name %>Params.setter = ((array: <%= getThisEntityStrings().entityClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => {
-<% if (isArrayField(field)) { -%>
-      const map = buildArrayMap(
-<% } else { -%>
-      const map = buildObjectMap(
-<% } -%>
-        loaded,
-        (one) => <%- getTargetGetter(field) %>,
-        (one) => one
-      );
+      const map = <%- getTargetMap(field) %>;
       array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
     }) as (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => Promise<void>;
 <% } -%>
@@ -65,7 +54,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 <% } -%>
 <% fields.filter(isComputedSyncField).forEach((field) => { -%>
 
-  <% if (field.deprecated) { -%>
+<% if (field.deprecated) { -%>
   /** @deprecated */
 <% } -%>
   public <%= getFieldStrings(field).fieldGetterName %>: <%= getFieldStrings(field).fieldType %> {
