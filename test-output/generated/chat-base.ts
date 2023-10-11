@@ -49,7 +49,9 @@ export class ChatEntityBase extends BaseEntity<
     if (request === false) {
       throw new Error('unprocessable field request');
     }
-    const fieldRequest = request === true || request === undefined ? ChatEntityBase.defaultFieldRequest : request;
+    const fieldRequest = request === true || request === undefined
+      ? ChatEntityBase.defaultFieldRequest
+      : request;
     return {
       id: fieldRequest?.id ? this.id : undefined,
       createdAt: fieldRequest?.createdAt ? this.createdAt : undefined,
@@ -69,16 +71,11 @@ export class ChatEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (array: ChatEntityBase[]) => {
     //   const ids = unique((nonNull(array.map((one) => one.id))));
-    //   // TODO: load models with the above keys
-    //   const loadedModels = ...;
+    //   const loadedModels = [/* TODO: load associated models with the above keys */];
     //   return ChatUserEntity.fromArray(loadedModels);
     // },
     setter: (array: ChatEntityBase[], loaded: ChatUserEntity[]) => {
-      const map = toArrayMap(
-        loaded,
-        (one) => one.chatId,
-        (one) => one
-      );
+      const map = toArrayMap(loaded, (one) => one.chatId, (one) => one);
       array.forEach((one) => (one.chatUsers = map.get(one.id) ?? []));
     },
   };
@@ -108,16 +105,11 @@ export class ChatEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (array: ChatEntityBase[]) => {
     //   const ids = unique((nonNull(array.map((one) => one.id))));
-    //   // TODO: load models with the above keys
-    //   const loadedModels = ...;
+    //   const loadedModels = [/* TODO: load associated models with the above keys */];
     //   return MessageEntity.fromArray(loadedModels);
     // },
     setter: (array: ChatEntityBase[], loaded: MessageEntity[]) => {
-      const map = toArrayMap(
-        loaded,
-        (one) => one.chatId,
-        (one) => one
-      );
+      const map = toArrayMap(loaded, (one) => one.chatId, (one) => one);
       array.forEach((one) => (one.messages = map.get(one.id) ?? []));
     },
   };

@@ -55,8 +55,6 @@ fields:
     name: messages
     type: Message[]
     strategy: association
-    sourceFields:
-      - id
     targetFields:
       - userId
     internal: true
