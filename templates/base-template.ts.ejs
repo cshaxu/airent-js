@@ -102,8 +102,12 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ getSourceFields(field).forEach((sourceField) => { -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
   <%_ }); -%>
+  <%_ if (isEntityTypeField(field)) { -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  const loadedModels = <%- getTargetLoadedModels(field) %>;
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  return <%= getFieldStrings(field).fieldClass %>.fromArray(loadedModels);
+  <%_ } else { -%>
+    <%= isLoaderGeneratable(field) ? '' : '// ' %>  return <%- getTargetLoadedModels(field) %>;
+  <%_ } -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>},
   <%_ if (!isSetterGeneratable(field)) { -%>
     // TODO: build your association data setter
