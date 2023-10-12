@@ -20,6 +20,11 @@ function toTitleCase(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+/** global import utils */
+function getGlobalImports() {
+  return [];
+}
+
 /** type utils */
 
 // internal

@@ -1,3 +1,6 @@
+<% getGlobalImports().forEach((globalImport) => { -%>
+<%- globalImport %>
+<% }); -%>
 import { toArrayMap, toObjectMap, nonNull, unique } from '<%= airentPackage %>';
 import { <%= getThisEntityStrings().baseClass %> } from './generated/<%= getThisEntityStrings().basePackage %>';
 <% if (!internal || fields.some(isInternalType)) { -%>
