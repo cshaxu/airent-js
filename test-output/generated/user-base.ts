@@ -149,8 +149,7 @@ export class UserEntityBase extends BaseEntity<
     filter: (one: UserEntityBase) => one.hasAnyMessage === undefined,
     // TODO: build your association data loader
     // loader: async (array: UserEntityBase[]) => {
-    //   const loadedModels = [/* TODO: load associated models here */];
-    //   return boolean.fromArray(loadedModels);
+    //   return [/* TODO: load associated models here */];
     // },
     // TODO: build your association data setter
     // setter: (array: UserEntityBase[], loaded: boolean[]) => {
