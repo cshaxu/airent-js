@@ -129,7 +129,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
       return this.<%= field.name %>;
     }
     await this.<%= `load${toTitleCase(field.name)}` %>();
-    return this.<%= field.name %>!;
+    return this.<%= field.name %><%= isNullableField(field) ? ' ?? null' : '!' %>;
   }
 
   <%_ if (field.deprecated) { -%>

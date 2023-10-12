@@ -16,25 +16,25 @@ export class MessageEntity extends MessageEntityBase {
 
     /** associations */
 
-    this.chatParams.loader = async (array: MessageEntityBase[]) => { 
+    this.chatParams.loader = async (array: MessageEntityBase[]) => {
       const chatIds = unique((nonNull(array.map((one) => one.chatId))));
       const loadedModels = [/* TODO: load associated models with the above keys */];
       return ChatEntity.fromArray(loadedModels);
     };
 
-    this.userParams.loader = async (array: MessageEntityBase[]) => { 
+    this.userParams.loader = async (array: MessageEntityBase[]) => {
       const userIds = unique((nonNull(array.map((one) => one.userId))));
       const loadedModels = [/* TODO: load associated models with the above keys */];
       return UserEntity.fromArray(loadedModels);
     };
 
-    this.parentMessageParams.loader = async (array: MessageEntityBase[]) => { 
+    this.parentMessageParams.loader = async (array: MessageEntityBase[]) => {
       const parentMessageIds = unique((nonNull(array.map((one) => one.parentMessageId))));
       const loadedModels = [/* TODO: load associated models with the above keys */];
       return MessageEntity.fromArray(loadedModels);
     };
 
-    this.mentorParams.loader = async (array: MessageEntityBase[]) => { 
+    this.mentorParams.loader = async (array: MessageEntityBase[]) => {
       const mentorIds = unique((nonNull(array.map((one) => one.getMentorId()))));
       const loadedModels = [/* TODO: load associated models with the above keys */];
       return UserEntity.fromArray(loadedModels);
