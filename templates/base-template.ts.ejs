@@ -92,7 +92,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
 <% if (field.deprecated) { -%>
   /** @deprecated */
 <% } -%>
-  protected <%= field.name %>Params: LoadParams<<%= getThisEntityStrings().baseClass %>, <%= getOtherEntityStrings(field).entityClass %>> = {
+  protected <%= `${field.name}Params` %>: LoadParams<<%= getThisEntityStrings().baseClass %>, <%= getOtherEntityStrings(field).entityClass %>> = {
     name: '<%= getFieldParamsName(field) %>',
     filter: (one: <%= getThisEntityStrings().baseClass %>) => one.<%= field.name %> === undefined,
 <% if (!isLoaderGeneratable(field)) { -%>
@@ -117,8 +117,8 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
 <% if (field.deprecated) { -%>
   /** @deprecated */
 <% } -%>
-  protected async load<%= toTitleCase(field.name) %>(): Promise<void> {
-    await this.load(this.<%= field.name %>Params);
+  protected async <%= `load${toTitleCase(field.name)}` %>(): Promise<void> {
+    await this.load(this.<%= `${field.name}Params` %>);
   }
 
 <% if (field.deprecated) { -%>
@@ -128,14 +128,14 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     if (this.<%= field.name %> !== undefined) {
       return this.<%= field.name %>;
     }
-    await this.load<%= toTitleCase(field.name) %>();
+    await this.<%= `load${toTitleCase(field.name)}` %>();
     return this.<%= field.name %>!;
   }
 
 <% if (field.deprecated) { -%>
   /** @deprecated */
 <% } -%>
-  public set<%= toTitleCase(field.name) %>(<%= field.name %>?: <%= getFieldStrings(field).fieldType %>): void {
+  public <%= `set${toTitleCase(field.name)}` %>(<%= field.name %>?: <%= getFieldStrings(field).fieldType %>): void {
     this.<%= field.name %> = <%= field.name %>;
   }
 <% }); -%>
