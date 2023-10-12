@@ -38,15 +38,15 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
       const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
       <%_ }); -%>
       const loadedModels = <%- getTargetLoadedModels(field) %>;
-      return <%= getOtherEntityStrings(field).entityClass %>.fromArray(loadedModels);
+      return <%= getFieldStrings(field).fieldClass %>.fromArray(loadedModels);
     };
     <%_ } -%>
     <%_ if (!isSetterGeneratable(field)) { -%>
 
-    this.<%= `${field.name}Params` %>.setter = ((array: <%= getThisEntityStrings().entityClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => {
+    this.<%= `${field.name}Params` %>.setter = ((array: <%= getThisEntityStrings().entityClass %>[], loaded: <%= getFieldStrings(field).fieldClass %>[]) => {
       const map = <%- getTargetMap(field) %>;
       array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
-    }) as (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => Promise<void>;
+    }) as (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getFieldStrings(field).fieldClass %>[]) => Promise<void>;
     <%_ } -%>
   <%_ }); -%>
   }

@@ -45,7 +45,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  protected <%= field.name %>?: <%= getOtherEntityStrings(field).entityFieldType %>;
+  protected <%= field.name %>?: <%= getFieldStrings(field).fieldType %>;
 <% }); -%>
 
   public constructor(
@@ -92,7 +92,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  protected <%= `${field.name}Params` %>: LoadParams<<%= getThisEntityStrings().baseClass %>, <%= getOtherEntityStrings(field).entityClass %>> = {
+  protected <%= `${field.name}Params` %>: LoadParams<<%= getThisEntityStrings().baseClass %>, <%= getFieldStrings(field).fieldClass %>> = {
     name: '<%= getFieldParamsName(field) %>',
     filter: (one: <%= getThisEntityStrings().baseClass %>) => one.<%= field.name %> === undefined,
   <%_ if (!isLoaderGeneratable(field)) { -%>
@@ -103,12 +103,12 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
   <%_ }); -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  const loadedModels = <%- getTargetLoadedModels(field) %>;
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>  return <%= getOtherEntityStrings(field).entityClass %>.fromArray(loadedModels);
+    <%= isLoaderGeneratable(field) ? '' : '// ' %>  return <%= getFieldStrings(field).fieldClass %>.fromArray(loadedModels);
     <%= isLoaderGeneratable(field) ? '' : '// ' %>},
   <%_ if (!isSetterGeneratable(field)) { -%>
     // TODO: build your association data setter
   <%_ } -%>
-    <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => {
+    <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getFieldStrings(field).fieldClass %>[]) => {
     <%= isSetterGeneratable(field) ? '' : '// ' %>  const map = <%- getTargetMap(field) %>;
     <%= isSetterGeneratable(field) ? '' : '// ' %>  array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
     <%= isSetterGeneratable(field) ? '' : '// ' %>},
