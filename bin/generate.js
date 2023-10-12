@@ -162,14 +162,15 @@ async function getSchemaFilePaths(schemaPath) {
 async function getSchemaParams(schemaFilePath) {
   const schemaContent = await fs.promises.readFile(schemaFilePath, "utf8");
   const schema = yaml.load(schemaContent);
-
-  const entityName = toTitleCase(schema.entity);
-  const modelName = toTitleCase(schema.model);
-  const deprecated = schema.deprecated;
-  const internal = schema.internal;
-  const types = schema.types;
-  const fields = schema.fields;
-  return { entityName, modelName, deprecated, internal, types, fields };
+  return {
+    ...schema,
+    entityName: toTitleCase(schema.entity),
+    modelName: toTitleCase(schema.model),
+    deprecated: schema.deprecated ?? false,
+    internal: schema.internal ?? false,
+    types: schema.types ?? [],
+    fields: schema.fields ?? [],
+  };
 }
 
 async function generate(
