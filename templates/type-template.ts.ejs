@@ -1,49 +1,49 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
-<% types.filter(isEntityType).filter((type) => type.name !== entityName).forEach((type) => { -%>
+<% schema.types.filter(isEntityType).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
 import { <%= getTypeStrings(type).fieldRequestClass %>, <%= getTypeStrings(type).responseClass %> } from './<%= getTypeStrings(type).typePackage %>';
 <% }); -%>
-<% types.filter(isExternalType).forEach((type) => { -%>
+<% schema.types.filter(isExternalType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
 <% }); -%>
-<% if (types.some(isEnumerableType)) { -%>
+<% if (schema.types.some(isEnumerableType)) { -%>
 
 /** enums */
-<% types.filter(isEnumerableType).forEach((type) => { -%>
+  <%_ schema.types.filter(isEnumerableType).forEach((type) => { -%>
 
-<% if (type.deprecated) { -%>
+    <%_ if (type.deprecated) { -%>
 /** @deprecated */
-<% } -%>
+    <%_ } -%>
 export enum <%= getTypeStrings(type).typeName %> <%- getTypeStrings(type).typeDefinition %>;
-<% }); -%>
+  <%_ }); -%>
 <% } -%>
-<% if (types.some(isDefinableType)) { -%>
+<% if (schema.types.some(isDefinableType)) { -%>
 
 /** structs */
-<% types.filter(isDefinableType).forEach((type) => { -%>
+  <%_ schema.types.filter(isDefinableType).forEach((type) => { -%>
 
-<% if (type.deprecated) { -%>
+    <%_ if (type.deprecated) { -%>
 /** @deprecated */
-<% } -%>
+    <%_ } -%>
 export type <%= getTypeStrings(type).typeName %> = <%- getTypeStrings(type).typeDefinition %>;
-<% }); -%>
+  <%_ }); -%>
 <% } -%>
 
 export type <%= getThisEntityStrings().fieldRequestClass %> = {
-<% fields.filter(isExternalField).forEach((field) => { -%>
-<% if (field.deprecated) { -%>
+<% schema.fields.filter(isExternalField).forEach((field) => { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   <%= field.name %>?: <%= getFieldStrings(field).fieldRequestType %>;
 <% }); -%>
 };
 
 export type <%= getThisEntityStrings().responseClass %> = {
-<% fields.filter(isExternalField).forEach((field) => { -%>
-<% if (field.deprecated) { -%>
+<% schema.fields.filter(isExternalField).forEach((field) => { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   <%= field.name %>?: <%= getFieldStrings(field).fieldResponseType %>;
 <% }); -%>
 };

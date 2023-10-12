@@ -1,72 +1,72 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
-import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap, nonNull, unique } from '<%= airentPackage %>';
-<% if (!internal || fields.some(isInternalType)) { -%>
+import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap, nonNull, unique } from '<%= config.airentPackage %>';
+<% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
 
 /** generated */
 import {
   <%= getThisEntityStrings().fieldRequestClass %>,
   <%= getThisEntityStrings().responseClass %>,
-<% types.filter(isInternalType).forEach((type) => { -%>
+  <%_ schema.types.filter(isInternalType).forEach((type) => { -%>
   <%= getTypeStrings(type).typeName %>,
-<% }); -%>
+  <%_ }); -%>
 } from './<%= getThisEntityStrings().typePackage %>';
 <% } -%>
-<% if (types.some(isEntityType)) { -%>
+<% if (schema.types.some(isEntityType)) { -%>
 
 /** associations */
-<% types.filter(isEntityType).forEach((type) => { -%>
+  <%_ schema.types.filter(isEntityType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).entityClass %> } from '../<%= getTypeStrings(type).entityPackage %>';
-<% }); -%>
+  <%_ }); -%>
 <% } -%>
-<% if (types.some(isExternalType)) { -%>
+<% if (schema.types.some(isExternalType)) { -%>
 
 /** external types */
-<% types.filter(isExternalType).forEach((type) => { -%>
+  <%_ schema.types.filter(isExternalType).forEach((type) => { -%>
 import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
-<% }); -%>
+  <%_ }); -%>
 <% } -%>
 
-<% if (deprecated) { -%>
+<% if (schema.deprecated) { -%>
 /** @deprecated */
 <% } -%>
 export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
-  <%= modelName %><%= internal ? '' : `, ${getThisEntityStrings().fieldRequestClass}, ${getThisEntityStrings().responseClass}` %>
+  <%= schema.modelName %><%= schema.internal ? '' : `, ${getThisEntityStrings().fieldRequestClass}, ${getThisEntityStrings().responseClass}` %>
 > {
-<% fields.filter(isPrimitiveField).forEach((field) => { -%>
-<% if (field.deprecated) { -%>
+<% schema.fields.filter(isPrimitiveField).forEach((field) => { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   public <%= field.name %>: <%= getFieldStrings(field).fieldType %>;
 <% }); -%>
 
-<% fields.filter(isAssociationField).forEach((field) => { -%>
-<% if (field.deprecated) { -%>
+<% schema.fields.filter(isAssociationField).forEach((field) => { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   protected <%= field.name %>?: <%= getOtherEntityStrings(field).entityFieldType %>;
 <% }); -%>
 
   public constructor(
-    model: <%= modelName %>,
+    model: <%= schema.modelName %>,
     group: <%= getThisEntityStrings().baseClass %>[],
     lock: AsyncLock,
   ) {
     super(group, lock);
 
-<% fields.filter(isPrimitiveField).forEach((field) => { -%>
+<% schema.fields.filter(isPrimitiveField).forEach((field) => { -%>
     this.<%= field.name %> = <%= getFieldStrings(field).fieldInitializer %>;
 <% }); -%>
 
     this.initialize();
   }
-<% if (!internal) { -%>
+<% if (!schema.internal) { -%>
 
   public static defaultFieldRequest: <%= getThisEntityStrings().fieldRequestClass %> = {
-<% fields.filter(isDefaultPresentableField).forEach((field) => { -%>
+  <%_ schema.fields.filter(isDefaultPresentableField).forEach((field) => { -%>
     <%= field.name %>: true,
-<% }); -%>
+  <%_ }); -%>
   };
 
   public async present(request?: <%= getThisEntityStrings().fieldRequestClass %> | boolean): Promise<<%= getThisEntityStrings().responseClass %>> {
@@ -77,53 +77,53 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
       ? <%= getThisEntityStrings().baseClass %>.defaultFieldRequest
       : request;
     return {
-<% fields.filter(isExternalField).forEach((field) => { -%>
+  <%_ schema.fields.filter(isExternalField).forEach((field) => { -%>
       <%= field.name %>: <%- getFieldStrings(field).fieldPresenter %>,
-<% }); -%>
+  <%_ }); -%>
     };
   }
 <% } -%>
-<% if (fields.some(isAssociationField)) { -%>
+<% if (schema.fields.some(isAssociationField)) { -%>
 
   /** associations */
 <% } -%>
-<% fields.filter(isAssociationField).forEach((field) => { -%>
+<% schema.fields.filter(isAssociationField).forEach((field) => { -%>
 
-<% if (field.deprecated) { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   protected <%= `${field.name}Params` %>: LoadParams<<%= getThisEntityStrings().baseClass %>, <%= getOtherEntityStrings(field).entityClass %>> = {
     name: '<%= getFieldParamsName(field) %>',
     filter: (one: <%= getThisEntityStrings().baseClass %>) => one.<%= field.name %> === undefined,
-<% if (!isLoaderGeneratable(field)) { -%>
+  <%_ if (!isLoaderGeneratable(field)) { -%>
     // TODO: build your association data loader
-<% } -%>
+  <%_ } -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>loader: async (array: <%= getThisEntityStrings().baseClass %>[]) => {
-<% getSourceFields(field).forEach((sourceField) => { -%>
+  <%_ getSourceFields(field).forEach((sourceField) => { -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
-<% }); -%>
+  <%_ }); -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  const loadedModels = <%- getTargetLoadedModels(field) %>;
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  return <%= getOtherEntityStrings(field).entityClass %>.fromArray(loadedModels);
     <%= isLoaderGeneratable(field) ? '' : '// ' %>},
-<% if (!isSetterGeneratable(field)) { -%>
+  <%_ if (!isSetterGeneratable(field)) { -%>
     // TODO: build your association data setter
-<% } -%>
+  <%_ } -%>
     <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => {
     <%= isSetterGeneratable(field) ? '' : '// ' %>  const map = <%- getTargetMap(field) %>;
     <%= isSetterGeneratable(field) ? '' : '// ' %>  array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
     <%= isSetterGeneratable(field) ? '' : '// ' %>},
   };
 
-<% if (field.deprecated) { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   protected async <%= `load${toTitleCase(field.name)}` %>(): Promise<void> {
     await this.load(this.<%= `${field.name}Params` %>);
   }
 
-<% if (field.deprecated) { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     if (this.<%= field.name %> !== undefined) {
       return this.<%= field.name %>;
@@ -132,35 +132,35 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     return this.<%= field.name %>!;
   }
 
-<% if (field.deprecated) { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   public <%= `set${toTitleCase(field.name)}` %>(<%= field.name %>?: <%= getFieldStrings(field).fieldType %>): void {
     this.<%= field.name %> = <%= field.name %>;
   }
 <% }); -%>
-<% if (fields.some(isComputedSyncField)) { -%>
+<% if (schema.fields.some(isComputedSyncField)) { -%>
 
   /** computed sync fields */
 <% } -%>
-<% fields.filter(isComputedSyncField).forEach((field) => { -%>
+<% schema.fields.filter(isComputedSyncField).forEach((field) => { -%>
 
-<% if (field.deprecated) { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   public <%= getFieldStrings(field).fieldGetterName %>: <%= getFieldStrings(field).fieldType %> {
     throw new Error('not implemented');
   }
 <% }); -%>
-<% if (fields.some(isComputedAsyncField)) { -%>
+<% if (schema.fields.some(isComputedAsyncField)) { -%>
 
   /** computed async fields */
 <% } -%>
-<% fields.filter(isComputedAsyncField).forEach((field) => { -%>
+<% schema.fields.filter(isComputedAsyncField).forEach((field) => { -%>
 
-<% if (field.deprecated) { -%>
+  <%_ if (field.deprecated) { -%>
   /** @deprecated */
-<% } -%>
+  <%_ } -%>
   public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     throw new Error('not implemented');
   }

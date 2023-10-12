@@ -78,20 +78,22 @@ async function loadConfig() {
     airentConfigFilePath,
     "utf8"
   );
+  const config = JSON.parse(airentConfigContent);
   const { type, schemaPath, outputPath, airentPackage, prologues, templates } =
-    JSON.parse(airentConfigContent);
+    config;
   return {
+    ...config,
     isModule: type === "module",
-    relativeSchemaPath: schemaPath,
-    relativeOutputPath: outputPath,
+    schemaPath: path.join(PROJECT_PATH, schemaPath),
+    outputPath: path.join(PROJECT_PATH, outputPath),
     airentPackage: airentPackage ?? "airent",
     prologues: prologues ?? [],
     templates: templates ?? [],
   };
 }
 
-async function loadTemplates(config) {
-  const extProloguePaths = config.prologues.map((p) =>
+async function loadTemplates(prologuesConfig, templatesConfig) {
+  const extProloguePaths = prologuesConfig.map((p) =>
     path.join(PROJECT_PATH, p)
   );
   const prologuePaths = [
@@ -119,7 +121,7 @@ async function loadTemplates(config) {
     suffix: null,
     skippable: true,
   };
-  const extTemplateConfigs = config.templates.map((c) => ({
+  const extTemplateConfigs = templatesConfig.map((c) => ({
     ...c,
     name: path.join(PROJECT_PATH, c.name),
   }));
@@ -173,19 +175,16 @@ async function getSchemaParams(schemaFilePath) {
   };
 }
 
-async function generate(
-  schemaFilePath,
-  templates,
-  isModule,
-  airentPackage,
-  outputPath
-) {
+async function generate(schemaFilePath, templates, config) {
   console.log(`[AIRENT/INFO] Generating from ${schemaFilePath} ...`);
-  const schemaParams = await getSchemaParams(schemaFilePath);
-  const params = { ...schemaParams, isModule, airentPackage };
+  const schema = await getSchemaParams(schemaFilePath);
+  const params = { schema, config };
+
+  const { entityName } = schema;
+  const { outputPath } = config;
 
   const generatedOutputPath = path.join(outputPath, "generated");
-  const fileNamePrefix = toKababCase(params.entityName);
+  const fileNamePrefix = toKababCase(entityName);
   for (const template of templates) {
     const fileName =
       [fileNamePrefix, template.suffix].filter((s) => s?.length).join("-") +
@@ -210,13 +209,15 @@ async function execute() {
   // Load configuration
   const config = await loadConfig();
   console.log(config);
-  const { isModule, relativeSchemaPath, relativeOutputPath, airentPackage } =
-    config;
-  const schemaPath = path.join(PROJECT_PATH, relativeSchemaPath);
-  const outputPath = path.join(PROJECT_PATH, relativeOutputPath);
+  const {
+    schemaPath,
+    outputPath,
+    prologues: prologuesConfig,
+    templates: templatesConfig,
+  } = config;
 
   // Load templates
-  const templates = await loadTemplates(config);
+  const templates = await loadTemplates(prologuesConfig, templatesConfig);
 
   // Ensure the output directory exists
   await createGeneratedDirectory(outputPath);
@@ -224,8 +225,7 @@ async function execute() {
 
   // Loop through each YAML file and generate code
   const functions = schemaFiles.map(
-    (schemaFilePath) => async () =>
-      generate(schemaFilePath, templates, isModule, airentPackage, outputPath)
+    (schemaFilePath) => async () => generate(schemaFilePath, templates, config)
   );
   await sequential(functions);
 }
