@@ -33,7 +33,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 <% fields.filter(isAssociationField).forEach((field) => { -%>
 <% if (!isLoaderGeneratable(field)) { -%>
 
-    this.<%= field.name %>Params.loader = async (array: <%= getThisEntityStrings().baseClass %>[]) => { 
+    this.<%= `${field.name}Params` %>.loader = async (array: <%= getThisEntityStrings().baseClass %>[]) => { 
 <% getSourceFields(field).forEach((sourceField) => { -%>
       const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
 <% }); -%>
@@ -43,7 +43,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 <% } -%>
 <% if (!isSetterGeneratable(field)) { -%>
 
-    this.<%= field.name %>Params.setter = ((array: <%= getThisEntityStrings().entityClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => {
+    this.<%= `${field.name}Params` %>.setter = ((array: <%= getThisEntityStrings().entityClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => {
       const map = <%- getTargetMap(field) %>;
       array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
     }) as (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getOtherEntityStrings(field).entityClass %>[]) => Promise<void>;
