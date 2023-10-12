@@ -139,7 +139,7 @@ export class MessageEntityBase extends BaseEntity<
       return this.user;
     }
     await this.loadUser();
-    return this.user!;
+    return this.user ?? null;
   }
 
   public setUser(user?: UserEntity | null): void {
@@ -170,7 +170,7 @@ export class MessageEntityBase extends BaseEntity<
       return this.parentMessage;
     }
     await this.loadParentMessage();
-    return this.parentMessage!;
+    return this.parentMessage ?? null;
   }
 
   public setParentMessage(parentMessage?: MessageEntity | null): void {
@@ -201,7 +201,7 @@ export class MessageEntityBase extends BaseEntity<
       return this.mentor;
     }
     await this.loadMentor();
-    return this.mentor!;
+    return this.mentor ?? null;
   }
 
   public setMentor(mentor?: UserEntity | null): void {

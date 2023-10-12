@@ -25,6 +25,7 @@ export class UserEntityBase extends BaseEntity<
   /** @deprecated */
   protected chatUsers?: ChatUserEntity[];
   protected messages?: MessageEntity[];
+  protected hasAnyMessage?: boolean;
 
   public constructor(
     model: UserModel,
@@ -71,6 +72,7 @@ export class UserEntityBase extends BaseEntity<
       imageUrl: fieldRequest?.imageUrl ? this.imageUrl : undefined,
       chatUsers: fieldRequest?.chatUsers ? await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest?.chatUsers)))) : undefined,
       firstMessage: fieldRequest?.firstMessage ? await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.firstMessage)) : undefined,
+      hasAnyMessage: fieldRequest?.hasAnyMessage ? await this.getHasAnyMessage() : undefined,
     };
   }
 
@@ -140,6 +142,37 @@ export class UserEntityBase extends BaseEntity<
 
   public setMessages(messages?: MessageEntity[]): void {
     this.messages = messages;
+  }
+
+  protected hasAnyMessageParams: LoadParams<UserEntityBase, boolean> = {
+    name: 'UserEntity.hasAnyMessage',
+    filter: (one: UserEntityBase) => one.hasAnyMessage === undefined,
+    // TODO: build your association data loader
+    // loader: async (array: UserEntityBase[]) => {
+    //   const loadedModels = [/* TODO: load associated models here */];
+    //   return boolean.fromArray(loadedModels);
+    // },
+    // TODO: build your association data setter
+    // setter: (array: UserEntityBase[], loaded: boolean[]) => {
+    //   const map = toObjectMap(loaded, (one) => 'TODO: map your target entity to key', (one) => one);
+    //   array.forEach((one) => (one.hasAnyMessage = map.get('TODO: map your source entity to key')!));
+    // },
+  };
+
+  protected async loadHasAnyMessage(): Promise<void> {
+    await this.load(this.hasAnyMessageParams);
+  }
+
+  public async getHasAnyMessage(): Promise<boolean> {
+    if (this.hasAnyMessage !== undefined) {
+      return this.hasAnyMessage;
+    }
+    await this.loadHasAnyMessage();
+    return this.hasAnyMessage!;
+  }
+
+  public setHasAnyMessage(hasAnyMessage?: boolean): void {
+    this.hasAnyMessage = hasAnyMessage;
   }
 
   /** computed sync fields */

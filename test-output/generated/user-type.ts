@@ -17,6 +17,7 @@ export type UserFieldRequest = {
   chatUsers?: ChatUserFieldRequest | boolean;
   /** @deprecated */
   firstMessage?: MessageFieldRequest | boolean;
+  hasAnyMessage?: boolean;
 };
 
 export type UserResponse = {
@@ -31,4 +32,5 @@ export type UserResponse = {
   chatUsers?: ChatUserResponse[];
   /** @deprecated */
   firstMessage?: MessageResponse | null;
+  hasAnyMessage?: boolean;
 };

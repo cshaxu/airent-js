@@ -14,13 +14,13 @@ export class UserEntity extends UserEntityBase {
 
     /** associations */
 
-    this.chatUsersParams.loader = async (array: UserEntityBase[]) => { 
+    this.chatUsersParams.loader = async (array: UserEntityBase[]) => {
       const ids = unique((nonNull(array.map((one) => one.id))));
       const loadedModels = [/* TODO: load associated models with the above keys */];
       return ChatUserEntity.fromArray(loadedModels);
     };
 
-    this.messagesParams.loader = async (array: UserEntityBase[]) => { 
+    this.messagesParams.loader = async (array: UserEntityBase[]) => {
       const loadedModels = [/* TODO: load associated models here */];
       return MessageEntity.fromArray(loadedModels);
     };
@@ -29,6 +29,16 @@ export class UserEntity extends UserEntityBase {
       const map = toArrayMap(loaded, (one) => one.userId, (one) => one);
       array.forEach((one) => (one.messages = map.get('TODO: map your source entity to key') ?? []));
     }) as (array: UserEntityBase[], loaded: MessageEntity[]) => Promise<void>;
+
+    this.hasAnyMessageParams.loader = async (array: UserEntityBase[]) => {
+      const loadedModels = [/* TODO: load associated models here */];
+      return boolean.fromArray(loadedModels);
+    };
+
+    this.hasAnyMessageParams.setter = ((array: UserEntity[], loaded: boolean[]) => {
+      const map = toObjectMap(loaded, (one) => 'TODO: map your target entity to key', (one) => one);
+      array.forEach((one) => (one.hasAnyMessage = map.get('TODO: map your source entity to key')!));
+    }) as (array: UserEntityBase[], loaded: boolean[]) => Promise<void>;
   }
 
   /** computed sync fields */

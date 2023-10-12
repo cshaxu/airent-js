@@ -63,3 +63,7 @@ fields:
     type: Message | null
     strategy: computed_async
     deprecated: true
+  - id: 12
+    name: hasAnyMessage
+    type: boolean
+    strategy: association
