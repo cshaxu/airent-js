@@ -178,7 +178,9 @@ function getNullableCondition(field) {
   if (!isNullableField(field)) {
     return "";
   }
-  const nullableSourceFields = getSourceFields(field);
+  const nullableSourceFields = getSourceFields(field).filter((sf) =>
+    isNullableField(sf)
+  );
   if (nullableSourceFields.length === 0) {
     return "";
   }
