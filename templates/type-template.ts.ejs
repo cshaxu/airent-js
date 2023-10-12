@@ -1,3 +1,6 @@
+<% getGlobalImports().forEach((globalImport) => { -%>
+<%- globalImport %>
+<% }); -%>
 <% types.filter(isEntityType).filter((type) => type.name !== entityName).forEach((type) => { -%>
 import { <%= getTypeStrings(type).fieldRequestClass %>, <%= getTypeStrings(type).responseClass %> } from './<%= getTypeStrings(type).typePackage %>';
 <% }); -%>

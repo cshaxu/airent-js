@@ -1,4 +1,4 @@
-import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap } from '../../src';
+import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap, nonNull, unique } from '../../src';
 
 /** generated */
 import {

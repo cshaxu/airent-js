@@ -1,4 +1,7 @@
-import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap } from '<%= airentPackage %>';
+<% getGlobalImports().forEach((globalImport) => { -%>
+<%- globalImport %>
+<% }); -%>
+import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap, nonNull, unique } from '<%= airentPackage %>';
 <% if (!internal || fields.some(isInternalType)) { -%>
 
 /** generated */
