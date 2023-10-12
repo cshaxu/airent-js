@@ -30,7 +30,7 @@ function getGlobalImports() {
 // internal
 function queryType(typeName) {
   return (
-    types.find((type) => type.name === typeName) ?? {
+    schema.types.find((type) => type.name === typeName) ?? {
       name: typeName,
       import: "TODO: import your type",
     }
@@ -74,7 +74,7 @@ function isInternalType(type) {
 // internal
 function queryField(fieldName) {
   return (
-    fields.find((field) => field.name === fieldName) ?? {
+    schema.fields.find((field) => field.name === fieldName) ?? {
       name: fieldName,
       type: "any",
       strategy: "primitive",
@@ -253,10 +253,11 @@ function getFieldPresenter(field) {
 
 // internal
 function getModuleSuffix() {
-  return isModule ? ".js" : "";
+  return config.isModule ? ".js" : "";
 }
 
 function getThisEntityStrings() {
+  const { entityName } = schema;
   const prefix = toKababCase(entityName);
   const suffix = getModuleSuffix();
   return {
