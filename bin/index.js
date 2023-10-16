@@ -25,7 +25,7 @@ async function configure() {
     schemaPath: schemaPath.length > 0 ? schemaPath : "schemas",
     outputPath: outputPath.length > 0 ? outputPath : "src/entities",
   };
-  const content = JSON.stringify(config, null, 2);
+  const content = JSON.stringify(config, null, 2) + "\n";
   await fs.promises.writeFile(CONFIG_FILE_PATH, content);
   console.log(`[AIRENT/INFO] Configuration located at '${CONFIG_FILE_PATH}'`);
 }
