@@ -191,12 +191,16 @@ async function generate(schemaFilePath, templates, config) {
       ".ts";
     const dirName = template.skippable ? outputPath : generatedOutputPath;
     const filePath = path.join(dirName, fileName);
-    if (template.skippable && fs.existsSync(filePath)) {
+    const fileContent =
+      template.skippable && fs.existsSync(filePath)
+        ? ""
+        : ejs.render(template.content, params);
+    if (fileContent.length === 0) {
       console.log(
         `  - Skipped ${template.suffix ?? "entity"} class '${filePath}'`
       );
+      continue;
     } else {
-      const fileContent = ejs.render(template.content, params);
       await fs.promises.writeFile(filePath, fileContent);
       console.log(
         `  - Generated ${template.suffix ?? "entity"} class '${filePath}'`
