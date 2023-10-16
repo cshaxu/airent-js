@@ -4,6 +4,31 @@ const ejs = require("ejs");
 const fs = require("fs");
 const yaml = require("js-yaml");
 const path = require("path");
+const readline = require("readline");
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+// Function to ask a question and store the answer in the config object
+function askQuestion(question) {
+  return new Promise((resolve) => rl.question(question, resolve));
+}
+
+async function configure() {
+  const type = await askQuestion("Project type (commonjs/module): ");
+  const schemaPath = await askQuestion("Schema path: (./schemas): ");
+  const outputPath = await askQuestion("Output path: (./src/entities): ");
+  const config = {
+    type: type.length > 0 ? type : "commonjs",
+    schemaPath: schemaPath.length > 0 ? schemaPath : "schemas",
+    outputPath: outputPath.length > 0 ? outputPath : "src/entities",
+  };
+  const content = JSON.stringify(config, null, 2);
+  await fs.promises.writeFile(CONFIG_FILE_PATH, content);
+  console.log(`[AIRENT/INFO] Configuration located at '${CONFIG_FILE_PATH}'`);
+}
 
 /** @typedef {Object} Type
  *  @property {string} name
@@ -52,6 +77,8 @@ const path = require("path");
 const PROJECT_PATH = process.cwd();
 const AIRENT_PATH = path.join(__dirname, "..");
 
+const CONFIG_FILE_PATH = path.join(PROJECT_PATH, "airent.config.json");
+
 function toTitleCase(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
@@ -73,12 +100,8 @@ async function sequential(functions) {
 }
 
 async function loadConfig() {
-  const airentConfigFilePath = path.join(PROJECT_PATH, "airent.config.json");
-  const airentConfigContent = await fs.promises.readFile(
-    airentConfigFilePath,
-    "utf8"
-  );
-  const config = JSON.parse(airentConfigContent);
+  const configContent = await fs.promises.readFile(CONFIG_FILE_PATH, "utf8");
+  const config = JSON.parse(configContent);
   const { type, schemaPath, outputPath, airentPackage, prologues, templates } =
     config;
   return {
@@ -175,7 +198,7 @@ async function getSchemaParams(schemaFilePath) {
   };
 }
 
-async function generate(schemaFilePath, templates, config) {
+async function generateOne(schemaFilePath, templates, config) {
   console.log(`[AIRENT/INFO] Generating from ${schemaFilePath} ...`);
   const schema = await getSchemaParams(schemaFilePath);
   const params = { schema, config };
@@ -209,7 +232,7 @@ async function generate(schemaFilePath, templates, config) {
   }
 }
 
-async function execute() {
+async function generate() {
   // Load configuration
   const config = await loadConfig();
   console.log(config);
@@ -225,15 +248,24 @@ async function execute() {
 
   // Ensure the output directory exists
   await createGeneratedDirectory(outputPath);
-  const schemaFiles = await getSchemaFilePaths(schemaPath);
+  const schemaFilePaths = await getSchemaFilePaths(schemaPath);
 
   // Loop through each YAML file and generate code
-  const functions = schemaFiles.map(
-    (schemaFilePath) => async () => generate(schemaFilePath, templates, config)
+  const functions = schemaFilePaths.map(
+    (path) => async () => generateOne(path, templates, config)
   );
   await sequential(functions);
 }
 
-execute().catch((error) => {
+async function main() {
+  if (fs.existsSync(CONFIG_FILE_PATH)) {
+    await generate();
+  } else {
+    await configure();
+  }
+  rl.close();
+}
+
+main().catch((error) => {
   console.error(error);
 });
