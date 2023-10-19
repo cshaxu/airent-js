@@ -263,9 +263,8 @@ async function main() {
   } else {
     await configure();
   }
-  rl.close();
 }
 
-main().catch((error) => {
-  console.error(error);
-});
+main()
+  .catch((error) => console.error(error))
+  .finally(() => rl.close());
