@@ -105,13 +105,13 @@ export class ChatUserEntityBase extends BaseEntity<
     filter: (one: ChatUserEntityBase) => one.user === undefined,
     // TODO: build your association data loader
     // loader: async (array: ChatUserEntityBase[]) => {
-    //   const userIds = unique((nonNull(array.map((one) => one.userId))));
+    //   const userIdQuizzes = unique((nonNull(array.map((one) => one.userIdQuiz))));
     //   const loadedModels = [/* TODO: load associated models with the above keys */];
     //   return UserEntity.fromArray(loadedModels);
     // },
     setter: (array: ChatUserEntityBase[], loaded: UserEntity[]) => {
       const map = toObjectMap(loaded, (one) => one.id, (one) => one);
-      array.forEach((one) => (one.user = map.get(one.userId)!));
+      array.forEach((one) => (one.user = map.get(one.userIdQuiz)!));
     },
   };
 

@@ -100,7 +100,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ } -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>loader: async (array: <%= getThisEntityStrings().baseClass %>[]) => {
   <%_ getSourceFields(field).forEach((sourceField) => { -%>
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>  const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
+    <%= isLoaderGeneratable(field) ? '' : '// ' %>  const <%= pluralize(sourceField.name) %> = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
   <%_ }); -%>
   <%_ if (isEntityTypeField(field)) { -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  const loadedModels = <%- getTargetLoadedModels(field) %>;
