@@ -35,7 +35,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 
     this.<%= `${field.name}Params` %>.loader = async (array: <%= getThisEntityStrings().baseClass %>[]) => {
       <%_ getSourceFields(field).forEach((sourceField) => { -%>
-      const <%= sourceField.name %>s = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
+      const <%= pluralize(sourceField.name) %> = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
       <%_ }); -%>
       const loadedModels = <%- getTargetLoadedModels(field) %>;
       return <%= getFieldStrings(field).fieldClass %>.fromArray(loadedModels);

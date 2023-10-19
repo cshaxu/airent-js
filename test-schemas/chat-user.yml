@@ -44,6 +44,6 @@ fields:
     type: User
     strategy: association
     sourceFields:
-      - userId
+      - userIdQuiz
     targetFields:
       - id

@@ -22,7 +22,7 @@ export class ChatUserEntity extends ChatUserEntityBase {
     };
 
     this.userParams.loader = async (array: ChatUserEntityBase[]) => {
-      const userIds = unique((nonNull(array.map((one) => one.userId))));
+      const userIdQuizzes = unique((nonNull(array.map((one) => one.userIdQuiz))));
       const loadedModels = [/* TODO: load associated models with the above keys */];
       return UserEntity.fromArray(loadedModels);
     };
