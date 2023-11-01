@@ -3,7 +3,7 @@ model: ChatModel
 types:
   - name: ChatModel
     define: "{ [key: string] : any }"
-  - name: ChatUser
+  - name: chatUser
     entity: true
   - name: Message
     entity: true
@@ -26,7 +26,7 @@ fields:
     strategy: primitive
   - id: 5
     name: chatUsers
-    type: ChatUser[]
+    type: chatUser[]
     strategy: association
     deprecated: true
     sourceFields:
