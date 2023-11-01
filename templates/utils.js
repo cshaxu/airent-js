@@ -317,13 +317,14 @@ function getThisEntityStrings() {
 
 function getTypeStrings(type) {
   if (isEntityType(type)) {
-    const prefix = `${toKababCase(type.name)}`;
+    const entName = toTitleCase(type.name);
+    const prefix = `${toKababCase(entName)}`;
     const suffix = getModuleSuffix();
     return {
-      entityClass: `${type.name}Entity`,
+      entityClass: `${entName}Entity`,
       entityPackage: `${prefix}${suffix}`,
-      fieldRequestClass: `${type.name}FieldRequest`,
-      responseClass: `${type.name}Response`,
+      fieldRequestClass: `${entName}FieldRequest`,
+      responseClass: `${entName}Response`,
       typePackage: `${prefix}-type${suffix}`,
     };
   } else if (isExternalType(type)) {
@@ -344,17 +345,18 @@ function getFieldStrings(field) {
     fieldGetterName: getFieldGetterName(field),
     fieldPresenter: getFieldPresenter(field),
   };
+  const primitiveTypeName = toPrimitiveTypeName(field.type);
   if (isEntityTypeField(field)) {
-    const entName = toTitleCase(toPrimitiveTypeName(field.type));
+    const entName = toTitleCase(primitiveTypeName);
     const entityClass = `${entName}Entity`;
     const responseClass = `${entName}Response`;
 
     return {
       ...fieldStrings,
       fieldClass: entityClass,
-      fieldType: field.type.replace(entName, entityClass),
+      fieldType: field.type.replace(primitiveTypeName, entityClass),
       fieldRequestType: `${entName}FieldRequest | boolean`,
-      fieldResponseType: field.type.replace(entName, responseClass),
+      fieldResponseType: field.type.replace(primitiveTypeName, responseClass),
     };
   } else {
     const fieldModelName = field.aliasOf ?? field.name;
@@ -365,7 +367,7 @@ function getFieldStrings(field) {
     return {
       ...fieldStrings,
       fieldInitializer,
-      fieldClass: toPrimitiveTypeName(field.type),
+      fieldClass: primitiveTypeName,
       fieldType: field.type,
       fieldRequestType: "boolean",
       fieldResponseType: field.type,
