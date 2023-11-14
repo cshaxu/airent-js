@@ -30,6 +30,9 @@ export type <%= getTypeStrings(type).typeName %> = <%- getTypeStrings(type).type
   <%_ }); -%>
 <% } -%>
 
+<% if (schema.deprecated) { -%>
+/** @deprecated */
+<% } -%>
 export type <%= getThisEntityStrings().fieldRequestClass %> = {
 <% schema.fields.filter(isExternalField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
@@ -39,6 +42,9 @@ export type <%= getThisEntityStrings().fieldRequestClass %> = {
 <% }); -%>
 };
 
+<% if (schema.deprecated) { -%>
+/** @deprecated */
+<% } -%>
 export type <%= getThisEntityStrings().responseClass %> = {
 <% schema.fields.filter(isExternalField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
