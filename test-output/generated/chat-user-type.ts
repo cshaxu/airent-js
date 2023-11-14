@@ -6,6 +6,7 @@ import { ChatFieldRequest, ChatResponse } from './chat-type.js';
 /** @deprecated */
 export type ChatUserModel = { [key: string] : any };
 
+/** @deprecated */
 export type ChatUserFieldRequest = {
   id?: boolean;
   createdAt?: boolean;
@@ -17,6 +18,7 @@ export type ChatUserFieldRequest = {
   user?: UserFieldRequest | boolean;
 };
 
+/** @deprecated */
 export type ChatUserResponse = {
   id?: string;
   createdAt?: Date;
