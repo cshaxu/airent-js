@@ -5,8 +5,6 @@ import {
   LoadKey,
   toArrayMap,
   toObjectMap,
-  nonNull,
-  unique,
 } from '../../src';
 
 /** generated */
