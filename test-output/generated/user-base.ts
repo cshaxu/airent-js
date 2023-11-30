@@ -90,7 +90,7 @@ public static async getOne<ENTITY extends UserEntityBase>(this: any, key: LoadKe
 }
 
 public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
-  const loadedModels = [/* TODO: load models with load keys */];
+  const loadedModels = [/* TODO: load entity models */];
   return this.fromArray(loadedModels);
 }
 
@@ -106,7 +106,7 @@ public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: Load
       })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models with load keys */];
+    //   const loadedModels = [/* TODO: load associated models */];
     //   return ChatUserEntity.fromArray(loadedModels);
     // },
     setter: (sources: UserEntityBase[], targets: ChatUserEntity[]) => {
@@ -143,7 +143,7 @@ public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: Load
     //   })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models here */];
+    //   const loadedModels = [/* TODO: load associated models */];
     //   return MessageEntity.fromArray(loadedModels);
     // },
     // TODO: build your association value setter
@@ -177,7 +177,7 @@ public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: Load
       })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   return [/* TODO: load associated models here */];
+    //   return [/* TODO: load associated models */];
     // },
     setter: (sources: UserEntityBase[], targets: boolean[]) => {
       const map = toObjectMap(targets, (one) => 'TODO: map your target entity to key', (one) => one);
