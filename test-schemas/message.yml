@@ -1,5 +1,6 @@
 entity: Message
 model: MessageModel
+skipSelfLoader: true
 types:
   - name: MessageModel
     define: "{ [key: string]: any }"

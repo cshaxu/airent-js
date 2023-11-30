@@ -82,6 +82,7 @@ export class UserEntityBase extends BaseEntity<
       hasAnyMessage: fieldRequest?.hasAnyMessage ? await this.getHasAnyMessage() : undefined,
     };
   }
+
 /** self loaders */
 
 public static async getOne<ENTITY extends UserEntityBase>(this: any, key: LoadKey): Promise<ENTITY | null> {

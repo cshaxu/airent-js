@@ -7,8 +7,6 @@ types:
     entity: true
   - name: Message
     entity: true
-keyFields:
-  - id
 fields:
   - id: 1
     name: id
