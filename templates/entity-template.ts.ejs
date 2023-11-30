@@ -1,7 +1,7 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
-import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackage %>';
+import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackageForSkippable %>';
 import { <%= getThisEntityStrings().baseClass %> } from './generated/<%= getThisEntityStrings().basePackage %>';
 <% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
 import {
@@ -33,11 +33,10 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
   <%_ schema.fields.filter(isAssociationField).forEach((field) => { -%>
     <%_ if (!isGetterGeneratable(field)) { -%>
 
-    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= getThisEntityStrings().baseClass %>[]) => sources.map((one) => ({
-      <%_ getSourceFields(field).forEach((sourceField, index) => { -%>
-      <%= field.targetFields[index] %>: one.<%= getFieldGetterName(sourceField) %>,
+    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= getThisEntityStrings().baseClass %>[]) => sources
+      <%_ getLoadConfigGetterLines(field, ';').forEach((line) => { -%>
+      <%- line %>
       <%_ }); -%>
-    })),
     <%_ } -%>
     <%_ if (!isLoaderGeneratable(field)) { -%>
 
@@ -53,8 +52,8 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
     <%_ if (!isSetterGeneratable(field)) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= getThisEntityStrings().entityClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => {
-      const map = <%- getTargetMap(field) %>;
-      sources.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
+      const map = <%- getLoadConfigTargetMapper(field) %>;
+      sources.forEach((one) => (one.<%= field.name %> = <%- getLoadConfigSourceSetter(field) %>));
     }) as (sources: <%= getThisEntityStrings().baseClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => Promise<void>;
     <%_ } -%>
   <%_ }); -%>
@@ -69,7 +68,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= getFieldStrings(field).fieldGetterName %>: <%= getFieldStrings(field).fieldType %> {
+  public <%= getFieldGetterName(field) %>: <%= getFieldStrings(field).fieldType %> {
     throw new Error('not implemented');
   }
 <% }); -%>
@@ -82,7 +81,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
+  public async <%= getFieldGetterName(field) %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     throw new Error('not implemented');
   }
 <% }); -%>

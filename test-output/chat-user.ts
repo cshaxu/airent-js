@@ -1,4 +1,4 @@
-import { LoadKey, toArrayMap, toObjectMap } from '../../src';
+import { LoadKey, toArrayMap, toObjectMap } from '../src';
 import { ChatUserEntityBase } from './generated/chat-user-base.js';
 import {
   ChatUserFieldRequest,

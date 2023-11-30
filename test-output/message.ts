@@ -1,4 +1,4 @@
-import { LoadKey, toArrayMap, toObjectMap } from '../../src';
+import { LoadKey, toArrayMap, toObjectMap } from '../src';
 import { MessageEntityBase } from './generated/message-base.js';
 import {
   MessageFieldRequest,
@@ -38,6 +38,10 @@ export class MessageEntity extends MessageEntityBase {
   }
 
   /** computed sync fields */
+
+  public getDerivedChatId(): string | null {
+    throw new Error('not implemented');
+  }
 
   public getHasContent(): boolean {
     throw new Error('not implemented');

@@ -90,17 +90,18 @@ public static async getMany<ENTITY extends ChatUserEntityBase>(this: any, keys: 
   protected chatLoadConfig: LoadConfig<ChatUserEntityBase, ChatEntity> = {
     name: 'ChatUserEntity.chat',
     filter: (one: ChatUserEntityBase) => one.chat === undefined,
-    getter: (sources: ChatUserEntityBase[]) => sources.map((one) => ({
-      id: one.chatId,
-    })),
+    getter: (sources: ChatUserEntityBase[]) => sources
+      .map((one) => ({
+        id: one.chatId,
+      })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models with load keys */];
     //   return ChatEntity.fromArray(loadedModels);
     // },
     setter: (sources: ChatUserEntityBase[], targets: ChatEntity[]) => {
-      const map = toObjectMap(targets, (one) => one.id, (one) => one);
-      sources.forEach((one) => (one.chat = map.get(one.chatId)!));
+      const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
+      sources.forEach((one) => (one.chat = map.get(`${one.chatId}`)!));
     },
   };
 
@@ -123,17 +124,18 @@ public static async getMany<ENTITY extends ChatUserEntityBase>(this: any, keys: 
   protected userLoadConfig: LoadConfig<ChatUserEntityBase, UserEntity> = {
     name: 'ChatUserEntity.user',
     filter: (one: ChatUserEntityBase) => one.user === undefined,
-    getter: (sources: ChatUserEntityBase[]) => sources.map((one) => ({
-      id: one.userId,
-    })),
+    getter: (sources: ChatUserEntityBase[]) => sources
+      .map((one) => ({
+        id: one.userId,
+      })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models with load keys */];
     //   return UserEntity.fromArray(loadedModels);
     // },
     setter: (sources: ChatUserEntityBase[], targets: UserEntity[]) => {
-      const map = toObjectMap(targets, (one) => one.id, (one) => one);
-      sources.forEach((one) => (one.user = map.get(one.userId)!));
+      const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
+      sources.forEach((one) => (one.user = map.get(`${one.userId}`)!));
     },
   };
 

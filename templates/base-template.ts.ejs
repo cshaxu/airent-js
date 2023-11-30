@@ -8,7 +8,7 @@ import {
   LoadKey,
   toArrayMap,
   toObjectMap,
-} from '<%= config.airentPackage %>';
+} from '<%= config.airentPackageForGenerated %>';
 <% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
 
 /** generated */
@@ -85,7 +85,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
       : request;
     return {
   <%_ schema.fields.filter(isExternalField).forEach((field) => { -%>
-      <%= field.name %>: <%- getFieldStrings(field).fieldPresenter %>,
+      <%= field.name %>: <%- getFieldPresenter(field) %>,
   <%_ }); -%>
     };
   }
@@ -118,11 +118,10 @@ public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass 
   <%_ if (!isGetterGeneratable(field)) { -%>
     // TODO: build your association key getter
   <%_ } -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= getThisEntityStrings().baseClass %>[]) => sources.map((one) => ({
-  <%_ getSourceFields(field).forEach((sourceField, index) => { -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>  <%= field.targetFields[index] %>: one.<%= getFieldGetterName(sourceField) %>,
+    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= getThisEntityStrings().baseClass %>[]) => sources
+  <%_ getLoadConfigGetterLines(field, ',').forEach((line) => { -%>
+    <%= isGetterGeneratable(field) ? '' : '// ' %>  <%- line %>
   <%_ }); -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>})),
   <%_ if (!isLoaderGeneratable(field)) { -%>
     // TODO: build your association data loader
   <%_ } -%>
@@ -138,8 +137,8 @@ public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass 
     // TODO: build your association value setter
   <%_ } -%>
     <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (sources: <%= getThisEntityStrings().baseClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => {
-    <%= isSetterGeneratable(field) ? '' : '// ' %>  const map = <%- getTargetMap(field) %>;
-    <%= isSetterGeneratable(field) ? '' : '// ' %>  sources.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
+    <%= isSetterGeneratable(field) ? '' : '// ' %>  const map = <%- getLoadConfigTargetMapper(field) %>;
+    <%= isSetterGeneratable(field) ? '' : '// ' %>  sources.forEach((one) => (one.<%= field.name %> = <%- getLoadConfigSourceSetter(field) %>));
     <%= isSetterGeneratable(field) ? '' : '// ' %>},
   };
 
@@ -153,7 +152,7 @@ public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
+  public async <%= getFieldGetterName(field) %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     if (this.<%= field.name %> !== undefined) {
       return this.<%= field.name %>;
     }
@@ -177,7 +176,7 @@ public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= getFieldStrings(field).fieldGetterName %>: <%= getFieldStrings(field).fieldType %> {
+  public <%= getFieldGetterName(field) %>: <%= getFieldStrings(field).fieldType %> {
     throw new Error('not implemented');
   }
 <% }); -%>
@@ -190,7 +189,7 @@ public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
+  public async <%= getFieldGetterName(field) %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     throw new Error('not implemented');
   }
 <% }); -%>
