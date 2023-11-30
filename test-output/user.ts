@@ -32,17 +32,9 @@ export class UserEntity extends UserEntityBase {
       sources.forEach((one) => (one.messages = map.get('TODO: map your source entity to key') ?? []));
     }) as (sources: UserEntityBase[], targets: MessageEntity[]) => Promise<void>;
 
-    this.hasAnyMessageLoadConfig.getter = (sources: UserEntityBase[]) => sources.map((one) => ({
-    })),
-
     this.hasAnyMessageLoadConfig.loader = async (keys: LoadKey[]) => {
       return [/* TODO: load associated models here */];
     };
-
-    this.hasAnyMessageLoadConfig.setter = ((sources: UserEntity[], targets: boolean[]) => {
-      const map = toObjectMap(targets, (one) => 'TODO: map your target entity to key', (one) => one);
-      sources.forEach((one) => (one.hasAnyMessage = map.get('TODO: map your source entity to key')!));
-    }) as (sources: UserEntityBase[], targets: boolean[]) => Promise<void>;
   }
 
   /** computed sync fields */

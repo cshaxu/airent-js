@@ -69,7 +69,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= getFieldStrings(field).fieldGetterName %>: <%= getFieldStrings(field).fieldType %> {
+  public <%= getFieldGetterName(field) %>: <%= getFieldStrings(field).fieldType %> {
     throw new Error('not implemented');
   }
 <% }); -%>
@@ -82,7 +82,7 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public async <%= getFieldStrings(field).fieldGetterName %>: Promise<<%= getFieldStrings(field).fieldType %>> {
+  public async <%= getFieldGetterName(field) %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     throw new Error('not implemented');
   }
 <% }); -%>

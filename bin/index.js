@@ -167,11 +167,6 @@ async function loadTemplates(prologuesConfig, templatesConfig) {
   }));
 }
 
-async function createGeneratedDirectory(outputPath) {
-  const outputGeneratedPath = path.join(outputPath, "generated");
-  return await fs.promises.mkdir(outputGeneratedPath, { recursive: true });
-}
-
 async function getSchemaFilePaths(schemaPath) {
   // Read all files in the YAML directory
   const allFileNames = await fs.promises.readdir(schemaPath);
@@ -185,11 +180,14 @@ async function getSchemaFilePaths(schemaPath) {
     .map((fileName) => path.join(schemaPath, fileName));
 }
 
-async function getSchemaParams(schemaFilePath) {
+async function loadSchema(schemaFilePath) {
+  console.log(`[AIRENT/INFO] Loading ${schemaFilePath} ...`);
   const schemaContent = await fs.promises.readFile(schemaFilePath, "utf8");
   const schema = yaml.load(schemaContent);
   return {
     ...schema,
+    entity: undefined,
+    model: undefined,
     entityName: toTitleCase(schema.entity),
     modelName: toTitleCase(schema.model),
     internal: schema.internal ?? false,
@@ -200,13 +198,21 @@ async function getSchemaParams(schemaFilePath) {
   };
 }
 
-async function generateOne(schemaFilePath, templates, config) {
-  console.log(`[AIRENT/INFO] Generating from ${schemaFilePath} ...`);
-  const schema = await getSchemaParams(schemaFilePath);
-  const params = { schema, config };
+async function loadSchemas(schemaFilePaths) {
+  const functions = schemaFilePaths.map((path) => () => loadSchema(path));
+  return await sequential(functions);
+}
 
-  const { entityName } = schema;
+async function createGeneratedDirectory(outputPath) {
+  const outputGeneratedPath = path.join(outputPath, "generated");
+  return await fs.promises.mkdir(outputGeneratedPath, { recursive: true });
+}
+
+async function generateOne(entityName, schemaMap, templates, config) {
+  const schema = schemaMap[entityName];
   const { outputPath } = config;
+
+  console.log(`[AIRENT/INFO] Generating ${entityName} ...`);
 
   const generatedOutputPath = path.join(outputPath, "generated");
   const fileNamePrefix = toKababCase(entityName);
@@ -219,7 +225,7 @@ async function generateOne(schemaFilePath, templates, config) {
     const fileContent =
       template.skippable && fs.existsSync(filePath)
         ? ""
-        : ejs.render(template.content, params);
+        : ejs.render(template.content, { schema, schemaMap, config });
     if (fileContent.length === 0) {
       console.log(
         `  - Skipped ${template.suffix ?? "entity"} class '${filePath}'`
@@ -235,7 +241,7 @@ async function generateOne(schemaFilePath, templates, config) {
 }
 
 async function generate() {
-  // Load configuration
+  // load config
   const config = await loadConfig();
   console.log(config);
   const {
@@ -245,16 +251,24 @@ async function generate() {
     templates: templatesConfig,
   } = config;
 
-  // Load templates
+  // load templates
   const templates = await loadTemplates(prologuesConfig, templatesConfig);
+
+  // load schemas
+  const schemaFilePaths = await getSchemaFilePaths(schemaPath);
+  const schemas = await loadSchemas(schemaFilePaths);
+  const entityNames = schemas.map((schema) => schema.entityName);
+  const schemaMap = schemas.reduce((map, schema) => {
+    map[schema.entityName] = schema;
+    return map;
+  }, {});
 
   // Ensure the output directory exists
   await createGeneratedDirectory(outputPath);
-  const schemaFilePaths = await getSchemaFilePaths(schemaPath);
 
   // Loop through each YAML file and generate code
-  const functions = schemaFilePaths.map(
-    (path) => async () => generateOne(path, templates, config)
+  const functions = entityNames.map(
+    (entityName) => () => generateOne(entityName, schemaMap, templates, config)
   );
   await sequential(functions);
 }
