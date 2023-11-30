@@ -1,4 +1,4 @@
-import { toArrayMap, toObjectMap, nonNull, unique } from '../../src';
+import { LoadKey, toArrayMap, toObjectMap, nonNull, unique } from '../../src';
 import { ChatUserEntityBase } from './generated/chat-user-base.js';
 import {
   ChatUserFieldRequest,
@@ -15,15 +15,13 @@ export class ChatUserEntity extends ChatUserEntityBase {
 
     /** associations */
 
-    this.chatParams.loader = async (array: ChatUserEntityBase[]) => {
-      const chatIds = unique((nonNull(array.map((one) => one.chatId))));
-      const loadedModels = [/* TODO: load associated models with the above keys */];
+    this.chatLoadConfig.loader = async (keys: LoadKey[]) => {
+      const loadedModels = [/* TODO: load associated models with load keys */];
       return ChatEntity.fromArray(loadedModels);
     };
 
-    this.userParams.loader = async (array: ChatUserEntityBase[]) => {
-      const userIdQuizzes = unique((nonNull(array.map((one) => one.userIdQuiz))));
-      const loadedModels = [/* TODO: load associated models with the above keys */];
+    this.userLoadConfig.loader = async (keys: LoadKey[]) => {
+      const loadedModels = [/* TODO: load associated models with load keys */];
       return UserEntity.fromArray(loadedModels);
     };
   }

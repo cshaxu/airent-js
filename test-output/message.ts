@@ -1,4 +1,4 @@
-import { toArrayMap, toObjectMap, nonNull, unique } from '../../src';
+import { LoadKey, toArrayMap, toObjectMap, nonNull, unique } from '../../src';
 import { MessageEntityBase } from './generated/message-base.js';
 import {
   MessageFieldRequest,
@@ -16,27 +16,23 @@ export class MessageEntity extends MessageEntityBase {
 
     /** associations */
 
-    this.chatParams.loader = async (array: MessageEntityBase[]) => {
-      const chatIds = unique((nonNull(array.map((one) => one.chatId))));
-      const loadedModels = [/* TODO: load associated models with the above keys */];
+    this.chatLoadConfig.loader = async (keys: LoadKey[]) => {
+      const loadedModels = [/* TODO: load associated models with load keys */];
       return ChatEntity.fromArray(loadedModels);
     };
 
-    this.userParams.loader = async (array: MessageEntityBase[]) => {
-      const userIds = unique((nonNull(array.map((one) => one.userId))));
-      const loadedModels = [/* TODO: load associated models with the above keys */];
+    this.userLoadConfig.loader = async (keys: LoadKey[]) => {
+      const loadedModels = [/* TODO: load associated models with load keys */];
       return UserEntity.fromArray(loadedModels);
     };
 
-    this.parentMessageParams.loader = async (array: MessageEntityBase[]) => {
-      const parentMessageIds = unique((nonNull(array.map((one) => one.parentMessageId))));
-      const loadedModels = [/* TODO: load associated models with the above keys */];
+    this.parentMessageLoadConfig.loader = async (keys: LoadKey[]) => {
+      const loadedModels = [/* TODO: load associated models with load keys */];
       return MessageEntity.fromArray(loadedModels);
     };
 
-    this.mentorParams.loader = async (array: MessageEntityBase[]) => {
-      const mentorIds = unique((nonNull(array.map((one) => one.getMentorId()))));
-      const loadedModels = [/* TODO: load associated models with the above keys */];
+    this.mentorLoadConfig.loader = async (keys: LoadKey[]) => {
+      const loadedModels = [/* TODO: load associated models with load keys */];
       return UserEntity.fromArray(loadedModels);
     };
   }

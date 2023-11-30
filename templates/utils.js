@@ -183,32 +183,48 @@ function getSourceFields(field) {
     .filter(isSyncField);
 }
 
-function hasSourceKey(field) {
+function getSourceKeySize(field) {
   return getSourceFields(field).length;
 }
 
+function hasSourceKey(field) {
+  return getSourceKeySize(field) > 0;
+}
+
 // internal
-function hasTargetKey(field) {
+function getTargetKeySize(field) {
   return field.targetFields?.length;
 }
 
-function isLoaderGeneratable(field) {
-  return hasSourceKey(field) && hasTargetKey(field) && false;
+function hasTargetKey(field) {
+  return getTargetKeySize(field) > 0;
+}
+
+function isGetterGeneratable(field) {
+  return getSourceKeySize(field) === getTargetKeySize(field);
+}
+
+function isLoaderGeneratable(_field) {
+  return false;
+}
+
+function getSelfLoadedModels() {
+  return "[/* TODO: load models with load keys */]";
 }
 
 function getTargetLoadedModels(field) {
   if (hasSourceKey(field)) {
-    return "[/* TODO: load associated models with the above keys */]";
+    return "[/* TODO: load associated models with load keys */]";
   } else {
     return "[/* TODO: load associated models here */]";
   }
 }
 
 function isSetterGeneratable(field) {
-  return hasSourceKey(field) && hasTargetKey(field);
+  return getSourceKeySize(field) === getTargetKeySize(field);
 }
 
-function getFieldParamsName(field) {
+function getFieldLoadConfigName(field) {
   const className = getThisEntityStrings().entityClass;
   const fieldName = field.name;
   return `${className}.${fieldName}`;
@@ -269,7 +285,7 @@ function getTargetMap(field) {
     : targetGetters.length === 1
     ? targetGetters[0]
     : "`" + targetGetters.map((getter) => `\${${getter}}`).join("*") + "`";
-  return `${mapBuilder}(loaded, (one) => ${targetKey}, (one) => one)`;
+  return `${mapBuilder}(targets, (one) => ${targetKey}, (one) => one)`;
 }
 
 /** field presentation utils */
@@ -305,6 +321,7 @@ function getThisEntityStrings() {
   const suffix = getModuleSuffix();
   return {
     entName: entityName,
+    loaderName: `${toCamelCase(entityName)}Loader`,
     baseClass: `${entityName}EntityBase`,
     entityClass: `${entityName}Entity`,
     fieldRequestClass: `${entityName}FieldRequest`,

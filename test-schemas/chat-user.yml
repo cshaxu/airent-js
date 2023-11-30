@@ -3,12 +3,15 @@ model: ChatUserModel
 deprecated: true
 types:
   - name: ChatUserModel
-    define: "{ [key: string] : any }"
+    define: "{ [key: string]: any }"
     deprecated: true
   - name: User
     entity: true
   - name: Chat
     entity: true
+keyFields:
+  - chatId
+  - userId
 fields:
   - id: 1
     name: id
@@ -44,6 +47,6 @@ fields:
     type: User
     strategy: association
     sourceFields:
-      - userIdQuiz
+      - userId
     targetFields:
       - id

@@ -2,11 +2,13 @@ entity: User
 model: UserModel
 types:
   - name: UserModel
-    define: "{ [key: string] : any }"
+    define: "{ [key: string]: any }"
   - name: ChatUser
     entity: true
   - name: Message
     entity: true
+keyFields:
+  - id
 fields:
   - id: 1
     name: id

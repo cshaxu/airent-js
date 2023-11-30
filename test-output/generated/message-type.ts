@@ -7,9 +7,9 @@ export enum SenderType { USER = "USER", CHATBOT = "CHATBOT" };
 
 /** structs */
 
-export type MessageModel = { [key: string] : any };
+export type MessageModel = { [key: string]: any };
 
-export type Attachment = { [key: string] : string };
+export type Attachment = { [key: string]: string };
 
 export type MessageFieldRequest = {
   id?: boolean;

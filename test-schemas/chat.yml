@@ -2,7 +2,7 @@ entity: Chat
 model: ChatModel
 types:
   - name: ChatModel
-    define: "{ [key: string] : any }"
+    define: "{ [key: string]: any }"
   - name: chatUser
     entity: true
   - name: Message
