@@ -84,13 +84,9 @@ function queryType(typeName) /* Type */ {
 
 function queryOtherEntityField(entityName, fieldName) /* Field */ {
   const entitySchema = schemaMap[entityName];
-  return (
-    entitySchema.fields.find((field) => field.name === fieldName) ?? {
-      name: fieldName,
-      type: "any",
-      strategy: "primitive",
-    }
-  );
+  const field = entitySchema?.fields?.find((field) => field.name === fieldName);
+  const fakeField = { name: fieldName, type: "any", strategy: "primitive" };
+  return field ?? fakeField;
 }
 
 function queryField(fieldName) /* Field */ {
@@ -202,14 +198,6 @@ function isEntityTypeField(field) /* boolean */ {
   return isEntityType(type);
 }
 
-function hasSourceKey(field) /* boolean */ {
-  return getSourceKeySize(field) > 0;
-}
-
-function hasTargetKey(field) /* boolean */ {
-  return getTargetKeySize(field) > 0;
-}
-
 function isGetterGeneratable(field) /* boolean */ {
   return getSourceKeySize(field) === getTargetKeySize(field);
 }
@@ -317,15 +305,11 @@ function getFieldLoadConfigName(field) /* Code */ {
 }
 
 function getSelfLoadedModels() /* Code */ {
-  return "[/* TODO: load models with load keys */]";
+  return "[/* TODO: load entity models */]";
 }
 
-function getTargetLoadedModels(field) /* Code */ {
-  if (getSourceKeySize(field) > 0) {
-    return "[/* TODO: load associated models with load keys */]";
-  } else {
-    return "[/* TODO: load associated models here */]";
-  }
+function getTargetLoadedModels(_field) /* Code */ {
+  return "[/* TODO: load associated models */]";
 }
 
 /* line */

@@ -15,7 +15,7 @@ export class UserEntity extends UserEntityBase {
     /** associations */
 
     this.chatUsersLoadConfig.loader = async (keys: LoadKey[]) => {
-      const loadedModels = [/* TODO: load associated models with load keys */];
+      const loadedModels = [/* TODO: load associated models */];
       return ChatUserEntity.fromArray(loadedModels);
     };
 
@@ -24,7 +24,7 @@ export class UserEntity extends UserEntityBase {
       }));
 
     this.messagesLoadConfig.loader = async (keys: LoadKey[]) => {
-      const loadedModels = [/* TODO: load associated models here */];
+      const loadedModels = [/* TODO: load associated models */];
       return MessageEntity.fromArray(loadedModels);
     };
 
@@ -34,7 +34,7 @@ export class UserEntity extends UserEntityBase {
     }) as (sources: UserEntityBase[], targets: MessageEntity[]) => Promise<void>;
 
     this.hasAnyMessageLoadConfig.loader = async (keys: LoadKey[]) => {
-      return [/* TODO: load associated models here */];
+      return [/* TODO: load associated models */];
     };
   }
 

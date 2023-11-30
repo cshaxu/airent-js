@@ -76,7 +76,7 @@ public static async getOne<ENTITY extends ChatEntityBase>(this: any, key: LoadKe
 }
 
 public static async getMany<ENTITY extends ChatEntityBase>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
-  const loadedModels = [/* TODO: load models with load keys */];
+  const loadedModels = [/* TODO: load entity models */];
   return this.fromArray(loadedModels);
 }
 
@@ -92,7 +92,7 @@ public static async getMany<ENTITY extends ChatEntityBase>(this: any, keys: Load
       })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models with load keys */];
+    //   const loadedModels = [/* TODO: load associated models */];
     //   return ChatUserEntity.fromArray(loadedModels);
     // },
     setter: (sources: ChatEntityBase[], targets: ChatUserEntity[]) => {
@@ -129,7 +129,7 @@ public static async getMany<ENTITY extends ChatEntityBase>(this: any, keys: Load
       })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models with load keys */];
+    //   const loadedModels = [/* TODO: load associated models */];
     //   return MessageEntity.fromArray(loadedModels);
     // },
     setter: (sources: ChatEntityBase[], targets: MessageEntity[]) => {
