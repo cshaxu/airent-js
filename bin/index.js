@@ -56,6 +56,7 @@ async function configure() {
  *  @property {boolean} internal
  *  @property {?boolean} deprecated
  *  @property {Type[]} [types]
+ *  @property {?string[]} [keyFields]
  *  @property {Field[]} [fields]
  */
 
@@ -194,6 +195,7 @@ async function getSchemaParams(schemaFilePath) {
     deprecated: schema.deprecated ?? false,
     internal: schema.internal ?? false,
     types: schema.types ?? [],
+    keyFields: schema.keyFields ?? [],
     fields: schema.fields ?? [],
   };
 }

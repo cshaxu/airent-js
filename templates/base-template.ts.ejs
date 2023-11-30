@@ -1,7 +1,16 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
-import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap, nonNull, unique } from '<%= config.airentPackage %>';
+import {
+  AsyncLock,
+  BaseEntity,
+  LoadConfig,
+  LoadKey,
+  toArrayMap,
+  toObjectMap,
+  nonNull,
+  unique,
+} from '<%= config.airentPackage %>';
 <% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
 
 /** generated */
@@ -11,6 +20,8 @@ import {
   <%_ schema.types.filter(isInternalType).forEach((type) => { -%>
   <%= getTypeStrings(type).typeName %>,
   <%_ }); -%>
+  <%_ if (schema.keyFields.length > 0) { -%>
+  <%_ } -%>
 } from './<%= getThisEntityStrings().typePackage %>';
 <% } -%>
 <% if (schema.types.some(isEntityType)) { -%>
@@ -83,6 +94,18 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     };
   }
 <% } -%>
+<% if (schema.keyFields.length > 0) { -%>
+/** self loaders */
+
+public static async getOne<ENTITY extends <%= getThisEntityStrings().baseClass %>>(this: any, key: LoadKey): Promise<ENTITY | null> {
+  return await this.getMany([key]).then((array: ENTITY[]) => array.at(0) ?? null);
+}
+
+public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass %>>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
+  const loadedModels = <%- getSelfLoadedModels() %>;
+  return this.fromArray(loadedModels);
+}
+<% } -%>
 <% if (schema.fields.some(isAssociationField)) { -%>
 
   /** associations */
@@ -92,16 +115,21 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  protected <%= `${field.name}Params` %>: LoadParams<<%= getThisEntityStrings().baseClass %>, <%= getFieldStrings(field).fieldClass %>> = {
-    name: '<%= getFieldParamsName(field) %>',
+  protected <%= `${field.name}LoadConfig` %>: LoadConfig<<%= getThisEntityStrings().baseClass %>, <%= getFieldStrings(field).fieldClass %>> = {
+    name: '<%= getFieldLoadConfigName(field) %>',
     filter: (one: <%= getThisEntityStrings().baseClass %>) => one.<%= field.name %> === undefined,
+  <%_ if (!isGetterGeneratable(field)) { -%>
+    // TODO: build your association key getter
+  <%_ } -%>
+    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= getThisEntityStrings().baseClass %>[]) => sources.map((one) => ({
+  <%_ getSourceFields(field).forEach((sourceField, index) => { -%>
+    <%= isGetterGeneratable(field) ? '' : '// ' %>  <%= field.targetFields[index] %>: one.<%= getFieldGetterName(sourceField) %>,
+  <%_ }); -%>
+    <%= isGetterGeneratable(field) ? '' : '// ' %>})),
   <%_ if (!isLoaderGeneratable(field)) { -%>
     // TODO: build your association data loader
   <%_ } -%>
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>loader: async (array: <%= getThisEntityStrings().baseClass %>[]) => {
-  <%_ getSourceFields(field).forEach((sourceField) => { -%>
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>  const <%= pluralize(sourceField.name) %> = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
-  <%_ }); -%>
+    <%= isLoaderGeneratable(field) ? '' : '// ' %>loader: async (keys: LoadKey[]) => {
   <%_ if (isEntityTypeField(field)) { -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  const loadedModels = <%- getTargetLoadedModels(field) %>;
     <%= isLoaderGeneratable(field) ? '' : '// ' %>  return <%= getFieldStrings(field).fieldClass %>.fromArray(loadedModels);
@@ -110,11 +138,11 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ } -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>},
   <%_ if (!isSetterGeneratable(field)) { -%>
-    // TODO: build your association data setter
+    // TODO: build your association value setter
   <%_ } -%>
-    <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getFieldStrings(field).fieldClass %>[]) => {
+    <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (sources: <%= getThisEntityStrings().baseClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => {
     <%= isSetterGeneratable(field) ? '' : '// ' %>  const map = <%- getTargetMap(field) %>;
-    <%= isSetterGeneratable(field) ? '' : '// ' %>  array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
+    <%= isSetterGeneratable(field) ? '' : '// ' %>  sources.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
     <%= isSetterGeneratable(field) ? '' : '// ' %>},
   };
 
@@ -122,7 +150,7 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   /** @deprecated */
   <%_ } -%>
   protected async <%= `load${toTitleCase(field.name)}` %>(): Promise<void> {
-    await this.load(this.<%= `${field.name}Params` %>);
+    await this.load(this.<%= `${field.name}LoadConfig` %>);
   }
 
   <%_ if (field.deprecated) { -%>

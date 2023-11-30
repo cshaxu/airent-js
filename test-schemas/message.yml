@@ -2,7 +2,7 @@ entity: Message
 model: MessageModel
 types:
   - name: MessageModel
-    define: "{ [key: string] : any }"
+    define: "{ [key: string]: any }"
   - name: Chat
     entity: true
   - name: User
@@ -10,7 +10,7 @@ types:
   - name: Message
     entity: true
   - name: Attachment
-    define: "{ [key: string] : string }"
+    define: "{ [key: string]: string }"
   - name: SenderType
     enum: '{ USER = "USER", CHATBOT = "CHATBOT" }'
 fields:

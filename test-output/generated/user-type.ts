@@ -3,7 +3,7 @@ import { MessageFieldRequest, MessageResponse } from './message-type.js';
 
 /** structs */
 
-export type UserModel = { [key: string] : any };
+export type UserModel = { [key: string]: any };
 
 export type UserFieldRequest = {
   id?: boolean;

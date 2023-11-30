@@ -1,4 +1,13 @@
-import { AsyncLock, BaseEntity, LoadParams, toArrayMap, toObjectMap, nonNull, unique } from '../../src';
+import {
+  AsyncLock,
+  BaseEntity,
+  LoadConfig,
+  LoadKey,
+  toArrayMap,
+  toObjectMap,
+  nonNull,
+  unique,
+} from '../../src';
 
 /** generated */
 import {
@@ -75,28 +84,40 @@ export class UserEntityBase extends BaseEntity<
       hasAnyMessage: fieldRequest?.hasAnyMessage ? await this.getHasAnyMessage() : undefined,
     };
   }
+/** self loaders */
+
+public static async getOne<ENTITY extends UserEntityBase>(this: any, key: LoadKey): Promise<ENTITY | null> {
+  return await this.getMany([key]).then((array: ENTITY[]) => array.at(0) ?? null);
+}
+
+public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
+  const loadedModels = [/* TODO: load models with load keys */];
+  return this.fromArray(loadedModels);
+}
 
   /** associations */
 
   /** @deprecated */
-  protected chatUsersParams: LoadParams<UserEntityBase, ChatUserEntity> = {
+  protected chatUsersLoadConfig: LoadConfig<UserEntityBase, ChatUserEntity> = {
     name: 'UserEntity.chatUsers',
     filter: (one: UserEntityBase) => one.chatUsers === undefined,
+    getter: (sources: UserEntityBase[]) => sources.map((one) => ({
+      userId: one.id,
+    })),
     // TODO: build your association data loader
-    // loader: async (array: UserEntityBase[]) => {
-    //   const ids = unique((nonNull(array.map((one) => one.id))));
-    //   const loadedModels = [/* TODO: load associated models with the above keys */];
+    // loader: async (keys: LoadKey[]) => {
+    //   const loadedModels = [/* TODO: load associated models with load keys */];
     //   return ChatUserEntity.fromArray(loadedModels);
     // },
-    setter: (array: UserEntityBase[], loaded: ChatUserEntity[]) => {
-      const map = toArrayMap(loaded, (one) => one.userId, (one) => one);
-      array.forEach((one) => (one.chatUsers = map.get(one.id) ?? []));
+    setter: (sources: UserEntityBase[], targets: ChatUserEntity[]) => {
+      const map = toArrayMap(targets, (one) => one.userId, (one) => one);
+      sources.forEach((one) => (one.chatUsers = map.get(one.id) ?? []));
     },
   };
 
   /** @deprecated */
   protected async loadChatUsers(): Promise<void> {
-    await this.load(this.chatUsersParams);
+    await this.load(this.chatUsersLoadConfig);
   }
 
   /** @deprecated */
@@ -113,23 +134,26 @@ export class UserEntityBase extends BaseEntity<
     this.chatUsers = chatUsers;
   }
 
-  protected messagesParams: LoadParams<UserEntityBase, MessageEntity> = {
+  protected messagesLoadConfig: LoadConfig<UserEntityBase, MessageEntity> = {
     name: 'UserEntity.messages',
     filter: (one: UserEntityBase) => one.messages === undefined,
+    // TODO: build your association key getter
+    // getter: (sources: UserEntityBase[]) => sources.map((one) => ({
+    // })),
     // TODO: build your association data loader
-    // loader: async (array: UserEntityBase[]) => {
+    // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models here */];
     //   return MessageEntity.fromArray(loadedModels);
     // },
-    // TODO: build your association data setter
-    // setter: (array: UserEntityBase[], loaded: MessageEntity[]) => {
-    //   const map = toArrayMap(loaded, (one) => one.userId, (one) => one);
-    //   array.forEach((one) => (one.messages = map.get('TODO: map your source entity to key') ?? []));
+    // TODO: build your association value setter
+    // setter: (sources: UserEntityBase[], targets: MessageEntity[]) => {
+    //   const map = toArrayMap(targets, (one) => one.userId, (one) => one);
+    //   sources.forEach((one) => (one.messages = map.get('TODO: map your source entity to key') ?? []));
     // },
   };
 
   protected async loadMessages(): Promise<void> {
-    await this.load(this.messagesParams);
+    await this.load(this.messagesLoadConfig);
   }
 
   public async getMessages(): Promise<MessageEntity[]> {
@@ -144,22 +168,25 @@ export class UserEntityBase extends BaseEntity<
     this.messages = messages;
   }
 
-  protected hasAnyMessageParams: LoadParams<UserEntityBase, boolean> = {
+  protected hasAnyMessageLoadConfig: LoadConfig<UserEntityBase, boolean> = {
     name: 'UserEntity.hasAnyMessage',
     filter: (one: UserEntityBase) => one.hasAnyMessage === undefined,
+    // TODO: build your association key getter
+    // getter: (sources: UserEntityBase[]) => sources.map((one) => ({
+    // })),
     // TODO: build your association data loader
-    // loader: async (array: UserEntityBase[]) => {
+    // loader: async (keys: LoadKey[]) => {
     //   return [/* TODO: load associated models here */];
     // },
-    // TODO: build your association data setter
-    // setter: (array: UserEntityBase[], loaded: boolean[]) => {
-    //   const map = toObjectMap(loaded, (one) => 'TODO: map your target entity to key', (one) => one);
-    //   array.forEach((one) => (one.hasAnyMessage = map.get('TODO: map your source entity to key')!));
+    // TODO: build your association value setter
+    // setter: (sources: UserEntityBase[], targets: boolean[]) => {
+    //   const map = toObjectMap(targets, (one) => 'TODO: map your target entity to key', (one) => one);
+    //   sources.forEach((one) => (one.hasAnyMessage = map.get('TODO: map your source entity to key')!));
     // },
   };
 
   protected async loadHasAnyMessage(): Promise<void> {
-    await this.load(this.hasAnyMessageParams);
+    await this.load(this.hasAnyMessageLoadConfig);
   }
 
   public async getHasAnyMessage(): Promise<boolean> {

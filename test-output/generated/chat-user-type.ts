@@ -4,7 +4,7 @@ import { ChatFieldRequest, ChatResponse } from './chat-type.js';
 /** structs */
 
 /** @deprecated */
-export type ChatUserModel = { [key: string] : any };
+export type ChatUserModel = { [key: string]: any };
 
 /** @deprecated */
 export type ChatUserFieldRequest = {

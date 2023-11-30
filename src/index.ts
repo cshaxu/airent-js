@@ -5,11 +5,14 @@ type Constructor<MODEL, ENTITY> = {
   new (model: MODEL, group: ENTITY[], lock: AsyncLock): ENTITY;
 };
 
-type LoadParams<ENTITY, LOADED> = {
+type LoadKey = { [key: string]: any };
+
+type LoadConfig<ENTITY, LOADED> = {
   name: string;
   filter: (one: ENTITY) => boolean;
-  loader?: (array: ENTITY[]) => Promise<LOADED[]>;
-  setter?: (array: ENTITY[], loaded: LOADED[]) => void;
+  getter?: (sources: ENTITY[]) => LoadKey[];
+  loader?: (keys: LoadKey[]) => Promise<LOADED[]>;
+  setter?: (sources: ENTITY[], targets: LOADED[]) => void;
 };
 
 class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
@@ -33,34 +36,39 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
   protected async load<
     ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>,
     LOADED
-  >(params: LoadParams<ENTITY, LOADED>): Promise<void> {
-    const { name, loader: loaderRaw, setter: setterRaw } = params;
-    const filter = params.filter as (
+  >(config: LoadConfig<ENTITY, LOADED>): Promise<void> {
+    const { name, getter: getterRaw, loader, setter: setterRaw } = config;
+    const filter = config.filter as (
       one: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>
     ) => boolean;
 
-    if (!loaderRaw) {
+    if (!getterRaw) {
+      throw new Error(`${name} getter not implemented`);
+    }
+    const getter = getterRaw as (
+      sources: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[]
+    ) => LoadKey[];
+
+    if (!loader) {
       throw new Error(`${name} loader not implemented`);
     }
-    const loader = loaderRaw as (
-      array: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[]
-    ) => Promise<LOADED[]>;
 
     if (!setterRaw) {
       throw new Error(`${name} setter not implemented`);
     }
     const setter = setterRaw as (
-      array: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[],
-      loaded: LOADED[]
+      sources: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[],
+      targets: LOADED[]
     ) => void;
 
     await this._lock.acquire(name, async () => {
-      const array = this._group.filter(filter);
-      if (!array.length) {
+      const sources = this._group.filter(filter);
+      if (!sources.length) {
         return;
       }
-      const loaded = await loader(array);
-      setter(array, loaded);
+      const keys = getter(sources);
+      const targets = await loader(keys);
+      setter(sources, targets);
     });
   }
 
@@ -82,7 +90,7 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     models: MODEL[]
   ): ENTITY[] {
     const group = new Array<ENTITY>();
-    const lock = new AsyncLock({ domainReentrant: true });
+    const lock = new AsyncLock({ maxPending: Infinity, domainReentrant: true });
     models.forEach((model) => group.push(new this(model, group, lock)));
     return group;
   }
@@ -135,7 +143,8 @@ function toObjectMap<OBJECT, KEY, VALUE>(
 export {
   AsyncLock,
   BaseEntity,
-  LoadParams,
+  LoadConfig,
+  LoadKey,
   exists,
   nonNull,
   toArrayMap,

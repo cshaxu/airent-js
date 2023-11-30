@@ -1,7 +1,7 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
-import { toArrayMap, toObjectMap, nonNull, unique } from '<%= config.airentPackage %>';
+import { LoadKey, toArrayMap, toObjectMap, nonNull, unique } from '<%= config.airentPackage %>';
 import { <%= getThisEntityStrings().baseClass %> } from './generated/<%= getThisEntityStrings().basePackage %>';
 <% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
 import {
@@ -31,22 +31,31 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
 
     /** associations */
   <%_ schema.fields.filter(isAssociationField).forEach((field) => { -%>
+    <%_ if (!isGetterGeneratable(field)) { -%>
+
+    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= getThisEntityStrings().baseClass %>[]) => sources.map((one) => ({
+      <%_ getSourceFields(field).forEach((sourceField, index) => { -%>
+      <%= field.targetFields[index] %>: one.<%= getFieldGetterName(sourceField) %>,
+      <%_ }); -%>
+    })),
+    <%_ } -%>
     <%_ if (!isLoaderGeneratable(field)) { -%>
 
-    this.<%= `${field.name}Params` %>.loader = async (array: <%= getThisEntityStrings().baseClass %>[]) => {
-      <%_ getSourceFields(field).forEach((sourceField) => { -%>
-      const <%= pluralize(sourceField.name) %> = unique((nonNull(array.map((one) => one.<%= getFieldGetterName(sourceField) %>))));
-      <%_ }); -%>
+    this.<%= `${field.name}LoadConfig` %>.loader = async (keys: LoadKey[]) => {
+      <%_ if (isEntityTypeField(field)) { -%>
       const loadedModels = <%- getTargetLoadedModels(field) %>;
       return <%= getFieldStrings(field).fieldClass %>.fromArray(loadedModels);
+      <%_ } else { -%>
+      return <%- getTargetLoadedModels(field) %>;
+      <%_ } -%>
     };
     <%_ } -%>
     <%_ if (!isSetterGeneratable(field)) { -%>
 
-    this.<%= `${field.name}Params` %>.setter = ((array: <%= getThisEntityStrings().entityClass %>[], loaded: <%= getFieldStrings(field).fieldClass %>[]) => {
+    this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= getThisEntityStrings().entityClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => {
       const map = <%- getTargetMap(field) %>;
-      array.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
-    }) as (array: <%= getThisEntityStrings().baseClass %>[], loaded: <%= getFieldStrings(field).fieldClass %>[]) => Promise<void>;
+      sources.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
+    }) as (sources: <%= getThisEntityStrings().baseClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => Promise<void>;
     <%_ } -%>
   <%_ }); -%>
   }
