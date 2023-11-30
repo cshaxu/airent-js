@@ -1,4 +1,4 @@
-import { LoadKey, toArrayMap, toObjectMap } from '../../src';
+import { LoadKey, toArrayMap, toObjectMap } from '../src';
 import { UserEntityBase } from './generated/user-base.js';
 import {
   UserFieldRequest,
@@ -19,8 +19,9 @@ export class UserEntity extends UserEntityBase {
       return ChatUserEntity.fromArray(loadedModels);
     };
 
-    this.messagesLoadConfig.getter = (sources: UserEntityBase[]) => sources.map((one) => ({
-    })),
+    this.messagesLoadConfig.getter = (sources: UserEntityBase[]) => sources
+      .map((one) => ({
+      }));
 
     this.messagesLoadConfig.loader = async (keys: LoadKey[]) => {
       const loadedModels = [/* TODO: load associated models here */];

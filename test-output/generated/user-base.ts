@@ -100,9 +100,10 @@ public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: Load
   protected chatUsersLoadConfig: LoadConfig<UserEntityBase, ChatUserEntity> = {
     name: 'UserEntity.chatUsers',
     filter: (one: UserEntityBase) => one.chatUsers === undefined,
-    getter: (sources: UserEntityBase[]) => sources.map((one) => ({
-      userId: one.id,
-    })),
+    getter: (sources: UserEntityBase[]) => sources
+      .map((one) => ({
+        userId: one.id,
+      })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models with load keys */];
@@ -137,8 +138,9 @@ public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: Load
     name: 'UserEntity.messages',
     filter: (one: UserEntityBase) => one.messages === undefined,
     // TODO: build your association key getter
-    // getter: (sources: UserEntityBase[]) => sources.map((one) => ({
-    // })),
+    // getter: (sources: UserEntityBase[]) => sources
+    //   .map((one) => ({
+    //   })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models here */];
@@ -170,8 +172,9 @@ public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: Load
   protected hasAnyMessageLoadConfig: LoadConfig<UserEntityBase, boolean> = {
     name: 'UserEntity.hasAnyMessage',
     filter: (one: UserEntityBase) => one.hasAnyMessage === undefined,
-    getter: (sources: UserEntityBase[]) => sources.map((one) => ({
-    })),
+    getter: (sources: UserEntityBase[]) => sources
+      .map((one) => ({
+      })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   return [/* TODO: load associated models here */];

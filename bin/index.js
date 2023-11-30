@@ -103,14 +103,26 @@ async function sequential(functions) {
 async function loadConfig() {
   const configContent = await fs.promises.readFile(CONFIG_FILE_PATH, "utf8");
   const config = JSON.parse(configContent);
-  const { type, schemaPath, outputPath, airentPackage, prologues, templates } =
-    config;
+  const {
+    type,
+    schemaPath,
+    outputPath,
+    airentPackage: airentPackageRaw,
+    prologues,
+    templates,
+  } = config;
+  const airentPackageForSkippable = airentPackageRaw ?? "airent";
+  const airentPackageForGenerated =
+    airentPackageForSkippable === "airent"
+      ? "airent"
+      : path.join("..", airentPackageForSkippable).replace(/\\/g, "/");
   return {
     ...config,
     isModule: type === "module",
     schemaPath: path.join(PROJECT_PATH, schemaPath),
     outputPath: path.join(PROJECT_PATH, outputPath),
-    airentPackage: airentPackage ?? "airent",
+    airentPackageForSkippable,
+    airentPackageForGenerated,
     prologues: prologues ?? [],
     templates: templates ?? [],
   };

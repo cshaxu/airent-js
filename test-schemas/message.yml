@@ -54,7 +54,7 @@ fields:
     type: User | null
     strategy: association
     sourceFields:
-      - userId # nullable
+      - userId
     targetFields:
       - id
   - id: 9

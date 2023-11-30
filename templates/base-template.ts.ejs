@@ -8,7 +8,7 @@ import {
   LoadKey,
   toArrayMap,
   toObjectMap,
-} from '<%= config.airentPackage %>';
+} from '<%= config.airentPackageForGenerated %>';
 <% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
 
 /** generated */
@@ -118,11 +118,10 @@ public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass 
   <%_ if (!isGetterGeneratable(field)) { -%>
     // TODO: build your association key getter
   <%_ } -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= getThisEntityStrings().baseClass %>[]) => sources.map((one) => ({
-  <%_ getSourceFields(field).forEach((sourceField, index) => { -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>  <%= field.targetFields[index] %>: one.<%= getFieldGetterName(sourceField) %>,
+    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= getThisEntityStrings().baseClass %>[]) => sources
+  <%_ getLoadConfigGetterLines(field, ',').forEach((line) => { -%>
+    <%= isGetterGeneratable(field) ? '' : '// ' %>  <%- line %>
   <%_ }); -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>})),
   <%_ if (!isLoaderGeneratable(field)) { -%>
     // TODO: build your association data loader
   <%_ } -%>

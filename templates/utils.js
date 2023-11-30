@@ -105,7 +105,11 @@ function getSourceFields(field) /* Field[] */ {
 }
 
 function getTargetFields(field) /* Field[] */ {
-  return field.targetFields ?? [];
+  const otherEntityName = toTitleCase(toPrimitiveTypeName(field.type));
+  return (field.targetFields ?? [])
+    .map((tfName) => queryOtherEntityField(otherEntityName, tfName))
+    .filter(Boolean)
+    .filter(isSyncField);
 }
 
 /**********/
@@ -297,9 +301,7 @@ function getFieldStrings(field) /* Object */ {
 /* CODE */
 /********/
 
-function getGlobalImports() /* Code[] */ {
-  return [];
-}
+/* piece */
 
 function getFieldGetterName(field) /* Code */ {
   if (isPrimitiveField(field)) {
@@ -326,26 +328,52 @@ function getTargetLoadedModels(field) /* Code */ {
   }
 }
 
-function getLoadConfigGetterLines(field) /* Code[] */ {
-  // reject nullable sourceField whose targetField is required
-  const sourceFields = getSourceFields(field);
-  const { targetFields } = field;
-  const { baseClass } = getThisEntityStrings();
-  const filters = sourceFields
-    .filter((sf, i) => isNullableField(sf) && !isNullableField(targetFields[i]))
-    .map((sf) => `  .filter((one) => one.${getFieldGetterName(sf)} !== null)`);
-  const mappedFields = sourceFields.map(
-    (sf, i) => `    ${targetFields[i]}: one.${getFieldGetterName(sf)},`
-  );
-  return [
-    `(sources: ${baseClass}[]) => sources`,
-    ...filters,
-    `  .map((one) => ({`,
-    ...mappedFields,
-    `  }))`,
-  ];
+/* line */
+
+// field presenter //
+
+function getFieldPresenter(field) /* Code */ {
+  const presentCondition = `fieldRequest?.${field.name}`;
+  const getterName = `this.${getFieldGetterName(field)}`;
+  const getter = isSyncField(field) ? getterName : `await ${getterName}`;
+  let presenter = getter;
+  if (isEntityTypeField(field)) {
+    if (isArrayField(field)) {
+      presenter += `.then((a) => Promise.all(a.map((one) => one.present(${presentCondition}))))`;
+    } else if (isNullableField(field)) {
+      presenter += `.then((one) => one === null ? Promise.resolve(null) : one.present(${presentCondition}))`;
+    } else {
+      presenter += `.then((one) => one.present(${presentCondition}))`;
+    }
+  }
+  return `${presentCondition} ? ${presenter} : undefined`;
 }
 
+/* block */
+
+// global //
+
+function getGlobalImports() /* Code[] */ {
+  return [];
+}
+
+// association loader //
+
+function getLoadConfigGetterLines(field, end) /* Code[] */ {
+  const sourceFields = getSourceFields(field);
+  const targetFields = getTargetFields(field);
+  // reject nullable sourceField whose targetField is required
+  const filters = sourceFields
+    .filter((sf, i) => isNullableField(sf) && !isNullableField(targetFields[i]))
+    .map((sf) => `.filter((one) => one.${getFieldGetterName(sf)} !== null)`);
+  const mappedFields = sourceFields.map((sf, i) => {
+    const rawTargetFieldName = targetFields[i].aliasOf ?? targetFields[i].name;
+    return `  ${rawTargetFieldName}: one.${getFieldGetterName(sf)},`;
+  });
+  return [...filters, `.map((one) => ({`, ...mappedFields, `}))${end}`];
+}
+
+// internal
 function getNullableCondition(field) /* Code */ {
   if (!isNullableField(field)) {
     return "";
@@ -363,6 +391,7 @@ function getNullableCondition(field) /* Code */ {
   return `${condition} ? null : `;
 }
 
+// internal
 function getSourceKey(field) /* Code */ {
   const getters = getSourceFields(field).map(
     (sf) =>
@@ -391,30 +420,13 @@ function getSourceSetter(field) /* Code */ {
 
 function getTargetMap(field) /* Code */ {
   const mapBuilder = isArrayField(field) ? "toArrayMap" : "toObjectMap";
-  const targetGetters = getTargetFields(field).map(
-    (fieldName) => `one.${fieldName}`
-  );
+  const targetGetters = getTargetFields(field)
+    .map(getFieldGetterName)
+    .map((tfGetterName) => `one.${tfGetterName}`);
   const targetKey = !hasTargetKey(field)
     ? "'TODO: map your target entity to key'"
     : targetGetters.length === 1
     ? targetGetters[0]
     : "`" + targetGetters.map((getter) => `\${${getter}}`).join("*") + "`";
   return `${mapBuilder}(targets, (one) => ${targetKey}, (one) => one)`;
-}
-
-function getFieldPresenter(field) /* Code */ {
-  const presentCondition = `fieldRequest?.${field.name}`;
-  const getterName = `this.${getFieldGetterName(field)}`;
-  const getter = isSyncField(field) ? getterName : `await ${getterName}`;
-  let presenter = getter;
-  if (isEntityTypeField(field)) {
-    if (isArrayField(field)) {
-      presenter += `.then((a) => Promise.all(a.map((one) => one.present(${presentCondition}))))`;
-    } else if (isNullableField(field)) {
-      presenter += `.then((one) => one === null ? Promise.resolve(null) : one.present(${presentCondition}))`;
-    } else {
-      presenter += `.then((one) => one.present(${presentCondition}))`;
-    }
-  }
-  return `${presentCondition} ? ${presenter} : undefined`;
 }

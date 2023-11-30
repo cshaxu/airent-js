@@ -1,7 +1,7 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
-import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackage %>';
+import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackageForSkippable %>';
 import { <%= getThisEntityStrings().baseClass %> } from './generated/<%= getThisEntityStrings().basePackage %>';
 <% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
 import {
@@ -33,11 +33,10 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
   <%_ schema.fields.filter(isAssociationField).forEach((field) => { -%>
     <%_ if (!isGetterGeneratable(field)) { -%>
 
-    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= getThisEntityStrings().baseClass %>[]) => sources.map((one) => ({
-      <%_ getSourceFields(field).forEach((sourceField, index) => { -%>
-      <%= field.targetFields[index] %>: one.<%= getFieldGetterName(sourceField) %>,
+    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= getThisEntityStrings().baseClass %>[]) => sources
+      <%_ getLoadConfigGetterLines(field, ';').forEach((line) => { -%>
+      <%- line %>
       <%_ }); -%>
-    })),
     <%_ } -%>
     <%_ if (!isLoaderGeneratable(field)) { -%>
 

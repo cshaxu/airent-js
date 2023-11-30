@@ -86,9 +86,10 @@ public static async getMany<ENTITY extends ChatEntityBase>(this: any, keys: Load
   protected chatUsersLoadConfig: LoadConfig<ChatEntityBase, ChatUserEntity> = {
     name: 'ChatEntity.chatUsers',
     filter: (one: ChatEntityBase) => one.chatUsers === undefined,
-    getter: (sources: ChatEntityBase[]) => sources.map((one) => ({
-      chatId: one.id,
-    })),
+    getter: (sources: ChatEntityBase[]) => sources
+      .map((one) => ({
+        chatId: one.id,
+      })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models with load keys */];
@@ -122,9 +123,10 @@ public static async getMany<ENTITY extends ChatEntityBase>(this: any, keys: Load
   protected messagesLoadConfig: LoadConfig<ChatEntityBase, MessageEntity> = {
     name: 'ChatEntity.messages',
     filter: (one: ChatEntityBase) => one.messages === undefined,
-    getter: (sources: ChatEntityBase[]) => sources.map((one) => ({
-      chatId: one.id,
-    })),
+    getter: (sources: ChatEntityBase[]) => sources
+      .map((one) => ({
+        chatId: one.id,
+      })),
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models with load keys */];
