@@ -15,6 +15,7 @@ export type MessageFieldRequest = {
   id?: boolean;
   createdAt?: boolean;
   chatId?: boolean;
+  derivedChatId?: boolean;
   userId?: boolean;
   content?: boolean;
   attachment?: boolean;
@@ -30,6 +31,7 @@ export type MessageResponse = {
   id?: string;
   createdAt?: Date;
   chatId?: string;
+  derivedChatId?: string | null;
   userId?: string | null;
   content?: string | null;
   attachment?: Attachment | null;

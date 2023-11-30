@@ -137,8 +137,8 @@ public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass 
     // TODO: build your association value setter
   <%_ } -%>
     <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (sources: <%= getThisEntityStrings().baseClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => {
-    <%= isSetterGeneratable(field) ? '' : '// ' %>  const map = <%- getTargetMap(field) %>;
-    <%= isSetterGeneratable(field) ? '' : '// ' %>  sources.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
+    <%= isSetterGeneratable(field) ? '' : '// ' %>  const map = <%- getLoadConfigTargetMapper(field) %>;
+    <%= isSetterGeneratable(field) ? '' : '// ' %>  sources.forEach((one) => (one.<%= field.name %> = <%- getLoadConfigSourceSetter(field) %>));
     <%= isSetterGeneratable(field) ? '' : '// ' %>},
   };
 

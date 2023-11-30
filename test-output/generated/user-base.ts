@@ -110,8 +110,8 @@ public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: Load
     //   return ChatUserEntity.fromArray(loadedModels);
     // },
     setter: (sources: UserEntityBase[], targets: ChatUserEntity[]) => {
-      const map = toArrayMap(targets, (one) => one.userId, (one) => one);
-      sources.forEach((one) => (one.chatUsers = map.get(one.id) ?? []));
+      const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
+      sources.forEach((one) => (one.chatUsers = map.get(`${one.id}`) ?? []));
     },
   };
 
@@ -148,7 +148,7 @@ public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: Load
     // },
     // TODO: build your association value setter
     // setter: (sources: UserEntityBase[], targets: MessageEntity[]) => {
-    //   const map = toArrayMap(targets, (one) => one.userId, (one) => one);
+    //   const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
     //   sources.forEach((one) => (one.messages = map.get('TODO: map your source entity to key') ?? []));
     // },
   };

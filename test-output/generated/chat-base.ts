@@ -96,8 +96,8 @@ public static async getMany<ENTITY extends ChatEntityBase>(this: any, keys: Load
     //   return ChatUserEntity.fromArray(loadedModels);
     // },
     setter: (sources: ChatEntityBase[], targets: ChatUserEntity[]) => {
-      const map = toArrayMap(targets, (one) => one.chatId, (one) => one);
-      sources.forEach((one) => (one.chatUsers = map.get(one.id) ?? []));
+      const map = toArrayMap(targets, (one) => `${one.chatId}`, (one) => one);
+      sources.forEach((one) => (one.chatUsers = map.get(`${one.id}`) ?? []));
     },
   };
 
@@ -133,8 +133,8 @@ public static async getMany<ENTITY extends ChatEntityBase>(this: any, keys: Load
     //   return MessageEntity.fromArray(loadedModels);
     // },
     setter: (sources: ChatEntityBase[], targets: MessageEntity[]) => {
-      const map = toArrayMap(targets, (one) => one.chatId, (one) => one);
-      sources.forEach((one) => (one.messages = map.get(one.id) ?? []));
+      const map = toArrayMap(targets, (one) => `${one.chatId}`, (one) => one);
+      sources.forEach((one) => (one.messages = map.get(`${one.id}`) ?? []));
     },
   };
 

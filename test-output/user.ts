@@ -29,7 +29,7 @@ export class UserEntity extends UserEntityBase {
     };
 
     this.messagesLoadConfig.setter = ((sources: UserEntity[], targets: MessageEntity[]) => {
-      const map = toArrayMap(targets, (one) => one.userId, (one) => one);
+      const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
       sources.forEach((one) => (one.messages = map.get('TODO: map your source entity to key') ?? []));
     }) as (sources: UserEntityBase[], targets: MessageEntity[]) => Promise<void>;
 

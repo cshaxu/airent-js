@@ -109,7 +109,7 @@ function getTargetFields(field) /* Field[] */ {
   return (field.targetFields ?? [])
     .map((tfName) => queryOtherEntityField(otherEntityName, tfName))
     .filter(Boolean)
-    .filter(isSyncField);
+    .filter(isPrimitiveField);
 }
 
 /**********/
@@ -321,7 +321,7 @@ function getSelfLoadedModels() /* Code */ {
 }
 
 function getTargetLoadedModels(field) /* Code */ {
-  if (hasSourceKey(field)) {
+  if (getSourceKeySize(field) > 0) {
     return "[/* TODO: load associated models with load keys */]";
   } else {
     return "[/* TODO: load associated models here */]";
@@ -349,6 +349,37 @@ function getFieldPresenter(field) /* Code */ {
   return `${presentCondition} ? ${presenter} : undefined`;
 }
 
+// association loader //
+
+// internal
+function buildAssociationKey(keyFields, type) /* Code */ {
+  if (keyFields.length === 0) {
+    return `'TODO: map your ${type} entity to key'`;
+  }
+  const getters = keyFields
+    .map(getFieldGetterName)
+    .map((getterName) => `one.${getterName}`);
+  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
+}
+
+function getLoadConfigTargetMapper(field) /* Code */ {
+  const mapBuilder = isArrayField(field) ? "toArrayMap" : "toObjectMap";
+  const targetFields = getTargetFields(field);
+  const targetKey = buildAssociationKey(targetFields, "target");
+  return `${mapBuilder}(targets, (one) => ${targetKey}, (one) => one)`;
+}
+
+function getLoadConfigSourceSetter(field) /* Code */ {
+  const sourceFields = getSourceFields(field);
+  const sourceKey = buildAssociationKey(sourceFields, "source");
+  const fallback = isArrayField(field)
+    ? " ?? []"
+    : isNullableField(field)
+    ? " ?? null"
+    : "!";
+  return `map.get(${sourceKey})${fallback}`;
+}
+
 /* block */
 
 // global //
@@ -356,8 +387,6 @@ function getFieldPresenter(field) /* Code */ {
 function getGlobalImports() /* Code[] */ {
   return [];
 }
-
-// association loader //
 
 function getLoadConfigGetterLines(field, end) /* Code[] */ {
   const sourceFields = getSourceFields(field);
@@ -371,62 +400,4 @@ function getLoadConfigGetterLines(field, end) /* Code[] */ {
     return `  ${rawTargetFieldName}: one.${getFieldGetterName(sf)},`;
   });
   return [...filters, `.map((one) => ({`, ...mappedFields, `}))${end}`];
-}
-
-// internal
-function getNullableCondition(field) /* Code */ {
-  if (!isNullableField(field)) {
-    return "";
-  }
-  const nullableSourceFields = getSourceFields(field).filter((sf) =>
-    isNullableField(sf)
-  );
-  if (nullableSourceFields.length === 0) {
-    return "";
-  }
-  const condition = nullableSourceFields
-    .map(getFieldGetterName)
-    .map((s) => `one.${s} === null`)
-    .join(" || ");
-  return `${condition} ? null : `;
-}
-
-// internal
-function getSourceKey(field) /* Code */ {
-  const getters = getSourceFields(field).map(
-    (sf) =>
-      `one.${getFieldGetterName(sf)}${
-        isNullableField(sf) && !isPrimitiveField(sf) ? "!" : ""
-      }`
-  );
-  if (getters.length === 1) {
-    return getters[0];
-  }
-  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
-}
-
-function getSourceSetter(field) /* Code */ {
-  const nullableCondition = getNullableCondition(field);
-  const sourceKey = hasSourceKey(field)
-    ? getSourceKey(field)
-    : "'TODO: map your source entity to key'";
-  const fallbackValue = isArrayField(field)
-    ? " ?? []"
-    : isNullableField(field)
-    ? " ?? null"
-    : "!";
-  return `${nullableCondition}map.get(${sourceKey})${fallbackValue}`;
-}
-
-function getTargetMap(field) /* Code */ {
-  const mapBuilder = isArrayField(field) ? "toArrayMap" : "toObjectMap";
-  const targetGetters = getTargetFields(field)
-    .map(getFieldGetterName)
-    .map((tfGetterName) => `one.${tfGetterName}`);
-  const targetKey = !hasTargetKey(field)
-    ? "'TODO: map your target entity to key'"
-    : targetGetters.length === 1
-    ? targetGetters[0]
-    : "`" + targetGetters.map((getter) => `\${${getter}}`).join("*") + "`";
-  return `${mapBuilder}(targets, (one) => ${targetKey}, (one) => one)`;
 }

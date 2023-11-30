@@ -52,8 +52,8 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
     <%_ if (!isSetterGeneratable(field)) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= getThisEntityStrings().entityClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => {
-      const map = <%- getTargetMap(field) %>;
-      sources.forEach((one) => (one.<%= field.name %> = <%- getSourceSetter(field) %>));
+      const map = <%- getLoadConfigTargetMapper(field) %>;
+      sources.forEach((one) => (one.<%= field.name %> = <%- getLoadConfigSourceSetter(field) %>));
     }) as (sources: <%= getThisEntityStrings().baseClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => Promise<void>;
     <%_ } -%>
   <%_ }); -%>
