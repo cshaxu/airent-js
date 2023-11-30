@@ -1,7 +1,7 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
-import { LoadKey, toArrayMap, toObjectMap, nonNull, unique } from '<%= config.airentPackage %>';
+import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackage %>';
 import { <%= getThisEntityStrings().baseClass %> } from './generated/<%= getThisEntityStrings().basePackage %>';
 <% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
 import {

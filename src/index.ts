@@ -105,18 +105,6 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
   }
 }
 
-function exists(object: any) {
-  return object !== undefined && object !== null;
-}
-
-function nonNull<T>(array: T[]): NonNullable<T>[] {
-  return array.filter(exists).map((o) => o!);
-}
-
-function unique<T>(array: T[]): T[] {
-  return Array.from(new Set(array));
-}
-
 function toArrayMap<OBJECT, KEY, VALUE>(
   objects: OBJECT[],
   keyMapper: (object: OBJECT) => KEY,
@@ -140,14 +128,4 @@ function toObjectMap<OBJECT, KEY, VALUE>(
   return new Map(objects.map((o) => [keyMapper(o), valueMapper(o)]));
 }
 
-export {
-  AsyncLock,
-  BaseEntity,
-  LoadConfig,
-  LoadKey,
-  exists,
-  nonNull,
-  toArrayMap,
-  toObjectMap,
-  unique,
-};
+export { AsyncLock, BaseEntity, LoadConfig, LoadKey, toArrayMap, toObjectMap };
