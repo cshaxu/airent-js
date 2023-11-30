@@ -69,6 +69,17 @@ export class ChatEntityBase extends BaseEntity<
     };
   }
 
+/** self loaders */
+
+public static async getOne<ENTITY extends ChatEntityBase>(this: any, key: LoadKey): Promise<ENTITY | null> {
+  return await this.getMany([key]).then((array: ENTITY[]) => array.at(0) ?? null);
+}
+
+public static async getMany<ENTITY extends ChatEntityBase>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
+  const loadedModels = [/* TODO: load models with load keys */];
+  return this.fromArray(loadedModels);
+}
+
   /** associations */
 
   /** @deprecated */

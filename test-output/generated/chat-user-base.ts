@@ -73,6 +73,7 @@ export class ChatUserEntityBase extends BaseEntity<
       user: fieldRequest?.user ? await this.getUser().then((one) => one.present(fieldRequest?.user)) : undefined,
     };
   }
+
 /** self loaders */
 
 public static async getOne<ENTITY extends ChatUserEntityBase>(this: any, key: LoadKey): Promise<ENTITY | null> {

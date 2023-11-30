@@ -18,8 +18,6 @@ import {
   <%_ schema.types.filter(isInternalType).forEach((type) => { -%>
   <%= getTypeStrings(type).typeName %>,
   <%_ }); -%>
-  <%_ if (schema.keyFields.length > 0) { -%>
-  <%_ } -%>
 } from './<%= getThisEntityStrings().typePackage %>';
 <% } -%>
 <% if (schema.types.some(isEntityType)) { -%>
@@ -92,7 +90,8 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     };
   }
 <% } -%>
-<% if (schema.keyFields.length > 0) { -%>
+<% if (!schema.skipSelfLoader) { -%>
+
 /** self loaders */
 
 public static async getOne<ENTITY extends <%= getThisEntityStrings().baseClass %>>(this: any, key: LoadKey): Promise<ENTITY | null> {
