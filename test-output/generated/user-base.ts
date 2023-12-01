@@ -1,6 +1,7 @@
 import {
   AsyncLock,
   BaseEntity,
+  EntityConstructor,
   LoadConfig,
   LoadKey,
   toArrayMap,
@@ -31,7 +32,9 @@ export class UserEntityBase extends BaseEntity<
 
   /** @deprecated */
   protected chatUsers?: ChatUserEntity[];
+
   protected messages?: MessageEntity[];
+
   protected hasAnyMessage?: boolean;
 
   public constructor(
@@ -83,16 +86,21 @@ export class UserEntityBase extends BaseEntity<
     };
   }
 
-/** self loaders */
+  /** self loaders */
 
-public static async getOne<ENTITY extends UserEntityBase>(this: any, key: LoadKey): Promise<ENTITY | null> {
-  return await this.getMany([key]).then((array: ENTITY[]) => array.at(0) ?? null);
-}
+  public static async getOne<ENTITY extends UserEntityBase>(
+    this: EntityConstructor<ENTITY>,
+    key: LoadKey
+  ): Promise<ENTITY | null> {
+    return await (this as any)
+      .getMany([key])
+      .then((array: ENTITY[]) => array.at(0) ?? null);
+  }
 
-public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
-  const loadedModels = [/* TODO: load entity models */];
-  return this.fromArray(loadedModels);
-}
+  public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
+    const loadedModels = [/* TODO: load entity models */];
+    return (this as any).fromArray(loadedModels);
+  }
 
   /** associations */
 

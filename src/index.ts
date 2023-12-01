@@ -1,9 +1,7 @@
 import AsyncLock from "async-lock";
 
 // https://stackoverflow.com/questions/34098023
-type Constructor<MODEL, ENTITY> = {
-  new (model: MODEL, group: ENTITY[], lock: AsyncLock): ENTITY;
-};
+type EntityConstructor<T> = new (...args: any[]) => T;
 
 type LoadKey = { [key: string]: any };
 
@@ -75,18 +73,14 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
   /** factories */
 
   public static fromOne<MODEL, ENTITY>(
-    this: Constructor<MODEL, ENTITY>,
+    this: EntityConstructor<ENTITY>,
     model: MODEL
   ): ENTITY {
-    const group = new Array<ENTITY>();
-    const lock = new AsyncLock();
-    const entity = new this(model, group, lock);
-    group.push(entity);
-    return entity;
+    return (this as any).fromArray([model])[0];
   }
 
   public static fromArray<MODEL, ENTITY>(
-    this: Constructor<MODEL, ENTITY>,
+    this: EntityConstructor<ENTITY>,
     models: MODEL[]
   ): ENTITY[] {
     const group = new Array<ENTITY>();
@@ -128,4 +122,12 @@ function toObjectMap<OBJECT, KEY, VALUE>(
   return new Map(objects.map((o) => [keyMapper(o), valueMapper(o)]));
 }
 
-export { AsyncLock, BaseEntity, LoadConfig, LoadKey, toArrayMap, toObjectMap };
+export {
+  AsyncLock,
+  BaseEntity,
+  EntityConstructor,
+  LoadConfig,
+  LoadKey,
+  toArrayMap,
+  toObjectMap,
+};

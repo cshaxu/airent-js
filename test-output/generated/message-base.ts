@@ -1,6 +1,7 @@
 import {
   AsyncLock,
   BaseEntity,
+  EntityConstructor,
   LoadConfig,
   LoadKey,
   toArrayMap,
@@ -33,8 +34,11 @@ export class MessageEntityBase extends BaseEntity<
   public parentMessageId: string | null;
 
   protected chat?: ChatEntity;
+
   protected user?: UserEntity | null;
+
   protected parentMessage?: MessageEntity | null;
+
   protected mentor?: UserEntity | null;
 
   public constructor(
