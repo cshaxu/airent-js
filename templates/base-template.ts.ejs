@@ -47,8 +47,8 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ } -%>
   public <%= field.name %>: <%= getFieldStrings(field).fieldType %>;
 <% }); -%>
-
 <% schema.fields.filter(isAssociationField).forEach((field) => { -%>
+
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
@@ -92,16 +92,16 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
 <% } -%>
 <% if (!schema.skipSelfLoader) { -%>
 
-/** self loaders */
+  /** self loaders */
 
-public static async getOne<ENTITY extends <%= getThisEntityStrings().baseClass %>>(this: any, key: LoadKey): Promise<ENTITY | null> {
-  return await this.getMany([key]).then((array: ENTITY[]) => array.at(0) ?? null);
-}
+  public static async getOne<ENTITY extends <%= getThisEntityStrings().baseClass %>>(this: any, key: LoadKey): Promise<ENTITY | null> {
+    return await this.getMany([key]).then((array: ENTITY[]) => array.at(0) ?? null);
+  }
 
-public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass %>>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
-  const loadedModels = <%- getSelfLoadedModels() %>;
-  return this.fromArray(loadedModels);
-}
+  public static async getMany<ENTITY extends <%= getThisEntityStrings().baseClass %>>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
+    const loadedModels = <%- getSelfLoadedModels() %>;
+    return this.fromArray(loadedModels);
+  }
 <% } -%>
 <% if (schema.fields.some(isAssociationField)) { -%>
 
