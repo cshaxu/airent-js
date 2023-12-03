@@ -1,8 +1,6 @@
 import AsyncLock from "async-lock";
 type EntityConstructor<T> = new (...args: any[]) => T;
-type LoadKey = {
-    [key: string]: any;
-};
+type LoadKey = Record<string, any>;
 type LoadConfig<ENTITY, LOADED> = {
     name: string;
     filter: (one: ENTITY) => boolean;
