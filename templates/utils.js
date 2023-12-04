@@ -210,6 +210,15 @@ function isSetterGeneratable(field) /* boolean */ {
   return getSourceKeySize(field) === getTargetKeySize(field);
 }
 
+function isAssociationFieldGeneratable(field) /* boolean */ {
+  return (
+    isAssociationField(field) &&
+    isGetterGeneratable(field) &&
+    isLoaderGeneratable(field) &&
+    isSetterGeneratable(field)
+  );
+}
+
 /**********/
 /* OBJECT */
 /**********/

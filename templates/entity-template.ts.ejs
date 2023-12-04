@@ -25,7 +25,7 @@ import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(ty
 /** @deprecated */
 <% } -%>
 export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntityStrings().baseClass %> {
-<% if (schema.fields.some(isAssociationField)) { -%>
+<% if (schema.fields.filter(isAssociationField).some((field) => !isAssociationFieldGeneratable(field))) { -%>
   protected initialize() {
     super.initialize();
 
