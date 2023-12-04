@@ -3,7 +3,7 @@ import AsyncLock from "async-lock";
 // https://stackoverflow.com/questions/34098023
 type EntityConstructor<T> = new (...args: any[]) => T;
 
-type LoadKey = { [key: string]: any };
+type LoadKey = Record<string, any>;
 
 type LoadConfig<ENTITY, LOADED> = {
   name: string;
