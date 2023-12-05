@@ -127,27 +127,26 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ if (!isGetterGeneratable(field)) { -%>
     // TODO: build your association key getter
   <%_ } -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= getThisEntityStrings().baseClass %>[]) => sources
-  <%_ getLoadConfigGetterLines(field, ',').forEach((line) => { -%>
+    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= getThisEntityStrings().baseClass %>[]) => {
+  <%_ getLoadConfigGetterLines(field).forEach((line) => { -%>
     <%= isGetterGeneratable(field) ? '' : '// ' %>  <%- line %>
   <%_ }); -%>
+    <%= isGetterGeneratable(field) ? '' : '// ' %>},
   <%_ if (!isLoaderGeneratable(field)) { -%>
     // TODO: build your association data loader
   <%_ } -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>loader: async (keys: LoadKey[]) => {
-  <%_ if (isEntityTypeField(field)) { -%>
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>  const loadedModels = <%- getTargetLoadedModels(field) %>;
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>  return <%= getFieldStrings(field).fieldClass %>.fromArray(loadedModels);
-  <%_ } else { -%>
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>  return <%- getTargetLoadedModels(field) %>;
-  <%_ } -%>
+  <%_ getLoadConfigLoaderLines(field).forEach((line) => { -%>
+    <%= isLoaderGeneratable(field) ? '' : '// ' %>  <%- line %>
+  <%_ }); -%>
     <%= isLoaderGeneratable(field) ? '' : '// ' %>},
   <%_ if (!isSetterGeneratable(field)) { -%>
     // TODO: build your association value setter
   <%_ } -%>
     <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (sources: <%= getThisEntityStrings().baseClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => {
-    <%= isSetterGeneratable(field) ? '' : '// ' %>  const map = <%- getLoadConfigTargetMapper(field) %>;
-    <%= isSetterGeneratable(field) ? '' : '// ' %>  sources.forEach((one) => (one.<%= field.name %> = <%- getLoadConfigSourceSetter(field) %>));
+  <%_ getLoadConfigSetterLines(field).forEach((line) => { -%>
+    <%= isSetterGeneratable(field) ? '' : '// ' %>  <%- line %>
+  <%_ }); -%>
     <%= isSetterGeneratable(field) ? '' : '// ' %>},
   };
 

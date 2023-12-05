@@ -100,10 +100,12 @@ export class ChatUserEntityBase extends BaseEntity<
   protected chatLoadConfig: LoadConfig<ChatUserEntityBase, ChatEntity> = {
     name: 'ChatUserEntity.chat',
     filter: (one: ChatUserEntityBase) => one.chat === undefined,
-    getter: (sources: ChatUserEntityBase[]) => sources
-      .map((one) => ({
-        id: one.chatId,
-      })),
+    getter: (sources: ChatUserEntityBase[]) => {
+      return sources
+        .map((one) => ({
+          id: one.chatId,
+        }));
+    },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models */];
@@ -134,10 +136,12 @@ export class ChatUserEntityBase extends BaseEntity<
   protected userLoadConfig: LoadConfig<ChatUserEntityBase, UserEntity> = {
     name: 'ChatUserEntity.user',
     filter: (one: ChatUserEntityBase) => one.user === undefined,
-    getter: (sources: ChatUserEntityBase[]) => sources
-      .map((one) => ({
-        id: one.userId,
-      })),
+    getter: (sources: ChatUserEntityBase[]) => {
+      return sources
+        .map((one) => ({
+          id: one.userId,
+        }));
+    },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models */];

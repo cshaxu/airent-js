@@ -33,27 +33,26 @@ export class <%= getThisEntityStrings().entityClass %> extends <%= getThisEntity
   <%_ schema.fields.filter(isAssociationField).forEach((field) => { -%>
     <%_ if (!isGetterGeneratable(field)) { -%>
 
-    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= getThisEntityStrings().baseClass %>[]) => sources
-      <%_ getLoadConfigGetterLines(field, ';').forEach((line) => { -%>
+    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= getThisEntityStrings().baseClass %>[]) => {
+      <%_ getLoadConfigGetterLines(field).forEach((line) => { -%>
       <%- line %>
       <%_ }); -%>
+    };
     <%_ } -%>
     <%_ if (!isLoaderGeneratable(field)) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.loader = async (keys: LoadKey[]) => {
-      <%_ if (isEntityTypeField(field)) { -%>
-      const loadedModels = <%- getTargetLoadedModels(field) %>;
-      return <%= getFieldStrings(field).fieldClass %>.fromArray(loadedModels);
-      <%_ } else { -%>
-      return <%- getTargetLoadedModels(field) %>;
-      <%_ } -%>
+      <%_ getLoadConfigLoaderLines(field).forEach((line) => { -%>
+      <%- line %>
+      <%_ }); -%>
     };
     <%_ } -%>
     <%_ if (!isSetterGeneratable(field)) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= getThisEntityStrings().entityClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => {
-      const map = <%- getLoadConfigTargetMapper(field) %>;
-      sources.forEach((one) => (one.<%= field.name %> = <%- getLoadConfigSourceSetter(field) %>));
+      <%_ getLoadConfigSetterLines(field).forEach((line) => { -%>
+      <%- line %>
+      <%_ }); -%>
     }) as (sources: <%= getThisEntityStrings().baseClass %>[], targets: <%= getFieldStrings(field).fieldClass %>[]) => Promise<void>;
     <%_ } -%>
   <%_ }); -%>
