@@ -89,7 +89,7 @@ export class UserEntityBase extends BaseEntity<
   /** self loaders */
 
   public static async getOne<ENTITY extends UserEntityBase>(
-    this: EntityConstructor<ENTITY>,
+    this: EntityConstructor<UserModel, ENTITY>,
     key: LoadKey
   ): Promise<ENTITY | null> {
     return await (this as any)
@@ -97,7 +97,10 @@ export class UserEntityBase extends BaseEntity<
       .then((array: ENTITY[]) => array.at(0) ?? null);
   }
 
-  public static async getMany<ENTITY extends UserEntityBase>(this: any, keys: LoadKey[]): Promise<ENTITY[]> {
+  public static async getMany<ENTITY extends UserEntityBase>(
+    this: EntityConstructor<UserModel, ENTITY>,
+    keys: LoadKey[]
+  ): Promise<ENTITY[]> {
     const loadedModels = [/* TODO: load entity models */];
     return (this as any).fromArray(loadedModels);
   }

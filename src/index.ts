@@ -1,7 +1,10 @@
 import AsyncLock from "async-lock";
 
 // https://stackoverflow.com/questions/34098023
-type EntityConstructor<T> = new (...args: any[]) => T;
+// type EntityConstructor<T> = new (...args: any[]) => T;
+type EntityConstructor<MODEL, ENTITY> = {
+  new (model: MODEL, group: ENTITY[], lock: AsyncLock): ENTITY;
+};
 
 type LoadKey = Record<string, any>;
 
@@ -73,14 +76,14 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
   /** factories */
 
   public static fromOne<MODEL, ENTITY>(
-    this: EntityConstructor<ENTITY>,
+    this: EntityConstructor<MODEL, ENTITY>,
     model: MODEL
   ): ENTITY {
     return (this as any).fromArray([model])[0];
   }
 
   public static fromArray<MODEL, ENTITY>(
-    this: EntityConstructor<ENTITY>,
+    this: EntityConstructor<MODEL, ENTITY>,
     models: MODEL[]
   ): ENTITY[] {
     const group = new Array<ENTITY>();

@@ -1,5 +1,7 @@
 import AsyncLock from "async-lock";
-type EntityConstructor<T> = new (...args: any[]) => T;
+type EntityConstructor<MODEL, ENTITY> = {
+    new (model: MODEL, group: ENTITY[], lock: AsyncLock): ENTITY;
+};
 type LoadKey = Record<string, any>;
 type LoadConfig<ENTITY, LOADED> = {
     name: string;
@@ -16,8 +18,8 @@ declare class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     present(_request?: FIELD_REQUEST | boolean): Promise<RESPONSE>;
     protected load<ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>, LOADED>(config: LoadConfig<ENTITY, LOADED>): Promise<void>;
     /** factories */
-    static fromOne<MODEL, ENTITY>(this: EntityConstructor<ENTITY>, model: MODEL): ENTITY;
-    static fromArray<MODEL, ENTITY>(this: EntityConstructor<ENTITY>, models: MODEL[]): ENTITY[];
+    static fromOne<MODEL, ENTITY>(this: EntityConstructor<MODEL, ENTITY>, model: MODEL): ENTITY;
+    static fromArray<MODEL, ENTITY>(this: EntityConstructor<MODEL, ENTITY>, models: MODEL[]): ENTITY[];
     static presentMany<MODEL, FIELD_REQUEST, RESPONSE, ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>>(entities: ENTITY[], request?: FIELD_REQUEST | boolean): Promise<any[]>;
 }
 declare function toArrayMap<OBJECT, KEY, VALUE>(objects: OBJECT[], keyMapper: (object: OBJECT) => KEY, valueMapper: (object: OBJECT) => VALUE): Map<KEY, VALUE[]>;
