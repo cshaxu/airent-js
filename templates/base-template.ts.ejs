@@ -108,8 +108,9 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
     this: EntityConstructor<<%= schema.modelName %>, ENTITY>,
     keys: LoadKey[]
   ): Promise<ENTITY[]> {
-    const loadedModels = <%- getSelfLoadedModels() %>;
-    return (this as any).fromArray(loadedModels);
+    <%_ getSelfLoaderLines().forEach((line) => { -%>
+    <%- line %>
+    <%_ }); -%>
   }
 <% } -%>
 <% if (schema.fields.some(isAssociationField)) { -%>

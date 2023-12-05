@@ -385,6 +385,13 @@ function getGlobalImports() /* Code[] */ {
   return [];
 }
 
+function getSelfLoaderLines() /* Code[] */ {
+  return [
+    `const loadedModels = ${getSelfLoadedModels()};`,
+    `return (this as any).fromArray(loadedModels);`,
+  ];
+}
+
 function getLoadConfigGetterLines(field) /* Code[] */ {
   const sourceFields = getSourceFields(field);
   const targetFields = getTargetFields(field);
