@@ -199,7 +199,9 @@ function isEntityTypeField(field) /* boolean */ {
 }
 
 function isGetterGeneratable(field) /* boolean */ {
-  return getSourceKeySize(field) === getTargetKeySize(field);
+  const sourceKeySize = getSourceKeySize(field);
+  const targetKeySize = getTargetKeySize(field);
+  return sourceKeySize > 0 && sourceKeySize === targetKeySize;
 }
 
 function isLoaderGeneratable(_field) /* boolean */ {
@@ -207,7 +209,9 @@ function isLoaderGeneratable(_field) /* boolean */ {
 }
 
 function isSetterGeneratable(field) /* boolean */ {
-  return getSourceKeySize(field) === getTargetKeySize(field);
+  const sourceKeySize = getSourceKeySize(field);
+  const targetKeySize = getTargetKeySize(field);
+  return sourceKeySize > 0 && sourceKeySize === targetKeySize;
 }
 
 function isAssociationFieldGeneratable(field) /* boolean */ {
@@ -381,16 +385,44 @@ function getGlobalImports() /* Code[] */ {
   return [];
 }
 
-function getLoadConfigGetterLines(field, end) /* Code[] */ {
+function getLoadConfigGetterLines(field) /* Code[] */ {
   const sourceFields = getSourceFields(field);
   const targetFields = getTargetFields(field);
   // reject nullable sourceField whose targetField is required
   const filters = sourceFields
     .filter((sf, i) => isNullableField(sf) && !isNullableField(targetFields[i]))
-    .map((sf) => `.filter((one) => one.${getFieldGetterName(sf)} !== null)`);
+    .map((sf) => `  .filter((one) => one.${getFieldGetterName(sf)} !== null)`);
   const mappedFields = sourceFields.map((sf, i) => {
     const rawTargetFieldName = targetFields[i].aliasOf ?? targetFields[i].name;
-    return `  ${rawTargetFieldName}: one.${getFieldGetterName(sf)},`;
+    return `    ${rawTargetFieldName}: one.${getFieldGetterName(sf)},`;
   });
-  return [...filters, `.map((one) => ({`, ...mappedFields, `}))${end}`];
+  return [
+    "return sources",
+    ...filters,
+    `  .map((one) => ({`,
+    ...mappedFields,
+    `  }));`,
+  ];
+}
+
+function getLoadConfigLoaderLines(field) /* Code[] */ {
+  const targetLoadedModels = getTargetLoadedModels(field);
+  if (isEntityTypeField(field)) {
+    const { fieldClass } = getFieldStrings(field);
+    return [
+      `const loadedModels = ${targetLoadedModels};`,
+      `return ${fieldClass}.fromArray(loadedModels);`,
+    ];
+  } else {
+    return [`return ${targetLoadedModels};`];
+  }
+}
+
+function getLoadConfigSetterLines(field) /* Code[] */ {
+  const mapper = getLoadConfigTargetMapper(field);
+  const setter = getLoadConfigSourceSetter(field);
+  return [
+    `const map = ${mapper};`,
+    `sources.forEach((one) => (one.${field.name} = ${setter}));`,
+  ];
 }

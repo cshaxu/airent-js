@@ -100,11 +100,13 @@ export class MessageEntityBase extends BaseEntity<
   protected chatLoadConfig: LoadConfig<MessageEntityBase, ChatEntity> = {
     name: 'MessageEntity.chat',
     filter: (one: MessageEntityBase) => one.chat === undefined,
-    getter: (sources: MessageEntityBase[]) => sources
-      .filter((one) => one.getDerivedChatId() !== null)
-      .map((one) => ({
-        id: one.getDerivedChatId(),
-      })),
+    getter: (sources: MessageEntityBase[]) => {
+      return sources
+        .filter((one) => one.getDerivedChatId() !== null)
+        .map((one) => ({
+          id: one.getDerivedChatId(),
+        }));
+    },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models */];
@@ -135,11 +137,13 @@ export class MessageEntityBase extends BaseEntity<
   protected userLoadConfig: LoadConfig<MessageEntityBase, UserEntity> = {
     name: 'MessageEntity.user',
     filter: (one: MessageEntityBase) => one.user === undefined,
-    getter: (sources: MessageEntityBase[]) => sources
-      .filter((one) => one.userId !== null)
-      .map((one) => ({
-        id: one.userId,
-      })),
+    getter: (sources: MessageEntityBase[]) => {
+      return sources
+        .filter((one) => one.userId !== null)
+        .map((one) => ({
+          id: one.userId,
+        }));
+    },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models */];
@@ -170,11 +174,13 @@ export class MessageEntityBase extends BaseEntity<
   protected parentMessageLoadConfig: LoadConfig<MessageEntityBase, MessageEntity> = {
     name: 'MessageEntity.parentMessage',
     filter: (one: MessageEntityBase) => one.parentMessage === undefined,
-    getter: (sources: MessageEntityBase[]) => sources
-      .filter((one) => one.parentMessageId !== null)
-      .map((one) => ({
-        id: one.parentMessageId,
-      })),
+    getter: (sources: MessageEntityBase[]) => {
+      return sources
+        .filter((one) => one.parentMessageId !== null)
+        .map((one) => ({
+          id: one.parentMessageId,
+        }));
+    },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models */];
@@ -205,11 +211,13 @@ export class MessageEntityBase extends BaseEntity<
   protected mentorLoadConfig: LoadConfig<MessageEntityBase, UserEntity> = {
     name: 'MessageEntity.mentor',
     filter: (one: MessageEntityBase) => one.mentor === undefined,
-    getter: (sources: MessageEntityBase[]) => sources
-      .filter((one) => one.getMentorId() !== null)
-      .map((one) => ({
-        id: one.getMentorId(),
-      })),
+    getter: (sources: MessageEntityBase[]) => {
+      return sources
+        .filter((one) => one.getMentorId() !== null)
+        .map((one) => ({
+          id: one.getMentorId(),
+        }));
+    },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const loadedModels = [/* TODO: load associated models */];
