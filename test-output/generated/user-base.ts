@@ -101,8 +101,8 @@ export class UserEntityBase extends BaseEntity<
     this: EntityConstructor<UserModel, ENTITY>,
     keys: LoadKey[]
   ): Promise<ENTITY[]> {
-    const loadedModels = [/* TODO: load entity models */];
-    return (this as any).fromArray(loadedModels);
+    const models = [/* TODO: load entity models */];
+    return (this as any).fromArray(models);
   }
 
   /** associations */
@@ -119,8 +119,8 @@ export class UserEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return ChatUserEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return ChatUserEntity.fromArray(models);
     // },
     setter: (sources: UserEntityBase[], targets: ChatUserEntity[]) => {
       const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
@@ -129,16 +129,11 @@ export class UserEntityBase extends BaseEntity<
   };
 
   /** @deprecated */
-  protected async loadChatUsers(): Promise<void> {
-    await this.load(this.chatUsersLoadConfig);
-  }
-
-  /** @deprecated */
   public async getChatUsers(): Promise<ChatUserEntity[]> {
     if (this.chatUsers !== undefined) {
       return this.chatUsers;
     }
-    await this.loadChatUsers();
+    await this.load(this.chatUsersLoadConfig);
     return this.chatUsers!;
   }
 
@@ -158,8 +153,8 @@ export class UserEntityBase extends BaseEntity<
     // },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return MessageEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return MessageEntity.fromArray(models);
     // },
     // TODO: build your association value setter
     // setter: (sources: UserEntityBase[], targets: MessageEntity[]) => {
@@ -168,15 +163,11 @@ export class UserEntityBase extends BaseEntity<
     // },
   };
 
-  protected async loadMessages(): Promise<void> {
-    await this.load(this.messagesLoadConfig);
-  }
-
   public async getMessages(): Promise<MessageEntity[]> {
     if (this.messages !== undefined) {
       return this.messages;
     }
-    await this.loadMessages();
+    await this.load(this.messagesLoadConfig);
     return this.messages!;
   }
 
@@ -204,15 +195,11 @@ export class UserEntityBase extends BaseEntity<
     // },
   };
 
-  protected async loadHasAnyMessage(): Promise<void> {
-    await this.load(this.hasAnyMessageLoadConfig);
-  }
-
   public async getHasAnyMessage(): Promise<boolean> {
     if (this.hasAnyMessage !== undefined) {
       return this.hasAnyMessage;
     }
-    await this.loadHasAnyMessage();
+    await this.load(this.hasAnyMessageLoadConfig);
     return this.hasAnyMessage!;
   }
 

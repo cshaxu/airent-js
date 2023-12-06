@@ -101,7 +101,7 @@ function getSourceFields(field) /* Field[] */ {
 }
 
 function getTargetFields(field) /* Field[] */ {
-  const otherEntityName = toTitleCase(toPrimitiveTypeName(field.type));
+  const otherEntityName = toPrimitiveTypeName(field.type);
   return (field.targetFields ?? [])
     .map((tfName) => queryOtherEntityField(otherEntityName, tfName))
     .filter(Boolean)
@@ -317,17 +317,17 @@ function getFieldLoadConfigName(field) /* Code */ {
   return `${className}.${fieldName}`;
 }
 
-function getSelfLoadedModels() /* Code */ {
-  return "[/* TODO: load entity models */]";
-}
-
-function getTargetLoadedModels(_field) /* Code */ {
-  return "[/* TODO: load associated models */]";
+function buildAssociationKey(keyFields, type) /* Code */ {
+  if (keyFields.length === 0) {
+    return `'TODO: map your ${type} entity to key'`;
+  }
+  const getters = keyFields
+    .map(getFieldGetterName)
+    .map((getterName) => `one.${getterName}`);
+  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
 }
 
 /* line */
-
-// field presenter //
 
 function getFieldPresenter(field) /* Code */ {
   const presentCondition = `fieldRequest?.${field.name}`;
@@ -346,17 +346,12 @@ function getFieldPresenter(field) /* Code */ {
   return `${presentCondition} ? ${presenter} : undefined`;
 }
 
-// association loader //
+function getSelfModelsLoader() /* Code */ {
+  return "[/* TODO: load entity models */]";
+}
 
-// internal
-function buildAssociationKey(keyFields, type) /* Code */ {
-  if (keyFields.length === 0) {
-    return `'TODO: map your ${type} entity to key'`;
-  }
-  const getters = keyFields
-    .map(getFieldGetterName)
-    .map((getterName) => `one.${getterName}`);
-  return "`" + getters.map((getter) => `\${${getter}}`).join("*") + "`";
+function getTargetModelsLoader(_field) /* Code */ {
+  return "[/* TODO: load associated models */]";
 }
 
 function getLoadConfigTargetMapper(field) /* Code */ {
@@ -379,16 +374,38 @@ function getLoadConfigSourceSetter(field) /* Code */ {
 
 /* block */
 
-// global //
-
 function getGlobalImports() /* Code[] */ {
+  return [];
+}
+
+function getBaseExtraImports() /* Code[] */ {
+  return [];
+}
+
+function getEntityExtraImports() /* Code[] */ {
+  return [];
+}
+
+function getTypeExtraImports() /* Code[] */ {
+  return [];
+}
+
+function getBaseExtraLines() /* Code[] */ {
+  return [];
+}
+
+function getEntityExtraLines() /* Code[] */ {
+  return [];
+}
+
+function getTypeExtraLines() /* Code[] */ {
   return [];
 }
 
 function getSelfLoaderLines() /* Code[] */ {
   return [
-    `const loadedModels = ${getSelfLoadedModels()};`,
-    `return (this as any).fromArray(loadedModels);`,
+    `const models = ${getSelfModelsLoader()};`,
+    "return (this as any).fromArray(models);",
   ];
 }
 
@@ -406,22 +423,22 @@ function getLoadConfigGetterLines(field) /* Code[] */ {
   return [
     "return sources",
     ...filters,
-    `  .map((one) => ({`,
+    "  .map((one) => ({",
     ...mappedFields,
-    `  }));`,
+    "  }));",
   ];
 }
 
 function getLoadConfigLoaderLines(field) /* Code[] */ {
-  const targetLoadedModels = getTargetLoadedModels(field);
+  const targetModelsLoader = getTargetModelsLoader(field);
   if (isEntityTypeField(field)) {
     const { fieldClass } = getFieldStrings(field);
     return [
-      `const loadedModels = ${targetLoadedModels};`,
-      `return ${fieldClass}.fromArray(loadedModels);`,
+      `const models = ${targetModelsLoader};`,
+      `return ${fieldClass}.fromArray(models);`,
     ];
   } else {
-    return [`return ${targetLoadedModels};`];
+    return [`return ${targetModelsLoader};`];
   }
 }
 

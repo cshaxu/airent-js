@@ -91,8 +91,8 @@ export class ChatUserEntityBase extends BaseEntity<
     this: EntityConstructor<ChatUserModel, ENTITY>,
     keys: LoadKey[]
   ): Promise<ENTITY[]> {
-    const loadedModels = [/* TODO: load entity models */];
-    return (this as any).fromArray(loadedModels);
+    const models = [/* TODO: load entity models */];
+    return (this as any).fromArray(models);
   }
 
   /** associations */
@@ -108,8 +108,8 @@ export class ChatUserEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return ChatEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return ChatEntity.fromArray(models);
     // },
     setter: (sources: ChatUserEntityBase[], targets: ChatEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
@@ -117,15 +117,11 @@ export class ChatUserEntityBase extends BaseEntity<
     },
   };
 
-  protected async loadChat(): Promise<void> {
-    await this.load(this.chatLoadConfig);
-  }
-
   public async getChat(): Promise<ChatEntity> {
     if (this.chat !== undefined) {
       return this.chat;
     }
-    await this.loadChat();
+    await this.load(this.chatLoadConfig);
     return this.chat!;
   }
 
@@ -144,8 +140,8 @@ export class ChatUserEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return UserEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return UserEntity.fromArray(models);
     // },
     setter: (sources: ChatUserEntityBase[], targets: UserEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
@@ -153,15 +149,11 @@ export class ChatUserEntityBase extends BaseEntity<
     },
   };
 
-  protected async loadUser(): Promise<void> {
-    await this.load(this.userLoadConfig);
-  }
-
   public async getUser(): Promise<UserEntity> {
     if (this.user !== undefined) {
       return this.user;
     }
-    await this.loadUser();
+    await this.load(this.userLoadConfig);
     return this.user!;
   }
 

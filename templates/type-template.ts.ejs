@@ -1,6 +1,9 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
+<% getTypeExtraImports().forEach((line) => { -%>
+<%- line %>
+<% }); -%>
 <% schema.types.filter(isEntityType).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
 import { <%= getTypeStrings(type).fieldRequestClass %>, <%= getTypeStrings(type).responseClass %> } from './<%= getTypeStrings(type).typePackage %>';
 <% }); -%>
@@ -53,3 +56,6 @@ export type <%= getThisEntityStrings().responseClass %> = {
   <%= field.name %>?: <%= getFieldStrings(field).fieldResponseType %>;
 <% }); -%>
 };
+<% getTypeExtraLines().forEach((line) => { -%>
+<%- line %>
+<% }); -%>

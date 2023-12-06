@@ -109,8 +109,8 @@ export class MessageEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return ChatEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return ChatEntity.fromArray(models);
     // },
     setter: (sources: MessageEntityBase[], targets: ChatEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
@@ -118,15 +118,11 @@ export class MessageEntityBase extends BaseEntity<
     },
   };
 
-  protected async loadChat(): Promise<void> {
-    await this.load(this.chatLoadConfig);
-  }
-
   public async getChat(): Promise<ChatEntity> {
     if (this.chat !== undefined) {
       return this.chat;
     }
-    await this.loadChat();
+    await this.load(this.chatLoadConfig);
     return this.chat!;
   }
 
@@ -146,8 +142,8 @@ export class MessageEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return UserEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return UserEntity.fromArray(models);
     // },
     setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
@@ -155,15 +151,11 @@ export class MessageEntityBase extends BaseEntity<
     },
   };
 
-  protected async loadUser(): Promise<void> {
-    await this.load(this.userLoadConfig);
-  }
-
   public async getUser(): Promise<UserEntity | null> {
     if (this.user !== undefined) {
       return this.user;
     }
-    await this.loadUser();
+    await this.load(this.userLoadConfig);
     return this.user ?? null;
   }
 
@@ -183,8 +175,8 @@ export class MessageEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return MessageEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return MessageEntity.fromArray(models);
     // },
     setter: (sources: MessageEntityBase[], targets: MessageEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
@@ -192,15 +184,11 @@ export class MessageEntityBase extends BaseEntity<
     },
   };
 
-  protected async loadParentMessage(): Promise<void> {
-    await this.load(this.parentMessageLoadConfig);
-  }
-
   public async getParentMessage(): Promise<MessageEntity | null> {
     if (this.parentMessage !== undefined) {
       return this.parentMessage;
     }
-    await this.loadParentMessage();
+    await this.load(this.parentMessageLoadConfig);
     return this.parentMessage ?? null;
   }
 
@@ -220,8 +208,8 @@ export class MessageEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return UserEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return UserEntity.fromArray(models);
     // },
     setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
@@ -229,15 +217,11 @@ export class MessageEntityBase extends BaseEntity<
     },
   };
 
-  protected async loadMentor(): Promise<void> {
-    await this.load(this.mentorLoadConfig);
-  }
-
   public async getMentor(): Promise<UserEntity | null> {
     if (this.mentor !== undefined) {
       return this.mentor;
     }
-    await this.loadMentor();
+    await this.load(this.mentorLoadConfig);
     return this.mentor ?? null;
   }
 

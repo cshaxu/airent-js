@@ -1,6 +1,9 @@
 <% getGlobalImports().forEach((globalImport) => { -%>
 <%- globalImport %>
 <% }); -%>
+<% getBaseExtraImports().forEach((line) => { -%>
+<%- line %>
+<% }); -%>
 import {
   AsyncLock,
   BaseEntity,
@@ -154,18 +157,11 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  protected async <%= `load${toTitleCase(field.name)}` %>(): Promise<void> {
-    await this.load(this.<%= `${field.name}LoadConfig` %>);
-  }
-
-  <%_ if (field.deprecated) { -%>
-  /** @deprecated */
-  <%_ } -%>
   public async <%= getFieldGetterName(field) %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     if (this.<%= field.name %> !== undefined) {
       return this.<%= field.name %>;
     }
-    await this.<%= `load${toTitleCase(field.name)}` %>();
+    await this.load(this.<%= `${field.name}LoadConfig` %>);
     return this.<%= field.name %><%= isNullableField(field) ? ' ?? null' : '!' %>;
   }
 
@@ -201,5 +197,8 @@ export class <%= getThisEntityStrings().baseClass %> extends BaseEntity<
   public async <%= getFieldGetterName(field) %>: Promise<<%= getFieldStrings(field).fieldType %>> {
     throw new Error('not implemented');
   }
+<% }); -%>
+<% getBaseExtraLines().forEach((line) => { -%>
+<%= line.length > 0 ? '  ' : '' %><%- line %>
 <% }); -%>
 }
