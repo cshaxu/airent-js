@@ -86,8 +86,8 @@ export class ChatEntityBase extends BaseEntity<
     this: EntityConstructor<ChatModel, ENTITY>,
     keys: LoadKey[]
   ): Promise<ENTITY[]> {
-    const loadedModels = [/* TODO: load entity models */];
-    return (this as any).fromArray(loadedModels);
+    const models = [/* TODO: load entity models */];
+    return (this as any).fromArray(models);
   }
 
   /** associations */
@@ -104,8 +104,8 @@ export class ChatEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return ChatUserEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return ChatUserEntity.fromArray(models);
     // },
     setter: (sources: ChatEntityBase[], targets: ChatUserEntity[]) => {
       const map = toArrayMap(targets, (one) => `${one.chatId}`, (one) => one);
@@ -114,16 +114,11 @@ export class ChatEntityBase extends BaseEntity<
   };
 
   /** @deprecated */
-  protected async loadChatUsers(): Promise<void> {
-    await this.load(this.chatUsersLoadConfig);
-  }
-
-  /** @deprecated */
   public async getChatUsers(): Promise<ChatUserEntity[]> {
     if (this.chatUsers !== undefined) {
       return this.chatUsers;
     }
-    await this.loadChatUsers();
+    await this.load(this.chatUsersLoadConfig);
     return this.chatUsers!;
   }
 
@@ -143,8 +138,8 @@ export class ChatEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const loadedModels = [/* TODO: load associated models */];
-    //   return MessageEntity.fromArray(loadedModels);
+    //   const models = [/* TODO: load associated models */];
+    //   return MessageEntity.fromArray(models);
     // },
     setter: (sources: ChatEntityBase[], targets: MessageEntity[]) => {
       const map = toArrayMap(targets, (one) => `${one.chatId}`, (one) => one);
@@ -152,15 +147,11 @@ export class ChatEntityBase extends BaseEntity<
     },
   };
 
-  protected async loadMessages(): Promise<void> {
-    await this.load(this.messagesLoadConfig);
-  }
-
   public async getMessages(): Promise<MessageEntity[]> {
     if (this.messages !== undefined) {
       return this.messages;
     }
-    await this.loadMessages();
+    await this.load(this.messagesLoadConfig);
     return this.messages!;
   }
 

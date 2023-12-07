@@ -15,13 +15,13 @@ export class ChatEntity extends ChatEntityBase {
     /** associations */
 
     this.chatUsersLoadConfig.loader = async (keys: LoadKey[]) => {
-      const loadedModels = [/* TODO: load associated models */];
-      return ChatUserEntity.fromArray(loadedModels);
+      const models = [/* TODO: load associated models */];
+      return ChatUserEntity.fromArray(models);
     };
 
     this.messagesLoadConfig.loader = async (keys: LoadKey[]) => {
-      const loadedModels = [/* TODO: load associated models */];
-      return MessageEntity.fromArray(loadedModels);
+      const models = [/* TODO: load associated models */];
+      return MessageEntity.fromArray(models);
     };
   }
 }
