@@ -80,7 +80,7 @@ fields:
   - id: 8
     name: isAdmin
     type: boolean
-    strategy: computed_sync # this field is computed from primitive fields without extra data loading
+    strategy: computed # this field is computed from primitive fields without extra data loading
     internal: true # this field will not be exposed to the API response
   - id: 9
     name: chatUsers
@@ -103,7 +103,7 @@ fields:
   - id: 11
     name: firstMessage
     type: Message | null
-    strategy: computed_async # custom async load for this field
+    strategy: computedAsync # custom async load for this field
 ```
 
 #### Generate your data entity classes and types

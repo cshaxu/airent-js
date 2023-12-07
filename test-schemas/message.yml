@@ -24,7 +24,7 @@ fields:
   - id: 31
     name: derivedChatId
     type: string | null
-    strategy: computed_sync
+    strategy: computed
   - id: 4
     name: userId
     type: string | null
@@ -58,7 +58,7 @@ fields:
   - id: 9
     name: hasContent
     type: boolean
-    strategy: computed_sync
+    strategy: computed
     internal: true
   - id: 10
     name: parentMessageId
@@ -75,7 +75,7 @@ fields:
   - id: 12
     name: mentorId
     type: string | null
-    strategy: computed_sync
+    strategy: computed
   - id: 13
     name: mentor
     type: User | null

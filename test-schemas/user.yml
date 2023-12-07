@@ -36,7 +36,7 @@ fields:
   - id: 8
     name: isAdmin
     type: boolean
-    strategy: computed_sync
+    strategy: computed
     internal: true
   - id: 9
     name: chatUsers
@@ -57,7 +57,7 @@ fields:
   - id: 11
     name: firstMessage
     type: Message | null
-    strategy: computed_async
+    strategy: computedAsync
     deprecated: true
   - id: 12
     name: hasAnyMessage

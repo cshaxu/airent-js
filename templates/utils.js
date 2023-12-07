@@ -165,11 +165,11 @@ function isAssociationField(field) /* boolean */ {
 }
 
 function isComputedSyncField(field) /* boolean */ {
-  return field.strategy === "computed_sync";
+  return field.strategy === "computed";
 }
 
 function isComputedAsyncField(field) /* boolean */ {
-  return field.strategy === "computed_async";
+  return field.strategy === "computedAsync";
 }
 
 function isExternalField(field) /* boolean */ {

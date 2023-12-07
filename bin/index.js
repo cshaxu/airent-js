@@ -41,7 +41,7 @@ async function configure() {
 /** @typedef {Object} Field
  *  @property {number} id
  *  @property {string} type
- *  @property {"primitive" | "association" | "computed_sync" | "computed_async"} strategy
+ *  @property {"primitive" | "association" | "computed" | "computedAsync"} strategy
  *  @property {string} name
  *  @property {?string} [aliasOf]
  *  @property {?boolean} cast
