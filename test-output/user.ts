@@ -5,8 +5,8 @@ import {
   UserResponse,
   UserModel,
 } from './generated/user-type.js';
-import { ChatUserEntity } from './chat-user.js';
 import { MessageEntity } from './message.js';
+import { ChatUserEntity } from './chat-user.js';
 
 export class UserEntity extends UserEntityBase {
   protected initialize() {

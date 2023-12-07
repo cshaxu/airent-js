@@ -4,12 +4,6 @@ skipSelfLoader: true
 types:
   - name: MessageModel
     define: "{ [key: string]: any }"
-  - name: Chat
-    entity: true
-  - name: User
-    entity: true
-  - name: Message
-    entity: true
   - name: Attachment
     define: "{ [key: string]: string }"
   - name: SenderType

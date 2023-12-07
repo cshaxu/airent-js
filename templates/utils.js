@@ -229,15 +229,15 @@ function isAssociationFieldGeneratable(field) /* boolean */ {
 
 function getThisEntityStrings() /* Object */ {
   const { entityName } = schema;
+  const entName = toTitleCase(entityName);
   const prefix = toKababCase(entityName);
   const suffix = getModuleSuffix();
   return {
-    entName: entityName,
-    loaderName: `${toCamelCase(entityName)}Loader`,
-    baseClass: `${entityName}EntityBase`,
-    entityClass: `${entityName}Entity`,
-    fieldRequestClass: `${entityName}FieldRequest`,
-    responseClass: `${entityName}Response`,
+    loaderName: `${toCamelCase(entName)}Loader`,
+    baseClass: `${entName}EntityBase`,
+    entityClass: `${entName}Entity`,
+    fieldRequestClass: `${entName}FieldRequest`,
+    responseClass: `${entName}Response`,
     basePackage: `${prefix}-base${suffix}`,
     entityPackage: `${prefix}${suffix}`,
     typePackage: `${prefix}-type${suffix}`,
@@ -450,3 +450,25 @@ function getLoadConfigSetterLines(field) /* Code[] */ {
     `sources.forEach((one) => (one.${field.name} = ${setter}));`,
   ];
 }
+
+/****************/
+/* AUGMENTATION */
+/****************/
+
+function buildEntityTypes() {
+  if (schema.isAugmented) {
+    return;
+  }
+  const allEntityNameSet = new Set(Object.keys(schemaMap));
+  const fieldTypes = schema.fields
+    .map((field) => field.type)
+    .map(toPrimitiveTypeName);
+  const entityFieldNames = fieldTypes.filter((n) => allEntityNameSet.has(n));
+  const entityTypes = Array.from(new Set(entityFieldNames))
+    .sort()
+    .map((name) => ({ name, entity: true }));
+  schema.types = [...schema.types, ...entityTypes];
+}
+
+buildEntityTypes();
+schema.isAugmented = true;

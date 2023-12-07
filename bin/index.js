@@ -32,9 +32,9 @@ async function configure() {
 
 /** @typedef {Object} Type
  *  @property {string} name
- *  @property {?string} import
+ *  @property {?string} enum
  *  @property {?string} define
- *  @property {?boolean} entity
+ *  @property {?string} import
  *  @property {?boolean} deprecated
  */
 
@@ -200,13 +200,14 @@ async function loadSchema(schemaFilePath) {
     ...schema,
     entity: undefined,
     model: undefined,
-    entityName: toTitleCase(schema.entity),
+    entityName: schema.entity,
     modelName: toTitleCase(schema.model),
     internal: schema.internal ?? false,
     deprecated: schema.deprecated ?? false,
     skipSelfLoader: schema.skipSelfLoader ?? false,
     types: schema.types ?? [],
     fields: schema.fields ?? [],
+    isAugmented: false,
   };
 }
 

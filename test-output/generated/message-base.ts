@@ -19,8 +19,8 @@ import {
 
 /** associations */
 import { ChatEntity } from '../chat.js';
-import { UserEntity } from '../user.js';
 import { MessageEntity } from '../message.js';
+import { UserEntity } from '../user.js';
 
 export class MessageEntityBase extends BaseEntity<
   MessageModel, MessageFieldRequest, MessageResponse

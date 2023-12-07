@@ -3,10 +3,6 @@ model: UserModel
 types:
   - name: UserModel
     define: "{ [key: string]: any }"
-  - name: ChatUser
-    entity: true
-  - name: Message
-    entity: true
 fields:
   - id: 1
     name: id
@@ -44,7 +40,7 @@ fields:
     internal: true
   - id: 9
     name: chatUsers
-    type: ChatUser[]
+    type: chatUser[]
     strategy: association
     deprecated: true
     sourceFields:

@@ -5,8 +5,8 @@ import {
   ChatUserResponse,
   ChatUserModel,
 } from './generated/chat-user-type.js';
-import { UserEntity } from './user.js';
 import { ChatEntity } from './chat.js';
+import { UserEntity } from './user.js';
 
 /** @deprecated */
 export class ChatUserEntity extends ChatUserEntityBase {
