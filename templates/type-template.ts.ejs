@@ -5,10 +5,10 @@
 <%- line %>
 <% }); -%>
 <% schema.types.filter(isEntityType).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
-import { <%= getTypeStrings(type).fieldRequestClass %>, <%= getTypeStrings(type).responseClass %> } from './<%= getTypeStrings(type).typePackage %>';
+import { <%= type.strings.fieldRequestClass %>, <%= type.strings.responseClass %> } from './<%= type.strings.typePackage %>';
 <% }); -%>
 <% schema.types.filter(isExternalType).forEach((type) => { -%>
-import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(type).externalPackage %>';
+import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPackage %>';
 <% }); -%>
 <% if (schema.types.some(isEnumerableType)) { -%>
 
@@ -18,7 +18,7 @@ import { <%= getTypeStrings(type).externalClass %> } from '<%= getTypeStrings(ty
     <%_ if (type.deprecated) { -%>
 /** @deprecated */
     <%_ } -%>
-export enum <%= getTypeStrings(type).typeName %> <%- getTypeStrings(type).typeDefinition %>;
+export enum <%= type.strings.typeName %> <%- type.strings.typeDefinition %>;
   <%_ }); -%>
 <% } -%>
 <% if (schema.types.some(isDefinableType)) { -%>
@@ -29,31 +29,31 @@ export enum <%= getTypeStrings(type).typeName %> <%- getTypeStrings(type).typeDe
     <%_ if (type.deprecated) { -%>
 /** @deprecated */
     <%_ } -%>
-export type <%= getTypeStrings(type).typeName %> = <%- getTypeStrings(type).typeDefinition %>;
+export type <%= type.strings.typeName %> = <%- type.strings.typeDefinition %>;
   <%_ }); -%>
 <% } -%>
 
 <% if (schema.deprecated) { -%>
 /** @deprecated */
 <% } -%>
-export type <%= getThisEntityStrings().fieldRequestClass %> = {
+export type <%= schema.strings.fieldRequestClass %> = {
 <% schema.fields.filter(isExternalField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  <%= field.name %>?: <%= getFieldStrings(field).fieldRequestType %>;
+  <%= field.name %>?: <%= field.strings.fieldRequestType %>;
 <% }); -%>
 };
 
 <% if (schema.deprecated) { -%>
 /** @deprecated */
 <% } -%>
-export type <%= getThisEntityStrings().responseClass %> = {
+export type <%= schema.strings.responseClass %> = {
 <% schema.fields.filter(isExternalField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  <%= field.name %>?: <%= getFieldStrings(field).fieldResponseType %>;
+  <%= field.name %>?: <%= field.strings.fieldResponseType %>;
 <% }); -%>
 };
 <% getTypeExtraLines().forEach((line) => { -%>
