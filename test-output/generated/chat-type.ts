@@ -1,5 +1,5 @@
-import { ChatUserFieldRequest, ChatUserResponse } from './chat-user-type.js';
 import { MessageFieldRequest, MessageResponse } from './message-type.js';
+import { ChatUserFieldRequest, ChatUserResponse } from './chat-user-type.js';
 
 /** structs */
 

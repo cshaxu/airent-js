@@ -3,10 +3,6 @@ model: ChatModel
 types:
   - name: ChatModel
     define: "{ [key: string]: any }"
-  - name: chatUser
-    entity: true
-  - name: Message
-    entity: true
 fields:
   - id: 1
     name: id

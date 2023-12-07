@@ -1,14 +1,10 @@
-entity: ChatUser
+entity: chatUser
 model: ChatUserModel
 deprecated: true
 types:
   - name: ChatUserModel
     define: "{ [key: string]: any }"
     deprecated: true
-  - name: User
-    entity: true
-  - name: Chat
-    entity: true
 keyFields:
   - chatId
   - userId

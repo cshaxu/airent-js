@@ -1,5 +1,5 @@
-import { UserFieldRequest, UserResponse } from './user-type.js';
 import { ChatFieldRequest, ChatResponse } from './chat-type.js';
+import { UserFieldRequest, UserResponse } from './user-type.js';
 
 /** structs */
 

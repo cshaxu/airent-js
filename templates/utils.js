@@ -223,81 +223,6 @@ function isAssociationFieldGeneratable(field) /* boolean */ {
   );
 }
 
-/**********/
-/* OBJECT */
-/**********/
-
-function getThisEntityStrings() /* Object */ {
-  const { entityName } = schema;
-  const prefix = toKababCase(entityName);
-  const suffix = getModuleSuffix();
-  return {
-    entName: entityName,
-    loaderName: `${toCamelCase(entityName)}Loader`,
-    baseClass: `${entityName}EntityBase`,
-    entityClass: `${entityName}Entity`,
-    fieldRequestClass: `${entityName}FieldRequest`,
-    responseClass: `${entityName}Response`,
-    basePackage: `${prefix}-base${suffix}`,
-    entityPackage: `${prefix}${suffix}`,
-    typePackage: `${prefix}-type${suffix}`,
-  };
-}
-
-function getTypeStrings(type) /* Object */ {
-  if (isEntityType(type)) {
-    const entName = toTitleCase(type.name);
-    const prefix = `${toKababCase(entName)}`;
-    const suffix = getModuleSuffix();
-    return {
-      entityClass: `${entName}Entity`,
-      entityPackage: `${prefix}${suffix}`,
-      fieldRequestClass: `${entName}FieldRequest`,
-      responseClass: `${entName}Response`,
-      typePackage: `${prefix}-type${suffix}`,
-    };
-  } else if (isExternalType(type)) {
-    return { externalClass: type.name, externalPackage: type.import };
-  } else if (isDefinableType(type)) {
-    return { typeName: type.name, typeDefinition: type.define };
-  } else if (isEnumerableType(type)) {
-    return { typeName: type.name, typeDefinition: type.enum };
-  } else {
-    throw new Error(
-      `[AIRENT/ERROR] utils/getTypeStrings: invalid type ${type.name}`
-    );
-  }
-}
-
-function getFieldStrings(field) /* Object */ {
-  const primitiveTypeName = toPrimitiveTypeName(field.type);
-  if (isEntityTypeField(field)) {
-    const entName = toTitleCase(primitiveTypeName);
-    const entityClass = `${entName}Entity`;
-    const responseClass = `${entName}Response`;
-
-    return {
-      fieldClass: entityClass,
-      fieldType: field.type.replace(primitiveTypeName, entityClass),
-      fieldRequestType: `${entName}FieldRequest | boolean`,
-      fieldResponseType: field.type.replace(primitiveTypeName, responseClass),
-    };
-  } else {
-    const fieldModelName = field.aliasOf ?? field.name;
-    const fieldAliasSuffix = field.cast ? ` as ${field.type}` : "";
-    const fieldInitializer = isPrimitiveField(field)
-      ? `model.${fieldModelName}${fieldAliasSuffix}`
-      : undefined;
-    return {
-      fieldInitializer,
-      fieldClass: primitiveTypeName,
-      fieldType: field.type,
-      fieldRequestType: "boolean",
-      fieldResponseType: field.type,
-    };
-  }
-}
-
 /********/
 /* CODE */
 /********/
@@ -312,7 +237,7 @@ function getFieldGetterName(field) /* Code */ {
 }
 
 function getFieldLoadConfigName(field) /* Code */ {
-  const className = getThisEntityStrings().entityClass;
+  const className = schema.strings.entityClass;
   const fieldName = field.name;
   return `${className}.${fieldName}`;
 }
@@ -432,7 +357,7 @@ function getLoadConfigGetterLines(field) /* Code[] */ {
 function getLoadConfigLoaderLines(field) /* Code[] */ {
   const targetModelsLoader = getTargetModelsLoader(field);
   if (isEntityTypeField(field)) {
-    const { fieldClass } = getFieldStrings(field);
+    const { fieldClass } = field.strings;
     return [
       `const models = ${targetModelsLoader};`,
       `return ${fieldClass}.fromArray(models);`,
@@ -450,3 +375,114 @@ function getLoadConfigSetterLines(field) /* Code[] */ {
     `sources.forEach((one) => (one.${field.name} = ${setter}));`,
   ];
 }
+
+/****************/
+/* AUGMENTATION */
+/****************/
+
+function augmentEntity() /** void */ {
+  if (schema.isAugmented) {
+    return;
+  }
+  const { entityName } = schema;
+  const entName = toTitleCase(entityName);
+  const prefix = toKababCase(entityName);
+  const suffix = getModuleSuffix();
+  schema.strings = {
+    loaderName: `${toCamelCase(entName)}Loader`,
+    baseClass: `${entName}EntityBase`,
+    entityClass: `${entName}Entity`,
+    fieldRequestClass: `${entName}FieldRequest`,
+    responseClass: `${entName}Response`,
+    basePackage: `${prefix}-base${suffix}`,
+    entityPackage: `${prefix}${suffix}`,
+    typePackage: `${prefix}-type${suffix}`,
+  };
+}
+
+function buildTypeStrings(type) /* Object */ {
+  if (isEntityType(type)) {
+    const entName = toTitleCase(type.name);
+    const prefix = `${toKababCase(entName)}`;
+    const suffix = getModuleSuffix();
+    return {
+      entityClass: `${entName}Entity`,
+      entityPackage: `${prefix}${suffix}`,
+      fieldRequestClass: `${entName}FieldRequest`,
+      responseClass: `${entName}Response`,
+      typePackage: `${prefix}-type${suffix}`,
+    };
+  } else if (isExternalType(type)) {
+    return { externalClass: type.name, externalPackage: type.import };
+  } else if (isDefinableType(type)) {
+    return { typeName: type.name, typeDefinition: type.define };
+  } else if (isEnumerableType(type)) {
+    return { typeName: type.name, typeDefinition: type.enum };
+  } else {
+    throw new Error(
+      `[AIRENT/ERROR] utils/getTypeStrings: invalid type ${type.name}`
+    );
+  }
+}
+
+function augmentTypes() /** void */ {
+  if (schema.isAugmented) {
+    return;
+  }
+  const allEntityNameSet = new Set(Object.keys(schemaMap));
+  const fieldTypes = schema.fields
+    .map((field) => field.type)
+    .map(toPrimitiveTypeName);
+  const entityFieldNames = fieldTypes.filter((n) => allEntityNameSet.has(n));
+  const entityTypes = Array.from(new Set(entityFieldNames))
+    .sort()
+    .map((name) => ({ name, entity: true }));
+  schema.types = [...schema.types, ...entityTypes].map((type) => ({
+    ...type,
+    strings: buildTypeStrings(type),
+  }));
+}
+
+function buildFieldStrings(field) /* Object */ {
+  const primitiveTypeName = toPrimitiveTypeName(field.type);
+  if (isEntityTypeField(field)) {
+    const entName = toTitleCase(primitiveTypeName);
+    const entityClass = `${entName}Entity`;
+    const responseClass = `${entName}Response`;
+
+    return {
+      fieldClass: entityClass,
+      fieldType: field.type.replace(primitiveTypeName, entityClass),
+      fieldRequestType: `${entName}FieldRequest | boolean`,
+      fieldResponseType: field.type.replace(primitiveTypeName, responseClass),
+    };
+  } else {
+    const fieldModelName = field.aliasOf ?? field.name;
+    const fieldAliasSuffix = field.cast ? ` as ${field.type}` : "";
+    const fieldInitializer = isPrimitiveField(field)
+      ? `model.${fieldModelName}${fieldAliasSuffix}`
+      : undefined;
+    return {
+      fieldInitializer,
+      fieldClass: primitiveTypeName,
+      fieldType: field.type,
+      fieldRequestType: "boolean",
+      fieldResponseType: field.type,
+    };
+  }
+}
+
+function augmentFields() /* void */ {
+  if (schema.isAugmented) {
+    return;
+  }
+  schema.fields = schema.fields.map((field) => ({
+    ...field,
+    strings: buildFieldStrings(field),
+  }));
+}
+
+augmentEntity();
+augmentTypes();
+augmentFields();
+schema.isAugmented = true;
