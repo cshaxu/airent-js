@@ -13,7 +13,7 @@ import {
   <%= schema.strings.responseClass %>,
   <%_ } -%>
   <%_ schema.types.filter(isInternalType).forEach((type) => { -%>
-  <%= type.strings.typeName %>,
+  <%= type.name %>,
   <%_ }); -%>
 } from './generated/<%= schema.strings.typePackage %>';
 <% } -%>

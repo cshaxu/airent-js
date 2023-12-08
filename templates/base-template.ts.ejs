@@ -20,7 +20,7 @@ import {
   <%= schema.strings.fieldRequestClass %>,
   <%= schema.strings.responseClass %>,
   <%_ schema.types.filter(isInternalType).forEach((type) => { -%>
-  <%= type.strings.typeName %>,
+  <%= type.name %>,
   <%_ }); -%>
 } from './<%= schema.strings.typePackage %>';
 <% } -%>

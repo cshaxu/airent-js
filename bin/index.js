@@ -32,6 +32,7 @@ async function configure() {
 
 /** @typedef {Object} Type
  *  @property {string} name
+ *  @property {?string} [aliasOf]
  *  @property {?string} enum
  *  @property {?string} define
  *  @property {?string} import
@@ -100,7 +101,10 @@ async function sequential(functions) {
   return results;
 }
 
-async function loadConfig() {
+async function loadConfig(isVerbose) {
+  if (isVerbose) {
+    console.log(`[AIRENT/INFO] Loading config ${CONFIG_FILE_PATH} ...`);
+  }
   const configContent = await fs.promises.readFile(CONFIG_FILE_PATH, "utf8");
   const config = JSON.parse(configContent);
   const {
@@ -116,7 +120,7 @@ async function loadConfig() {
     airentPackageForSkippable === "airent"
       ? "airent"
       : path.join("..", airentPackageForSkippable).replace(/\\/g, "/");
-  return {
+  const loadedConfig = {
     ...config,
     isModule: type === "module",
     schemaPath: path.join(PROJECT_PATH, schemaPath),
@@ -126,9 +130,13 @@ async function loadConfig() {
     prologues: prologues ?? [],
     templates: templates ?? [],
   };
+  if (isVerbose) {
+    console.log(loadedConfig);
+  }
+  return loadedConfig;
 }
 
-async function loadTemplates(prologuesConfig, templatesConfig) {
+async function loadTemplates(prologuesConfig, templatesConfig, isVerbose) {
   const extProloguePaths = prologuesConfig.map((p) =>
     path.join(PROJECT_PATH, p)
   );
@@ -136,11 +144,16 @@ async function loadTemplates(prologuesConfig, templatesConfig) {
     path.join(AIRENT_PATH, "templates", "utils.js"),
     ...extProloguePaths,
   ];
+  if (isVerbose) {
+    prologuePaths.forEach((p) =>
+      console.log(`[AIRENT/INFO] Loading prologue ${p} ...`)
+    );
+  }
   const prologuePromises = prologuePaths.map((p) =>
     fs.promises.readFile(p, "utf8")
   );
   const prologues = await Promise.all(prologuePromises);
-  const prologue = "<% " + prologues.join("\n") + "-%>\n";
+  const prologue = "<% " + prologues.join("\n") + "\n-%>\n";
 
   const baseTemplateConfig = {
     name: path.join(AIRENT_PATH, "templates", "base-template.ts.ejs"),
@@ -167,6 +180,11 @@ async function loadTemplates(prologuesConfig, templatesConfig) {
     entityTemplateConfig,
     ...extTemplateConfigs,
   ];
+  if (isVerbose) {
+    templateConfigs.forEach((c) =>
+      console.log(`[AIRENT/INFO] Loading template ${c.name} ...`)
+    );
+  }
   const templateContentPromises = templateConfigs
     .map((c) => c.name)
     .map((p) => fs.promises.readFile(p, "utf8"));
@@ -192,8 +210,10 @@ async function getSchemaFilePaths(schemaPath) {
     .map((fileName) => path.join(schemaPath, fileName));
 }
 
-async function loadSchema(schemaFilePath) {
-  console.log(`[AIRENT/INFO] Loading ${schemaFilePath} ...`);
+async function loadSchema(schemaFilePath, isVerbose) {
+  if (isVerbose) {
+    console.log(`[AIRENT/INFO] Loading schema ${schemaFilePath} ...`);
+  }
   const schemaContent = await fs.promises.readFile(schemaFilePath, "utf8");
   const schema = yaml.load(schemaContent);
   return {
@@ -211,23 +231,38 @@ async function loadSchema(schemaFilePath) {
   };
 }
 
-async function loadSchemas(schemaFilePaths) {
-  const functions = schemaFilePaths.map((path) => () => loadSchema(path));
+async function loadSchemas(schemaPath, isVerbose) {
+  const schemaFilePaths = await getSchemaFilePaths(schemaPath);
+  const functions = schemaFilePaths.map(
+    (path) => () => loadSchema(path, isVerbose)
+  );
   return await sequential(functions);
 }
 
-async function createGeneratedDirectory(outputPath) {
-  const outputGeneratedPath = path.join(outputPath, "generated");
-  return await fs.promises.mkdir(outputGeneratedPath, { recursive: true });
+function buildGeneratedOutputPath(outputPath) {
+  return path.join(outputPath, "generated");
 }
 
-async function generateOne(entityName, schemaMap, templates, config) {
+async function createGeneratedDirectory(outputPath) {
+  const generatedOutputPath = buildGeneratedOutputPath(outputPath);
+  return await fs.promises.mkdir(generatedOutputPath, { recursive: true });
+}
+
+async function generateOne(
+  entityName,
+  schemaMap,
+  templates,
+  config,
+  isVerbose
+) {
   const schema = schemaMap[entityName];
   const { outputPath } = config;
 
-  console.log(`[AIRENT/INFO] Generating ${entityName} ...`);
+  if (isVerbose) {
+    console.log(`[AIRENT/INFO] Generating ${entityName} ...`);
+  }
 
-  const generatedOutputPath = path.join(outputPath, "generated");
+  const generatedOutputPath = buildGeneratedOutputPath(outputPath);
   const fileNamePrefix = toKababCase(entityName);
   for (const template of templates) {
     const fileName =
@@ -240,23 +275,30 @@ async function generateOne(entityName, schemaMap, templates, config) {
         ? ""
         : ejs.render(template.content, { schema, schemaMap, config });
     if (fileContent.length === 0) {
-      console.log(
-        `  - Skipped ${template.suffix ?? "entity"} class '${filePath}'`
-      );
+      if (isVerbose) {
+        console.log(
+          `[AIRENT/INFO] - Skipped ${
+            template.suffix ?? "entity"
+          } class '${filePath}'`
+        );
+      }
       continue;
     } else {
       await fs.promises.writeFile(filePath, fileContent);
-      console.log(
-        `  - Generated ${template.suffix ?? "entity"} class '${filePath}'`
-      );
+      if (isVerbose) {
+        console.log(
+          `[AIRENT/INFO] - Generated ${
+            template.suffix ?? "entity"
+          } class '${filePath}'`
+        );
+      }
     }
   }
 }
 
-async function generate() {
+async function generate(isVerbose) {
   // load config
-  const config = await loadConfig();
-  console.log(config);
+  const config = await loadConfig(isVerbose);
   const {
     schemaPath,
     outputPath,
@@ -265,11 +307,14 @@ async function generate() {
   } = config;
 
   // load templates
-  const templates = await loadTemplates(prologuesConfig, templatesConfig);
+  const templates = await loadTemplates(
+    prologuesConfig,
+    templatesConfig,
+    isVerbose
+  );
 
   // load schemas
-  const schemaFilePaths = await getSchemaFilePaths(schemaPath);
-  const schemas = await loadSchemas(schemaFilePaths);
+  const schemas = await loadSchemas(schemaPath, isVerbose);
   const entityNames = schemas.map((schema) => schema.entityName);
   const schemaMap = schemas.reduce((map, schema) => {
     map[schema.entityName] = schema;
@@ -281,19 +326,22 @@ async function generate() {
 
   // Loop through each YAML file and generate code
   const functions = entityNames.map(
-    (entityName) => () => generateOne(entityName, schemaMap, templates, config)
+    (entityName) => () =>
+      generateOne(entityName, schemaMap, templates, config, isVerbose)
   );
   await sequential(functions);
+  console.log("[AIRENT/INFO] Task completed.");
 }
 
-async function main() {
+async function main(args) {
+  const isVerbose = args.includes("--verbose") || args.includes("-v");
   if (fs.existsSync(CONFIG_FILE_PATH)) {
-    await generate();
+    await generate(isVerbose);
   } else {
     await configure();
   }
 }
 
-main()
+main(process.argv.slice(2))
   .catch((error) => console.error(error))
   .finally(() => rl.close());
