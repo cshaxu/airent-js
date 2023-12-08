@@ -18,7 +18,7 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
     <%_ if (type.deprecated) { -%>
 /** @deprecated */
     <%_ } -%>
-export enum <%= type.strings.typeName %> <%- type.strings.typeDefinition %>;
+export enum <%= type.name %> <%- type.strings.typeDefinition %>;
   <%_ }); -%>
 <% } -%>
 <% if (schema.types.some(isDefinableType)) { -%>
@@ -29,7 +29,7 @@ export enum <%= type.strings.typeName %> <%- type.strings.typeDefinition %>;
     <%_ if (type.deprecated) { -%>
 /** @deprecated */
     <%_ } -%>
-export type <%= type.strings.typeName %> = <%- type.strings.typeDefinition %>;
+export type <%= type.name %> = <%- type.strings.typeDefinition %>;
   <%_ }); -%>
 <% } -%>
 

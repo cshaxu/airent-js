@@ -413,11 +413,13 @@ function buildTypeStrings(type) /* Object */ {
       typePackage: `${prefix}-type${suffix}`,
     };
   } else if (isExternalType(type)) {
-    return { externalClass: type.name, externalPackage: type.import };
+    const aliasSuffix = type.aliasOf ? ` as ${type.name}` : "";
+    const externalClass = `${type.aliasOf ?? type.name}${aliasSuffix}`;
+    return { externalClass, externalPackage: type.import };
   } else if (isDefinableType(type)) {
-    return { typeName: type.name, typeDefinition: type.define };
+    return { typeDefinition: type.define };
   } else if (isEnumerableType(type)) {
-    return { typeName: type.name, typeDefinition: type.enum };
+    return { typeDefinition: type.enum };
   } else {
     throw new Error(
       `[AIRENT/ERROR] utils/getTypeStrings: invalid type ${type.name}`
