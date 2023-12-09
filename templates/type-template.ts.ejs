@@ -5,7 +5,7 @@
 <%- line %>
 <% }); -%>
 <% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
-<% schema.types.filter(isEntityType).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
+<% schema.types.filter(isEntityType).filter((type) => !isOtherEntityInternal(type.name)).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
 import { <%= type.strings.fieldRequestClass %>, <%= type.strings.responseClass %> } from './<%= type.strings.typePackage %>';
 <% }); -%>
 <% schema.types.filter(isExternalType).forEach((type) => { -%>
