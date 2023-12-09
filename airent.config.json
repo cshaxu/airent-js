@@ -2,5 +2,5 @@
   "type": "module",
   "airentPackage": "../src",
   "schemaPath": "test-schemas",
-  "outputPath": "test-output"
+  "entityPath": "test-output"
 }
