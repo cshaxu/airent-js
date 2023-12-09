@@ -13,12 +13,14 @@ import {
   toArrayMap,
   toObjectMap,
 } from '<%= config.airentPackageForGenerated %>';
-<% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
+<% if (!schema.internal || schema.types.some(isInternalType)) { -%>
 
 /** generated */
 import {
+  <%_ if (!schema.internal) { -%>
   <%= schema.strings.fieldRequestClass %>,
   <%= schema.strings.responseClass %>,
+  <%_ } -%>
   <%_ schema.types.filter(isInternalType).forEach((type) => { -%>
   <%= type.name %>,
   <%_ }); -%>

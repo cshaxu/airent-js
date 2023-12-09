@@ -44,10 +44,6 @@ model: PrismaUser
 types:
   - name: User as PrismaUser
     import: "@prisma/client"
-  - name: ChatUser # you need to create chat-user.yml for this entity
-    entity: true
-  - name: Message # you need to create message.yml for this entity
-    entity: true
 fields:
   - id: 1
     name: id

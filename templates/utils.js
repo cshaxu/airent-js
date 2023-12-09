@@ -124,6 +124,10 @@ function getTargetKeySize(field) /* number */ {
 /* BOOLEAN */
 /***********/
 
+function isOtherEntityInternal(entityName) /* boolean */ {
+  return schemaMap[entityName]?.internal === true;
+}
+
 // example
 // - name: User
 //   entity: true
@@ -173,7 +177,13 @@ function isComputedAsyncField(field) /* boolean */ {
 }
 
 function isExternalField(field) /* boolean */ {
-  return !field.internal;
+  if (field.internal) {
+    return false;
+  }
+  if (!isEntityTypeField(field)) {
+    return true;
+  }
+  return schemaMap[toPrimitiveTypeName(field.type)]?.internal !== true;
 }
 
 function isSyncField(field) /* boolean */ {
