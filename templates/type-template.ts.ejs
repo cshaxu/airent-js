@@ -4,13 +4,13 @@
 <% getTypeExtraImports().forEach((line) => { -%>
 <%- line %>
 <% }); -%>
-<% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
-<% schema.types.filter(isEntityType).filter((type) => !isOtherEntityInternal(type.name)).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
+<% if (!schema.internal || schema.types.some(isInternalType)) { -%>
+  <%_ schema.types.filter(isEntityType).filter((type) => !isOtherEntityInternal(type.name)).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
 import { <%= type.strings.fieldRequestClass %>, <%= type.strings.responseClass %> } from './<%= type.strings.typePackage %>';
-<% }); -%>
-<% schema.types.filter(isExternalType).forEach((type) => { -%>
+  <%_ }); -%>
+  <%_ schema.types.filter(isExternalType).forEach((type) => { -%>
 import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPackage %>';
-<% }); -%>
+  <%_ }); -%>
 <% } -%>
 <% if (schema.types.some(isEnumerableType)) { -%>
 

@@ -13,7 +13,7 @@ import {
   toArrayMap,
   toObjectMap,
 } from '<%= config.airentPackageForGenerated %>';
-<% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
+<% if (!schema.internal || schema.types.some(isInternalType)) { -%>
 
 /** generated */
 import {
