@@ -1,7 +1,4 @@
-<% getGlobalImports().forEach((globalImport) => { -%>
-<%- globalImport %>
-<% }); -%>
-<% getBaseExtraImports().forEach((line) => { -%>
+<% getBaseBeforeLines().forEach((line) => { -%>
 <%- line %>
 <% }); -%>
 import {
@@ -13,47 +10,47 @@ import {
   toArrayMap,
   toObjectMap,
 } from '<%= config.airentPackageForGenerated %>';
-<% if (!schema.internal || schema.types.some(isInternalType)) { -%>
+<% if (!entity.internal || entity.types.some(utils.isCustomType)) { -%>
 
 /** generated */
 import {
-  <%_ if (!schema.internal) { -%>
-  <%= schema.strings.fieldRequestClass %>,
-  <%= schema.strings.responseClass %>,
+  <%_ if (!entity.internal) { -%>
+  <%= entity.strings.fieldRequestClass %>,
+  <%= entity.strings.responseClass %>,
   <%_ } -%>
-  <%_ schema.types.filter(isInternalType).forEach((type) => { -%>
+  <%_ entity.types.filter(utils.isCustomType).forEach((type) => { -%>
   <%= type.name %>,
   <%_ }); -%>
-} from './<%= schema.strings.typePackage %>';
+} from './<%= entity.strings.typePackage %>';
 <% } -%>
-<% if (schema.types.some(isEntityType)) { -%>
+<% if (entity.types.some(utils.isEntityType)) { -%>
 
 /** associations */
-  <%_ schema.types.filter(isEntityType).forEach((type) => { -%>
+  <%_ entity.types.filter(utils.isEntityType).forEach((type) => { -%>
 import { <%= type.strings.entityClass %> } from '../<%= type.strings.entityPackage %>';
   <%_ }); -%>
 <% } -%>
-<% if (schema.types.some(isExternalType)) { -%>
+<% if (entity.types.some(utils.isImportType)) { -%>
 
 /** external types */
-  <%_ schema.types.filter(isExternalType).forEach((type) => { -%>
+  <%_ entity.types.filter(utils.isImportType).forEach((type) => { -%>
 import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPackage %>';
   <%_ }); -%>
 <% } -%>
 
-<% if (schema.deprecated) { -%>
+<% if (entity.deprecated) { -%>
 /** @deprecated */
 <% } -%>
-export class <%= schema.strings.baseClass %> extends BaseEntity<
-  <%= schema.modelName %><%= schema.internal ? '' : `, ${schema.strings.fieldRequestClass}, ${schema.strings.responseClass}` %>
+export class <%= entity.strings.baseClass %> extends BaseEntity<
+  <%= entity.model %><%= entity.internal ? '' : `, ${entity.strings.fieldRequestClass}, ${entity.strings.responseClass}` %>
 > {
-<% schema.fields.filter(isPrimitiveField).forEach((field) => { -%>
+<% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
   public <%= field.name %>: <%= field.strings.fieldType %>;
 <% }); -%>
-<% schema.fields.filter(isAssociationField).forEach((field) => { -%>
+<% entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
@@ -62,46 +59,46 @@ export class <%= schema.strings.baseClass %> extends BaseEntity<
 <% }); -%>
 
   public constructor(
-    model: <%= schema.modelName %>,
-    group: <%= schema.strings.baseClass %>[],
+    model: <%= entity.model %>,
+    group: <%= entity.strings.baseClass %>[],
     lock: AsyncLock,
   ) {
     super(group, lock);
 
-<% schema.fields.filter(isPrimitiveField).forEach((field) => { -%>
+<% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
     this.<%= field.name %> = <%= field.strings.fieldInitializer %>;
 <% }); -%>
 
     this.initialize();
   }
-<% if (!schema.internal) { -%>
+<% if (!entity.internal) { -%>
 
-  public static defaultFieldRequest: <%= schema.strings.fieldRequestClass %> = {
-  <%_ schema.fields.filter(isDefaultPresentableField).forEach((field) => { -%>
+  public static defaultFieldRequest: <%= entity.strings.fieldRequestClass %> = {
+  <%_ entity.fields.filter(utils.isDefaultPresentableField).forEach((field) => { -%>
     <%= field.name %>: true,
   <%_ }); -%>
   };
 
-  public async present(request?: <%= schema.strings.fieldRequestClass %> | boolean): Promise<<%= schema.strings.responseClass %>> {
+  public async present(request?: <%= entity.strings.fieldRequestClass %> | boolean): Promise<<%= entity.strings.responseClass %>> {
     if (request === false) {
       throw new Error('unprocessable field request');
     }
     const fieldRequest = request === true || request === undefined
-      ? <%= schema.strings.baseClass %>.defaultFieldRequest
+      ? <%= entity.strings.baseClass %>.defaultFieldRequest
       : request;
     return {
-  <%_ schema.fields.filter(isExternalField).forEach((field) => { -%>
+  <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
       <%= field.name %>: <%- getFieldPresenter(field) %>,
   <%_ }); -%>
     };
   }
 <% } -%>
-<% if (!schema.skipSelfLoader) { -%>
+<% if (!entity.skipSelfLoader) { -%>
 
   /** self loaders */
 
-  public static async getOne<ENTITY extends <%= schema.strings.baseClass %>>(
-    this: EntityConstructor<<%= schema.modelName %>, ENTITY>,
+  public static async getOne<ENTITY extends <%= entity.strings.baseClass %>>(
+    this: EntityConstructor<<%= entity.model %>, ENTITY>,
     key: LoadKey
   ): Promise<ENTITY | null> {
     return await (this as any)
@@ -109,8 +106,8 @@ export class <%= schema.strings.baseClass %> extends BaseEntity<
       .then((array: ENTITY[]) => array.at(0) ?? null);
   }
 
-  public static async getMany<ENTITY extends <%= schema.strings.baseClass %>>(
-    this: EntityConstructor<<%= schema.modelName %>, ENTITY>,
+  public static async getMany<ENTITY extends <%= entity.strings.baseClass %>>(
+    this: EntityConstructor<<%= entity.model %>, ENTITY>,
     keys: LoadKey[]
   ): Promise<ENTITY[]> {
     <%_ getSelfLoaderLines().forEach((line) => { -%>
@@ -118,22 +115,22 @@ export class <%= schema.strings.baseClass %> extends BaseEntity<
     <%_ }); -%>
   }
 <% } -%>
-<% if (schema.fields.some(isAssociationField)) { -%>
+<% if (entity.fields.some(utils.isAssociationField)) { -%>
 
   /** associations */
 <% } -%>
-<% schema.fields.filter(isAssociationField).forEach((field) => { -%>
+<% entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  protected <%= `${field.name}LoadConfig` %>: LoadConfig<<%= schema.strings.baseClass %>, <%= field.strings.fieldClass %>> = {
+  protected <%= `${field.name}LoadConfig` %>: LoadConfig<<%= entity.strings.baseClass %>, <%= field.strings.fieldClass %>> = {
     name: '<%= getFieldLoadConfigName(field) %>',
-    filter: (one: <%= schema.strings.baseClass %>) => one.<%= field.name %> === undefined,
+    filter: (one: <%= entity.strings.baseClass %>) => one.<%= field.name %> === undefined,
   <%_ if (!isGetterGeneratable(field)) { -%>
     // TODO: build your association key getter
   <%_ } -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= schema.strings.baseClass %>[]) => {
+    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= entity.strings.baseClass %>[]) => {
   <%_ getLoadConfigGetterLines(field).forEach((line) => { -%>
     <%= isGetterGeneratable(field) ? '' : '// ' %>  <%- line %>
   <%_ }); -%>
@@ -149,7 +146,7 @@ export class <%= schema.strings.baseClass %> extends BaseEntity<
   <%_ if (!isSetterGeneratable(field)) { -%>
     // TODO: build your association value setter
   <%_ } -%>
-    <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (sources: <%= schema.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
+    <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (sources: <%= entity.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
   <%_ getLoadConfigSetterLines(field).forEach((line) => { -%>
     <%= isSetterGeneratable(field) ? '' : '// ' %>  <%- line %>
   <%_ }); -%>
@@ -164,21 +161,21 @@ export class <%= schema.strings.baseClass %> extends BaseEntity<
       return this.<%= field.name %>;
     }
     await this.load(this.<%= `${field.name}LoadConfig` %>);
-    return this.<%= field.name %><%= isNullableField(field) ? ' ?? null' : '!' %>;
+    return this.<%= field.name %><%= utils.isNullableField(field) ? ' ?? null' : '!' %>;
   }
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= `set${toTitleCase(field.name)}` %>(<%= field.name %>?: <%= field.strings.fieldType %>): void {
+  public <%= `set${utils.toTitleCase(field.name)}` %>(<%= field.name %>?: <%= field.strings.fieldType %>): void {
     this.<%= field.name %> = <%= field.name %>;
   }
 <% }); -%>
-<% if (schema.fields.some(isComputedSyncField)) { -%>
+<% if (entity.fields.some(utils.isComputedSyncField)) { -%>
 
   /** computed sync fields */
 <% } -%>
-<% schema.fields.filter(isComputedSyncField).forEach((field) => { -%>
+<% entity.fields.filter(utils.isComputedSyncField).forEach((field) => { -%>
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
@@ -187,11 +184,11 @@ export class <%= schema.strings.baseClass %> extends BaseEntity<
     throw new Error('not implemented');
   }
 <% }); -%>
-<% if (schema.fields.some(isComputedAsyncField)) { -%>
+<% if (entity.fields.some(utils.isComputedAsyncField)) { -%>
 
   /** computed async fields */
 <% } -%>
-<% schema.fields.filter(isComputedAsyncField).forEach((field) => { -%>
+<% entity.fields.filter(utils.isComputedAsyncField).forEach((field) => { -%>
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
@@ -200,7 +197,10 @@ export class <%= schema.strings.baseClass %> extends BaseEntity<
     throw new Error('not implemented');
   }
 <% }); -%>
-<% getBaseExtraLines().forEach((line) => { -%>
+<% getBaseInsideLines().forEach((line) => { -%>
 <%= line.length > 0 ? '  ' : '' %><%- line %>
 <% }); -%>
 }
+<% getBaseAfterLines().forEach((line) => { -%>
+<%= line.length > 0 ? '  ' : '' %><%- line %>
+<% }); -%>

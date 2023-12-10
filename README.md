@@ -38,7 +38,7 @@ You may specify `"type": "module"` if you are using ES modules.
 Create a new YAML file in your schema directory, e.g. `schemas/user.yml`:
 
 ```yaml
-entity: User
+name: User
 # internal: true # set internal to true if you do not want to generate API response for this entity
 model: PrismaUser
 types:

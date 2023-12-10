@@ -1,0 +1,93 @@
+<% getEntityBeforeLines().forEach((line) => { -%>
+<%- line %>
+<% }); -%>
+import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackageForSkippable %>';
+import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
+<% if (!entity.internal || entity.fields.some(utils.isCustomType)) { -%>
+import {
+  <%_ if (!entity.internal) { -%>
+  <%= entity.strings.fieldRequestClass %>,
+  <%= entity.strings.responseClass %>,
+  <%_ } -%>
+  <%_ entity.types.filter(utils.isCustomType).forEach((type) => { -%>
+  <%= type.name %>,
+  <%_ }); -%>
+} from './generated/<%= entity.strings.typePackage %>';
+<% } -%>
+<% entity.types.filter(utils.isEntityType).filter((type) => type.name !== entity.name).forEach((type) => { -%>
+import { <%= type.strings.entityClass %> } from './<%= type.strings.entityPackage %>';
+<% }); -%>
+<% entity.types.filter(utils.isImportType).forEach((type) => { -%>
+import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPackage %>';
+<% }); -%>
+
+<% if (entity.deprecated) { -%>
+/** @deprecated */
+<% } -%>
+export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseClass %> {
+<% if (entity.fields.filter(utils.isAssociationField).some((field) => !isAssociationFieldGeneratable(field))) { -%>
+  protected initialize() {
+    super.initialize();
+
+    /** associations */
+  <%_ entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
+    <%_ if (!isGetterGeneratable(field)) { -%>
+
+    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= entity.strings.baseClass %>[]) => {
+      <%_ getLoadConfigGetterLines(field).forEach((line) => { -%>
+      <%- line %>
+      <%_ }); -%>
+    };
+    <%_ } -%>
+    <%_ if (!isLoaderGeneratable(field)) { -%>
+
+    this.<%= `${field.name}LoadConfig` %>.loader = async (keys: LoadKey[]) => {
+      <%_ getLoadConfigLoaderLines(field).forEach((line) => { -%>
+      <%- line %>
+      <%_ }); -%>
+    };
+    <%_ } -%>
+    <%_ if (!isSetterGeneratable(field)) { -%>
+
+    this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= entity.strings.entityClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
+      <%_ getLoadConfigSetterLines(field).forEach((line) => { -%>
+      <%- line %>
+      <%_ }); -%>
+    }) as (sources: <%= entity.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => Promise<void>;
+    <%_ } -%>
+  <%_ }); -%>
+  }
+<% } -%>
+<% if (entity.fields.some(utils.isComputedSyncField)) { -%>
+
+  /** computed sync fields */
+<% } -%>
+<% entity.fields.filter(utils.isComputedSyncField).forEach((field) => { -%>
+
+  <%_ if (field.deprecated) { -%>
+  /** @deprecated */
+  <%_ } -%>
+  public <%= getFieldGetterName(field) %>: <%= field.strings.fieldType %> {
+    throw new Error('not implemented');
+  }
+<% }); -%>
+<% if (entity.fields.some(utils.isComputedAsyncField)) { -%>
+
+  /** computed async fields */
+<% } -%>
+<% entity.fields.filter(utils.isComputedAsyncField).forEach((field) => { -%>
+
+  <%_ if (field.deprecated) { -%>
+  /** @deprecated */
+  <%_ } -%>
+  public async <%= getFieldGetterName(field) %>: Promise<<%= field.strings.fieldType %>> {
+    throw new Error('not implemented');
+  }
+<% }); -%>
+<% getEntityInsideLines().forEach((line) => { -%>
+<%= line.length > 0 ? '  ' : '' %><%- line %>
+<% }); -%>
+}
+<% getEntityAfterLines().forEach((line) => { -%>
+<%- line %>
+<% }); -%>
