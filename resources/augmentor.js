@@ -1,15 +1,39 @@
 const utils = require("./utils.js");
 
+function buildTypes(entity, entityMap) /* void */ {
+  const allEntityNameSet = new Set(Object.keys(entityMap));
+  const selectedEntityNames = entity.fields
+    .map((field) => field.type)
+    .map(utils.toPrimitiveTypeName)
+    .filter((n) => allEntityNameSet.has(n));
+  const entityTypes = Array.from(new Set(selectedEntityNames))
+    .sort()
+    .map((name) => ({ name, entity: true, _entity: entityMap[name] }));
+  return [...entity.types, ...entityTypes].map((type) => ({
+    ...type,
+    _parent: entity,
+  }));
+}
+
+function buildFields(entity) /* void */ {
+  return entity.fields.map((field) => ({
+    ...field,
+    _parent: entity,
+    _type: entity.types.find(
+      (type) => type.name === utils.toPrimitiveTypeName(field.type)
+    ),
+  }));
+}
+
 function getModuleSuffix(config) /* string */ {
   return config.isModule ? ".js" : "";
 }
 
-function augmentEntity(entity, entityMap, config) /** void */ {
+function augmentEntity(entity, config) /** void */ {
   const { name } = entity;
   const entName = utils.toTitleCase(name);
   const prefix = utils.toKababCase(name);
   const suffix = getModuleSuffix(config);
-  entity._parent = entityMap;
   entity.strings = {
     loaderName: `${utils.toCamelCase(entName)}Loader`,
     baseClass: `${entName}EntityBase`,
@@ -22,9 +46,8 @@ function augmentEntity(entity, entityMap, config) /** void */ {
   };
 }
 
-function buildAugmentedType(type, entity, config) /* Object */ {
-  type._parent = entity;
-  if (utils.isEntityType(type)) {
+function augmentType(type, config) /* Object */ {
+  if (type._entity !== undefined) {
     const entName = utils.toTitleCase(type.name);
     const prefix = `${utils.toKababCase(entName)}`;
     const suffix = getModuleSuffix(config);
@@ -44,28 +67,10 @@ function buildAugmentedType(type, entity, config) /* Object */ {
   } else if (utils.isEnumType(type)) {
     type.strings = { typeDefinition: type.enum };
   }
-  return type;
 }
 
-function augmentTypes(entity, entityMap, config) /** void */ {
-  const allEntityNameSet = new Set(Object.keys(entityMap));
-  const selectedEntityNames = entity.fields
-    .map((field) => field.type)
-    .map(utils.toPrimitiveTypeName)
-    .filter((n) => allEntityNameSet.has(n));
-  const entityTypes = Array.from(new Set(selectedEntityNames))
-    .sort()
-    .map((name) => ({ name, entity: true, _entity: entityMap[name] }));
-  entity.types = [...entity.types, ...entityTypes].map((type) =>
-    buildAugmentedType(type, entity, config)
-  );
-}
-
-function buildAugmentedField(field, entity) /* Object */ {
-  field._parent = entity;
+function augmentField(field) /* Object */ {
   const typeName = utils.toPrimitiveTypeName(field.type);
-  field._type = entity.types.find((type) => type.name === typeName);
-
   if (field._type?._entity !== undefined) {
     const entName = utils.toTitleCase(typeName);
     const entityClass = `${entName}Entity`;
@@ -92,20 +97,16 @@ function buildAugmentedField(field, entity) /* Object */ {
       fieldResponseType: field.type,
     };
   }
-  return field;
-}
-
-function augmentFields(entity) /* void */ {
-  entity.fields = entity.fields.map((field) =>
-    buildAugmentedField(field, entity)
-  );
 }
 
 function augment(data) /* void */ {
   const { entity, entityMap, config } = data;
-  augmentEntity(entity, entityMap, config);
-  augmentTypes(entity, entityMap, config);
-  augmentFields(entity);
+  entity._parent = entityMap;
+  entity.types = buildTypes(entity, entityMap);
+  entity.fields = buildFields(entity);
+  augmentEntity(entity, config);
+  entity.types.forEach((type) => augmentType(type, config));
+  entity.fields.forEach((field) => augmentField(field));
 }
 
 module.exports = { augment };
