@@ -62,8 +62,8 @@ async function configure() {
  *  @property {?string[]} [targetFields]
  */
 
-/** @typedef {Object} Schema
- *  @property {string} entity
+/** @typedef {Object} Entity
+ *  @property {string} name
  *  @property {string} model
  *  @property {boolean} internal
  *  @property {?boolean} deprecated
@@ -244,18 +244,14 @@ async function loadSchema(schemaFilePath, isVerbose) {
     console.log(`[AIRENT/INFO] Loading schema ${schemaFilePath} ...`);
   }
   const schemaContent = await fs.promises.readFile(schemaFilePath, "utf8");
-  const schema = yaml.load(schemaContent);
+  const entity = yaml.load(schemaContent);
   return {
-    ...schema,
-    entity: undefined,
-    model: undefined,
-    entityName: schema.entity,
-    modelName: utils.toTitleCase(schema.model),
-    internal: schema.internal ?? false,
-    deprecated: schema.deprecated ?? false,
-    skipSelfLoader: schema.skipSelfLoader ?? false,
-    types: schema.types ?? [],
-    fields: schema.fields ?? [],
+    ...entity,
+    internal: entity.internal ?? false,
+    deprecated: entity.deprecated ?? false,
+    skipSelfLoader: entity.skipSelfLoader ?? false,
+    types: entity.types ?? [],
+    fields: entity.fields ?? [],
     isAugmented: false,
   };
 }
@@ -268,33 +264,27 @@ async function loadSchemas(schemaPath, isVerbose) {
   return await sequential(functions);
 }
 
-function augment(augmentorName, schemaMap, config, isVerbose) {
+function augment(augmentorName, entityMap, config, isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Augmenting with ${augmentorName} ...`);
   }
   const augmentor = require(augmentorName);
-  Object.values(schemaMap).map((schema) => {
+  Object.values(entityMap).map((entity) => {
     if (isVerbose) {
-      console.log(`[AIRENT/INFO] - ${schema.entityName}`);
+      console.log(`[AIRENT/INFO] - ${entity.name}`);
     }
-    return augmentor.augment({ schema, schemaMap, config });
+    return augmentor.augment({ entity, entityMap, config });
   });
 }
 
-async function generateOne(
-  entityName,
-  schemaMap,
-  templates,
-  config,
-  isVerbose
-) {
-  const schema = schemaMap[entityName];
+async function generateOne(name, entityMap, templates, config, isVerbose) {
+  const entity = entityMap[name];
 
   if (isVerbose) {
-    console.log(`[AIRENT/INFO] Generating ${entityName} ...`);
+    console.log(`[AIRENT/INFO] Generating ${name} ...`);
   }
 
-  const fileNamePrefix = utils.toKababCase(entityName);
+  const fileNamePrefix = utils.toKababCase(name);
   for (const template of templates) {
     const fileName =
       [fileNamePrefix, template.suffix].filter((s) => s?.length).join("-") +
@@ -304,8 +294,8 @@ async function generateOne(
       template.skippable && fs.existsSync(filePath)
         ? ""
         : ejs.render(template.content, {
-            schema,
-            schemaMap,
+            entity,
+            entityMap,
             config,
             utils,
           });
@@ -340,15 +330,15 @@ async function generate(isVerbose) {
 
   // load schemas
   const schemas = await loadSchemas(config.schemaPath, isVerbose);
-  const entityNames = schemas.map((schema) => schema.entityName);
-  const schemaMap = schemas.reduce((map, schema) => {
-    map[schema.entityName] = schema;
+  const entityNames = schemas.map((entity) => entity.name);
+  const entityMap = schemas.reduce((map, entity) => {
+    map[entity.name] = entity;
     return map;
   }, {});
 
   // perform augmentation
   config.augmentors.map((augmentorName) =>
-    augment(augmentorName, schemaMap, config, isVerbose)
+    augment(augmentorName, entityMap, config, isVerbose)
   );
 
   // create the output folders if not exist
@@ -362,8 +352,7 @@ async function generate(isVerbose) {
 
   // loop through each YAML file and generate code
   const functions = entityNames.map(
-    (entityName) => () =>
-      generateOne(entityName, schemaMap, templates, config, isVerbose)
+    (name) => () => generateOne(name, entityMap, templates, config, isVerbose)
   );
   await sequential(functions);
   console.log("[AIRENT/INFO] Task completed.");

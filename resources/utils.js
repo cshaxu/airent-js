@@ -71,8 +71,8 @@ function toPrimitiveTypeName(string) /** string */ {
 /* QUERY  */
 /**********/
 
-function queryField(fieldName, schema) /* Field? */ {
-  return schema.fields.find((field) => field.name === fieldName);
+function queryField(fieldName, entity) /* Field? */ {
+  return entity.fields.find((field) => field.name === fieldName);
 }
 
 // UNSAFE BEFORE AUGMENTATION
@@ -108,8 +108,8 @@ function getTargetKeySize(field) /* number */ {
 /* BOOLEAN */
 /***********/
 
-function isPresentableEntity(schema) /* boolean */ {
-  return schema.internal !== true;
+function isPresentableEntity(entity) /* boolean */ {
+  return entity.internal !== true;
 }
 
 // example

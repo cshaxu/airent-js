@@ -1,4 +1,4 @@
-entity: Message
+name: Message
 model: MessageModel
 skipSelfLoader: true
 types:

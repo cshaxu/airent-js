@@ -1,4 +1,4 @@
-entity: User
+name: User
 model: UserModel
 types:
   - name: UserModel

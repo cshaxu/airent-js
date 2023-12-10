@@ -4,13 +4,13 @@ function getModuleSuffix(config) /* string */ {
   return config.isModule ? ".js" : "";
 }
 
-function augmentEntity(schema, schemaMap, config) /** void */ {
-  const { entityName } = schema;
-  const entName = utils.toTitleCase(entityName);
-  const prefix = utils.toKababCase(entityName);
+function augmentEntity(entity, entityMap, config) /** void */ {
+  const { name } = entity;
+  const entName = utils.toTitleCase(name);
+  const prefix = utils.toKababCase(name);
   const suffix = getModuleSuffix(config);
-  schema._parent = schemaMap;
-  schema.strings = {
+  entity._parent = entityMap;
+  entity.strings = {
     loaderName: `${utils.toCamelCase(entName)}Loader`,
     baseClass: `${entName}EntityBase`,
     entityClass: `${entName}Entity`,
@@ -22,8 +22,8 @@ function augmentEntity(schema, schemaMap, config) /** void */ {
   };
 }
 
-function buildAugmentedType(type, schema, config) /* Object */ {
-  type._parent = schema;
+function buildAugmentedType(type, entity, config) /* Object */ {
+  type._parent = entity;
   if (utils.isEntityType(type)) {
     const entName = utils.toTitleCase(type.name);
     const prefix = `${utils.toKababCase(entName)}`;
@@ -47,24 +47,24 @@ function buildAugmentedType(type, schema, config) /* Object */ {
   return type;
 }
 
-function augmentTypes(schema, schemaMap, config) /** void */ {
-  const allEntityNameSet = new Set(Object.keys(schemaMap));
-  const selectedEntityNames = schema.fields
+function augmentTypes(entity, entityMap, config) /** void */ {
+  const allEntityNameSet = new Set(Object.keys(entityMap));
+  const selectedEntityNames = entity.fields
     .map((field) => field.type)
     .map(utils.toPrimitiveTypeName)
     .filter((n) => allEntityNameSet.has(n));
   const entityTypes = Array.from(new Set(selectedEntityNames))
     .sort()
-    .map((name) => ({ name, entity: true, _entity: schemaMap[name] }));
-  schema.types = [...schema.types, ...entityTypes].map((type) =>
-    buildAugmentedType(type, schema, config)
+    .map((name) => ({ name, entity: true, _entity: entityMap[name] }));
+  entity.types = [...entity.types, ...entityTypes].map((type) =>
+    buildAugmentedType(type, entity, config)
   );
 }
 
-function buildAugmentedField(field, schema) /* Object */ {
-  field._parent = schema;
+function buildAugmentedField(field, entity) /* Object */ {
+  field._parent = entity;
   const typeName = utils.toPrimitiveTypeName(field.type);
-  field._type = schema.types.find((type) => type.name === typeName);
+  field._type = entity.types.find((type) => type.name === typeName);
 
   if (field._type?._entity !== undefined) {
     const entName = utils.toTitleCase(typeName);
@@ -95,17 +95,17 @@ function buildAugmentedField(field, schema) /* Object */ {
   return field;
 }
 
-function augmentFields(schema) /* void */ {
-  schema.fields = schema.fields.map((field) =>
-    buildAugmentedField(field, schema)
+function augmentFields(entity) /* void */ {
+  entity.fields = entity.fields.map((field) =>
+    buildAugmentedField(field, entity)
   );
 }
 
 function augment(data) /* void */ {
-  const { schema, schemaMap, config } = data;
-  augmentEntity(schema, schemaMap, config);
-  augmentTypes(schema, schemaMap, config);
-  augmentFields(schema);
+  const { entity, entityMap, config } = data;
+  augmentEntity(entity, entityMap, config);
+  augmentTypes(entity, entityMap, config);
+  augmentFields(entity);
 }
 
 module.exports = { augment };

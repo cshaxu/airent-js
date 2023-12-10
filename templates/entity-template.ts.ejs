@@ -1,42 +1,39 @@
-<% getGlobalImports().forEach((globalImport) => { -%>
-<%- globalImport %>
-<% }); -%>
-<% getEntityExtraImports().forEach((line) => { -%>
+<% getEntityBeforeLines().forEach((line) => { -%>
 <%- line %>
 <% }); -%>
 import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackageForSkippable %>';
-import { <%= schema.strings.baseClass %> } from './generated/<%= schema.strings.basePackage %>';
-<% if (!schema.internal || schema.fields.some(utils.isCustomType)) { -%>
+import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
+<% if (!entity.internal || entity.fields.some(utils.isCustomType)) { -%>
 import {
-  <%_ if (!schema.internal) { -%>
-  <%= schema.strings.fieldRequestClass %>,
-  <%= schema.strings.responseClass %>,
+  <%_ if (!entity.internal) { -%>
+  <%= entity.strings.fieldRequestClass %>,
+  <%= entity.strings.responseClass %>,
   <%_ } -%>
-  <%_ schema.types.filter(utils.isCustomType).forEach((type) => { -%>
+  <%_ entity.types.filter(utils.isCustomType).forEach((type) => { -%>
   <%= type.name %>,
   <%_ }); -%>
-} from './generated/<%= schema.strings.typePackage %>';
+} from './generated/<%= entity.strings.typePackage %>';
 <% } -%>
-<% schema.types.filter(utils.isEntityType).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
+<% entity.types.filter(utils.isEntityType).filter((type) => type.name !== entity.name).forEach((type) => { -%>
 import { <%= type.strings.entityClass %> } from './<%= type.strings.entityPackage %>';
 <% }); -%>
-<% schema.types.filter(utils.isImportType).forEach((type) => { -%>
+<% entity.types.filter(utils.isImportType).forEach((type) => { -%>
 import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPackage %>';
 <% }); -%>
 
-<% if (schema.deprecated) { -%>
+<% if (entity.deprecated) { -%>
 /** @deprecated */
 <% } -%>
-export class <%= schema.strings.entityClass %> extends <%= schema.strings.baseClass %> {
-<% if (schema.fields.filter(utils.isAssociationField).some((field) => !isAssociationFieldGeneratable(field))) { -%>
+export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseClass %> {
+<% if (entity.fields.filter(utils.isAssociationField).some((field) => !isAssociationFieldGeneratable(field))) { -%>
   protected initialize() {
     super.initialize();
 
     /** associations */
-  <%_ schema.fields.filter(utils.isAssociationField).forEach((field) => { -%>
+  <%_ entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
     <%_ if (!isGetterGeneratable(field)) { -%>
 
-    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= schema.strings.baseClass %>[]) => {
+    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= entity.strings.baseClass %>[]) => {
       <%_ getLoadConfigGetterLines(field).forEach((line) => { -%>
       <%- line %>
       <%_ }); -%>
@@ -52,20 +49,20 @@ export class <%= schema.strings.entityClass %> extends <%= schema.strings.baseCl
     <%_ } -%>
     <%_ if (!isSetterGeneratable(field)) { -%>
 
-    this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= schema.strings.entityClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
+    this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= entity.strings.entityClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
       <%_ getLoadConfigSetterLines(field).forEach((line) => { -%>
       <%- line %>
       <%_ }); -%>
-    }) as (sources: <%= schema.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => Promise<void>;
+    }) as (sources: <%= entity.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => Promise<void>;
     <%_ } -%>
   <%_ }); -%>
   }
 <% } -%>
-<% if (schema.fields.some(utils.isComputedSyncField)) { -%>
+<% if (entity.fields.some(utils.isComputedSyncField)) { -%>
 
   /** computed sync fields */
 <% } -%>
-<% schema.fields.filter(utils.isComputedSyncField).forEach((field) => { -%>
+<% entity.fields.filter(utils.isComputedSyncField).forEach((field) => { -%>
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
@@ -74,11 +71,11 @@ export class <%= schema.strings.entityClass %> extends <%= schema.strings.baseCl
     throw new Error('not implemented');
   }
 <% }); -%>
-<% if (schema.fields.some(utils.isComputedAsyncField)) { -%>
+<% if (entity.fields.some(utils.isComputedAsyncField)) { -%>
 
   /** computed async fields */
 <% } -%>
-<% schema.fields.filter(utils.isComputedAsyncField).forEach((field) => { -%>
+<% entity.fields.filter(utils.isComputedAsyncField).forEach((field) => { -%>
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
@@ -87,7 +84,10 @@ export class <%= schema.strings.entityClass %> extends <%= schema.strings.baseCl
     throw new Error('not implemented');
   }
 <% }); -%>
-<% getEntityExtraLines().forEach((line) => { -%>
+<% getEntityInsideLines().forEach((line) => { -%>
 <%= line.length > 0 ? '  ' : '' %><%- line %>
 <% }); -%>
 }
+<% getEntityAfterLines().forEach((line) => { -%>
+<%- line %>
+<% }); -%>

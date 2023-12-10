@@ -41,7 +41,7 @@ function getFieldGetterName(field) /* Code */ {
 }
 
 function getFieldLoadConfigName(field) /* Code */ {
-  const className = schema.strings.entityClass;
+  const className = entity.strings.entityClass;
   const fieldName = field.name;
   return `${className}.${fieldName}`;
 }
@@ -103,31 +103,35 @@ function getLoadConfigSourceSetter(field) /* Code */ {
 
 /* block */
 
-function getGlobalImports() /* Code[] */ {
+function getBaseBeforeLines() /* Code[] */ {
   return [];
 }
 
-function getBaseExtraImports() /* Code[] */ {
+function getEntityBeforeLines() /* Code[] */ {
   return [];
 }
 
-function getEntityExtraImports() /* Code[] */ {
+function getTypeBeforeLines() /* Code[] */ {
   return [];
 }
 
-function getTypeExtraImports() /* Code[] */ {
+function getBaseInsideLines() /* Code[] */ {
   return [];
 }
 
-function getBaseExtraLines() /* Code[] */ {
+function getEntityInsideLines() /* Code[] */ {
   return [];
 }
 
-function getEntityExtraLines() /* Code[] */ {
+function getBaseAfterLines() /* Code[] */ {
   return [];
 }
 
-function getTypeExtraLines() /* Code[] */ {
+function getEntityAfterLines() /* Code[] */ {
+  return [];
+}
+
+function getTypeAfterLines() /* Code[] */ {
   return [];
 }
 

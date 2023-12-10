@@ -1,4 +1,4 @@
-entity: Chat
+name: Chat
 model: ChatModel
 types:
   - name: ChatModel

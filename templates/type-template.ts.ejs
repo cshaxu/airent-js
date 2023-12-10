@@ -1,21 +1,18 @@
-<% getGlobalImports().forEach((globalImport) => { -%>
-<%- globalImport %>
-<% }); -%>
-<% getTypeExtraImports().forEach((line) => { -%>
+<% getTypeBeforeLines().forEach((line) => { -%>
 <%- line %>
 <% }); -%>
-<% if (!utils.isPresentableEntity(schema) || schema.types.some(utils.isCustomType)) { -%>
-  <%_ schema.types.filter(utils.isPresentableEntityType).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
+<% if (!utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
+  <%_ entity.types.filter(utils.isPresentableEntityType).filter((type) => type.name !== entity.name).forEach((type) => { -%>
 import { <%= type.strings.fieldRequestClass %>, <%= type.strings.responseClass %> } from './<%= type.strings.typePackage %>';
   <%_ }); -%>
-  <%_ schema.types.filter(utils.isImportType).forEach((type) => { -%>
+  <%_ entity.types.filter(utils.isImportType).forEach((type) => { -%>
 import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPackage %>';
   <%_ }); -%>
 <% } -%>
-<% if (schema.types.some(utils.isEnumType)) { -%>
+<% if (entity.types.some(utils.isEnumType)) { -%>
 
 /** enums */
-  <%_ schema.types.filter(utils.isEnumType).forEach((type) => { -%>
+  <%_ entity.types.filter(utils.isEnumType).forEach((type) => { -%>
 
     <%_ if (type.deprecated) { -%>
 /** @deprecated */
@@ -23,10 +20,10 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
 export enum <%= type.name %> <%- type.strings.typeDefinition %>;
   <%_ }); -%>
 <% } -%>
-<% if (schema.types.some(utils.isDefineType)) { -%>
+<% if (entity.types.some(utils.isDefineType)) { -%>
 
 /** structs */
-  <%_ schema.types.filter(utils.isDefineType).forEach((type) => { -%>
+  <%_ entity.types.filter(utils.isDefineType).forEach((type) => { -%>
 
     <%_ if (type.deprecated) { -%>
 /** @deprecated */
@@ -34,13 +31,13 @@ export enum <%= type.name %> <%- type.strings.typeDefinition %>;
 export type <%= type.name %> = <%- type.strings.typeDefinition %>;
   <%_ }); -%>
 <% } -%>
-<% if (!schema.internal) { -%>
+<% if (!entity.internal) { -%>
 
-  <%_ if (schema.deprecated) { -%>
+  <%_ if (entity.deprecated) { -%>
 /** @deprecated */
   <%_ } -%>
-export type <%= schema.strings.fieldRequestClass %> = {
-  <%_ schema.fields.filter(utils.isPresentableField).forEach((field) => { -%>
+export type <%= entity.strings.fieldRequestClass %> = {
+  <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
     <%_ if (field.deprecated) { -%>
   /** @deprecated */
     <%_ } -%>
@@ -48,11 +45,11 @@ export type <%= schema.strings.fieldRequestClass %> = {
   <%_ }); -%>
 };
 
-  <%_ if (schema.deprecated) { -%>
+  <%_ if (entity.deprecated) { -%>
 /** @deprecated */
   <%_ } -%>
-export type <%= schema.strings.responseClass %> = {
-  <%_ schema.fields.filter(utils.isPresentableField).forEach((field) => { -%>
+export type <%= entity.strings.responseClass %> = {
+  <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
     <%_ if (field.deprecated) { -%>
   /** @deprecated */
     <%_ } -%>
@@ -60,6 +57,6 @@ export type <%= schema.strings.responseClass %> = {
   <%_ }); -%>
 };
 <% } -%>
-<% getTypeExtraLines().forEach((line) => { -%>
+<% getTypeAfterLines().forEach((line) => { -%>
 <%- line %>
 <% }); -%>
