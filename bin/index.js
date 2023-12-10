@@ -6,10 +6,21 @@ const yaml = require("js-yaml");
 const path = require("path");
 const readline = require("readline");
 
+const utils = require("../resources/utils.js");
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
+async function sequential(functions) {
+  const results = [];
+  for (const func of functions) {
+    const result = await func();
+    results.push(result);
+  }
+  return results;
+}
 
 // Function to ask a question and store the answer in the config object
 function askQuestion(question) {
@@ -73,6 +84,7 @@ async function configure() {
  *  @property {?string} airentPackage
  *  @property {string} schemaPath
  *  @property {string} entityPath
+ *  @property {?string[]} [augmentors]
  *  @property {?string[]} [prologues]
  *  @property {?Template[]} [templates]
  */
@@ -82,6 +94,15 @@ const AIRENT_PATH = path.join(__dirname, "..");
 
 const CONFIG_FILE_PATH = path.join(PROJECT_PATH, "airent.config.json");
 const AIRENT_TEMPLATE_PATH = path.join(AIRENT_PATH, "templates");
+
+const DEFALUT_AUGMENTOR_NAMES = [
+  path.join(AIRENT_PATH, "resources", "augmentor.js"),
+];
+
+const DEFALUT_PROLOGUE_NAMES = [
+  path.join(AIRENT_PATH, "resources", "prologue.js"),
+];
+
 const BASE_TEMPLATE_NAME = path.join(
   AIRENT_TEMPLATE_PATH,
   "base-template.ts.ejs"
@@ -95,26 +116,6 @@ const ENTITY_TEMPLATE_NAME = path.join(
   "entity-template.ts.ejs"
 );
 
-function toTitleCase(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function toKababCase(s) {
-  return s
-    .replace(/_/g, "-")
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .toLowerCase();
-}
-
-async function sequential(functions) {
-  const results = [];
-  for (const func of functions) {
-    const result = await func();
-    results.push(result);
-  }
-  return results;
-}
-
 async function loadConfig(isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Loading config ${CONFIG_FILE_PATH} ...`);
@@ -126,55 +127,30 @@ async function loadConfig(isVerbose) {
     schemaPath,
     entityPath,
     airentPackage: airentPackageRaw,
-    prologues,
-    templates,
+    augmentors: extAugmentorNamesRaw,
+    prologues: extPrologueNamesRaw,
+    templates: extTemplateConfigsRaw,
   } = config;
   const airentPackageForSkippable = airentPackageRaw ?? "airent";
   const airentPackageForGenerated =
     airentPackageForSkippable === "airent"
       ? "airent"
       : path.join("..", airentPackageForSkippable).replace(/\\/g, "/");
-  const loadedConfig = {
-    ...config,
-    isModule: type === "module",
-    schemaPath: path.join(PROJECT_PATH, schemaPath),
-    entityPath: path.join(PROJECT_PATH, entityPath),
-    airentPackageForSkippable,
-    airentPackageForGenerated,
-    prologues: prologues ?? [],
-    templates: templates ?? [],
-  };
-  if (isVerbose) {
-    console.log(loadedConfig);
-  }
-  return loadedConfig;
-}
 
-async function loadTemplates(config, isVerbose) {
-  const {
-    entityPath,
-    prologues: prologuesConfig,
-    templates: templatesConfig,
-  } = config;
-  const extProloguePaths = prologuesConfig.map((p) =>
-    path.join(PROJECT_PATH, p)
+  // configure augmentors
+  const externalAugmentorNames = (extAugmentorNamesRaw ?? []).map((n) =>
+    path.join(PROJECT_PATH, n)
   );
-  const prologuePaths = [
-    path.join(AIRENT_PATH, "templates", "utils.js"),
-    ...extProloguePaths,
-  ];
-  if (isVerbose) {
-    prologuePaths.forEach((p) =>
-      console.log(`[AIRENT/INFO] Loading prologue ${p} ...`)
-    );
-  }
-  const prologuePromises = prologuePaths.map((p) =>
-    fs.promises.readFile(p, "utf8")
+  const augmentors = [...DEFALUT_AUGMENTOR_NAMES, ...externalAugmentorNames];
+
+  // configure prologues
+  const extPrologueNames = (extPrologueNamesRaw ?? []).map((n) =>
+    path.join(PROJECT_PATH, n)
   );
-  const prologues = await Promise.all(prologuePromises);
-  const prologue = "<% " + prologues.join("\n") + "\n-%>\n";
+  const prologues = [...DEFALUT_PROLOGUE_NAMES, ...extPrologueNames];
+
+  // configure templates
   const generatedOutputPath = path.join(entityPath, "generated");
-
   const baseTemplateConfig = {
     name: BASE_TEMPLATE_NAME,
     suffix: "base",
@@ -193,30 +169,57 @@ async function loadTemplates(config, isVerbose) {
     skippable: true,
     outputPath: entityPath,
   };
-
-  const extTemplateConfigs = templatesConfig.map((c) => ({
+  const defualtTemplateConfigs = [
+    baseTemplateConfig,
+    typeTemplateConfig,
+    entityTemplateConfig,
+  ];
+  const extTemplateConfigs = (extTemplateConfigsRaw ?? []).map((c) => ({
     ...c,
     name: path.join(PROJECT_PATH, c.name),
     outputPath: c.outputPath ?? c.skippable ? entityPath : generatedOutputPath,
   }));
-  const templateConfigs = [
-    baseTemplateConfig,
-    typeTemplateConfig,
-    entityTemplateConfig,
-    ...extTemplateConfigs,
-  ];
+  const templates = [...defualtTemplateConfigs, ...extTemplateConfigs];
 
+  const loadedConfig = {
+    ...config,
+    isModule: type === "module",
+    schemaPath: path.join(PROJECT_PATH, schemaPath),
+    entityPath: path.join(PROJECT_PATH, entityPath),
+    airentPackageForSkippable,
+    airentPackageForGenerated,
+    augmentors,
+    prologues,
+    templates,
+  };
   if (isVerbose) {
-    templateConfigs.forEach((c) =>
-      console.log(`[AIRENT/INFO] Loading template ${c.name} ...`)
-    );
+    console.log(loadedConfig);
   }
-  const templateContentPromises = templateConfigs
-    .map((c) => c.name)
-    .map((p) => fs.promises.readFile(p, "utf8"));
-  const tepmlateContents = (await Promise.all(templateContentPromises)).map(
-    (c) => prologue + c
-  );
+  return loadedConfig;
+}
+
+async function loadPrologues(prologues, isVerbose) {
+  const functions = prologues.map((n) => () => {
+    if (isVerbose) {
+      console.log(`[AIRENT/INFO] Loading prologue ${n} ...`);
+    }
+    return fs.promises.readFile(n, "utf8");
+  });
+  return await sequential(functions);
+}
+
+async function loadTemplates(config, isVerbose) {
+  const prologues = await loadPrologues(config.prologues, isVerbose);
+  const prologue = "<% " + prologues.join("\n") + "\n-%>\n";
+
+  const { templates: templateConfigs } = config;
+  const functions = templateConfigs.map((c) => () => {
+    if (isVerbose) {
+      console.log(`[AIRENT/INFO] Loading template ${c.name} ...`);
+    }
+    return fs.promises.readFile(c.name, "utf8").then((t) => prologue + t);
+  });
+  const tepmlateContents = await sequential(functions);
   return templateConfigs.map((c, i) => ({
     ...c,
     content: tepmlateContents[i],
@@ -247,7 +250,7 @@ async function loadSchema(schemaFilePath, isVerbose) {
     entity: undefined,
     model: undefined,
     entityName: schema.entity,
-    modelName: toTitleCase(schema.model),
+    modelName: utils.toTitleCase(schema.model),
     internal: schema.internal ?? false,
     deprecated: schema.deprecated ?? false,
     skipSelfLoader: schema.skipSelfLoader ?? false,
@@ -259,10 +262,23 @@ async function loadSchema(schemaFilePath, isVerbose) {
 
 async function loadSchemas(schemaPath, isVerbose) {
   const schemaFilePaths = await getSchemaFilePaths(schemaPath);
-  const functions = schemaFilePaths.map(
-    (path) => () => loadSchema(path, isVerbose)
-  );
+  const functions = schemaFilePaths
+    .sort()
+    .map((path) => () => loadSchema(path, isVerbose));
   return await sequential(functions);
+}
+
+function augment(augmentorName, schemaMap, config, isVerbose) {
+  if (isVerbose) {
+    console.log(`[AIRENT/INFO] Augmenting with ${augmentorName} ...`);
+  }
+  const augmentor = require(augmentorName);
+  Object.values(schemaMap).map((schema) => {
+    if (isVerbose) {
+      console.log(`[AIRENT/INFO] - ${schema.entityName}`);
+    }
+    return augmentor.augment({ schema, schemaMap, config });
+  });
 }
 
 async function generateOne(
@@ -278,7 +294,7 @@ async function generateOne(
     console.log(`[AIRENT/INFO] Generating ${entityName} ...`);
   }
 
-  const fileNamePrefix = toKababCase(entityName);
+  const fileNamePrefix = utils.toKababCase(entityName);
   for (const template of templates) {
     const fileName =
       [fileNamePrefix, template.suffix].filter((s) => s?.length).join("-") +
@@ -287,7 +303,12 @@ async function generateOne(
     const fileContent =
       template.skippable && fs.existsSync(filePath)
         ? ""
-        : ejs.render(template.content, { schema, schemaMap, config });
+        : ejs.render(template.content, {
+            schema,
+            schemaMap,
+            config,
+            utils,
+          });
     if (fileContent.length === 0) {
       if (isVerbose) {
         console.log(
@@ -324,6 +345,11 @@ async function generate(isVerbose) {
     map[schema.entityName] = schema;
     return map;
   }, {});
+
+  // perform augmentation
+  config.augmentors.map((augmentorName) =>
+    augment(augmentorName, schemaMap, config, isVerbose)
+  );
 
   // create the output folders if not exist
   const folderNames = Array.from(

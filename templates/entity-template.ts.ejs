@@ -6,21 +6,21 @@
 <% }); -%>
 import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackageForSkippable %>';
 import { <%= schema.strings.baseClass %> } from './generated/<%= schema.strings.basePackage %>';
-<% if (!schema.internal || schema.fields.some(isInternalType)) { -%>
+<% if (!schema.internal || schema.fields.some(utils.isCustomType)) { -%>
 import {
   <%_ if (!schema.internal) { -%>
   <%= schema.strings.fieldRequestClass %>,
   <%= schema.strings.responseClass %>,
   <%_ } -%>
-  <%_ schema.types.filter(isInternalType).forEach((type) => { -%>
+  <%_ schema.types.filter(utils.isCustomType).forEach((type) => { -%>
   <%= type.name %>,
   <%_ }); -%>
 } from './generated/<%= schema.strings.typePackage %>';
 <% } -%>
-<% schema.types.filter(isEntityType).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
+<% schema.types.filter(utils.isEntityType).filter((type) => type.name !== schema.entityName).forEach((type) => { -%>
 import { <%= type.strings.entityClass %> } from './<%= type.strings.entityPackage %>';
 <% }); -%>
-<% schema.types.filter(isExternalType).forEach((type) => { -%>
+<% schema.types.filter(utils.isImportType).forEach((type) => { -%>
 import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPackage %>';
 <% }); -%>
 
@@ -28,12 +28,12 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
 /** @deprecated */
 <% } -%>
 export class <%= schema.strings.entityClass %> extends <%= schema.strings.baseClass %> {
-<% if (schema.fields.filter(isAssociationField).some((field) => !isAssociationFieldGeneratable(field))) { -%>
+<% if (schema.fields.filter(utils.isAssociationField).some((field) => !isAssociationFieldGeneratable(field))) { -%>
   protected initialize() {
     super.initialize();
 
     /** associations */
-  <%_ schema.fields.filter(isAssociationField).forEach((field) => { -%>
+  <%_ schema.fields.filter(utils.isAssociationField).forEach((field) => { -%>
     <%_ if (!isGetterGeneratable(field)) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= schema.strings.baseClass %>[]) => {
@@ -61,11 +61,11 @@ export class <%= schema.strings.entityClass %> extends <%= schema.strings.baseCl
   <%_ }); -%>
   }
 <% } -%>
-<% if (schema.fields.some(isComputedSyncField)) { -%>
+<% if (schema.fields.some(utils.isComputedSyncField)) { -%>
 
   /** computed sync fields */
 <% } -%>
-<% schema.fields.filter(isComputedSyncField).forEach((field) => { -%>
+<% schema.fields.filter(utils.isComputedSyncField).forEach((field) => { -%>
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
@@ -74,11 +74,11 @@ export class <%= schema.strings.entityClass %> extends <%= schema.strings.baseCl
     throw new Error('not implemented');
   }
 <% }); -%>
-<% if (schema.fields.some(isComputedAsyncField)) { -%>
+<% if (schema.fields.some(utils.isComputedAsyncField)) { -%>
 
   /** computed async fields */
 <% } -%>
-<% schema.fields.filter(isComputedAsyncField).forEach((field) => { -%>
+<% schema.fields.filter(utils.isComputedAsyncField).forEach((field) => { -%>
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
