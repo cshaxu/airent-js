@@ -93,26 +93,26 @@ const PROJECT_PATH = process.cwd();
 const AIRENT_PATH = path.join(__dirname, "..");
 
 const CONFIG_FILE_PATH = path.join(PROJECT_PATH, "airent.config.json");
-const AIRENT_TEMPLATE_PATH = path.join(AIRENT_PATH, "templates");
+const AIRENT_RESOURCES_PATH = path.join(AIRENT_PATH, "resources");
 
 const DEFALUT_AUGMENTOR_NAMES = [
-  path.join(AIRENT_PATH, "resources", "augmentor.js"),
+  path.join(AIRENT_RESOURCES_PATH, "augmentor.js"),
 ];
 
 const DEFALUT_PROLOGUE_NAMES = [
-  path.join(AIRENT_PATH, "resources", "prologue.js"),
+  path.join(AIRENT_RESOURCES_PATH, "prologue.js"),
 ];
 
 const BASE_TEMPLATE_NAME = path.join(
-  AIRENT_TEMPLATE_PATH,
+  AIRENT_RESOURCES_PATH,
   "base-template.ts.ejs"
 );
 const TYPE_TEMPLATE_NAME = path.join(
-  AIRENT_TEMPLATE_PATH,
+  AIRENT_RESOURCES_PATH,
   "type-template.ts.ejs"
 );
 const ENTITY_TEMPLATE_NAME = path.join(
-  AIRENT_TEMPLATE_PATH,
+  AIRENT_RESOURCES_PATH,
   "entity-template.ts.ejs"
 );
 
