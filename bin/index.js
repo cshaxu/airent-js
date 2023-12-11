@@ -177,7 +177,8 @@ async function loadConfig(isVerbose) {
   const extTemplateConfigs = (extTemplateConfigsRaw ?? []).map((c) => ({
     ...c,
     name: path.join(PROJECT_PATH, c.name),
-    outputPath: c.outputPath ?? c.skippable ? entityPath : generatedOutputPath,
+    outputPath:
+      c.outputPath ?? (c.skippable ? entityPath : generatedOutputPath),
   }));
   const templates = [...defualtTemplateConfigs, ...extTemplateConfigs];
 
