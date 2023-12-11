@@ -296,7 +296,7 @@ async function generateOne(name, entityMap, templates, config, isVerbose) {
         ? ""
         : ejs.render(template.content, {
             entity,
-            entityMap,
+            template,
             config,
             utils,
           });

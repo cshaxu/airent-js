@@ -1,4 +1,4 @@
-<% getBaseBeforeLines().forEach((line) => { -%>
+<% entity.code.beforeBase.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
 import {
@@ -10,11 +10,11 @@ import {
   toArrayMap,
   toObjectMap,
 } from '<%= config.airentPackageForGenerated %>';
-<% if (!entity.internal || entity.types.some(utils.isCustomType)) { -%>
+<% if (utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
 
 /** generated */
 import {
-  <%_ if (!entity.internal) { -%>
+  <%_ if (utils.isPresentableEntity(entity)) { -%>
   <%= entity.strings.fieldRequestClass %>,
   <%= entity.strings.responseClass %>,
   <%_ } -%>
@@ -42,7 +42,7 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
 /** @deprecated */
 <% } -%>
 export class <%= entity.strings.baseClass %> extends BaseEntity<
-  <%= entity.model %><%= entity.internal ? '' : `, ${entity.strings.fieldRequestClass}, ${entity.strings.responseClass}` %>
+  <%= entity.model %><%= utils.isPresentableEntity(entity) ? `, ${entity.strings.fieldRequestClass}, ${entity.strings.responseClass}`: '' %>
 > {
 <% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
@@ -71,7 +71,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
 
     this.initialize();
   }
-<% if (!entity.internal) { -%>
+<% if (utils.isPresentableEntity(entity)) { -%>
 
   public static defaultFieldRequest: <%= entity.strings.fieldRequestClass %> = {
   <%_ entity.fields.filter(utils.isDefaultPresentableField).forEach((field) => { -%>
@@ -197,10 +197,10 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
     throw new Error('not implemented');
   }
 <% }); -%>
-<% getBaseInsideLines().forEach((line) => { -%>
+<% entity.code.insideBase.forEach((line) => { -%>
 <%= line.length > 0 ? '  ' : '' %><%- line %>
 <% }); -%>
 }
-<% getBaseAfterLines().forEach((line) => { -%>
+<% entity.code.afterBase.forEach((line) => { -%>
 <%= line.length > 0 ? '  ' : '' %><%- line %>
 <% }); -%>

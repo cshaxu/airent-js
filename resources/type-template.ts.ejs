@@ -1,4 +1,4 @@
-<% getTypeBeforeLines().forEach((line) => { -%>
+<% entity.code.beforeType.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
 <% if (!utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
@@ -31,7 +31,7 @@ export enum <%= type.name %> <%- type.strings.typeDefinition %>;
 export type <%= type.name %> = <%- type.strings.typeDefinition %>;
   <%_ }); -%>
 <% } -%>
-<% if (!entity.internal) { -%>
+<% if (utils.isPresentableEntity(entity)) { -%>
 
   <%_ if (entity.deprecated) { -%>
 /** @deprecated */
@@ -57,6 +57,6 @@ export type <%= entity.strings.responseClass %> = {
   <%_ }); -%>
 };
 <% } -%>
-<% getTypeAfterLines().forEach((line) => { -%>
+<% entity.code.afterType.forEach((line) => { -%>
 <%- line %>
 <% }); -%>

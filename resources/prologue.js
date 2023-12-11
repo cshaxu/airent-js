@@ -103,38 +103,6 @@ function getLoadConfigSourceSetter(field) /* Code */ {
 
 /* block */
 
-function getBaseBeforeLines() /* Code[] */ {
-  return [];
-}
-
-function getEntityBeforeLines() /* Code[] */ {
-  return [];
-}
-
-function getTypeBeforeLines() /* Code[] */ {
-  return [];
-}
-
-function getBaseInsideLines() /* Code[] */ {
-  return [];
-}
-
-function getEntityInsideLines() /* Code[] */ {
-  return [];
-}
-
-function getBaseAfterLines() /* Code[] */ {
-  return [];
-}
-
-function getEntityAfterLines() /* Code[] */ {
-  return [];
-}
-
-function getTypeAfterLines() /* Code[] */ {
-  return [];
-}
-
 function getSelfLoaderLines() /* Code[] */ {
   return [
     `const models = ${getSelfModelsLoader()};`,

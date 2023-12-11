@@ -44,6 +44,16 @@ function augmentEntity(entity, config) /** void */ {
     entityPackage: `${prefix}${suffix}`,
     typePackage: `${prefix}-type${suffix}`,
   };
+  entity.code = {
+    beforeBase: [],
+    insideBase: [],
+    afterBase: [],
+    beforeEntity: [],
+    insideEntity: [],
+    afterEntity: [],
+    beforeType: [],
+    afterType: [],
+  };
 }
 
 function augmentType(type, config) /* Object */ {
@@ -107,6 +117,7 @@ function augment(data) /* void */ {
   augmentEntity(entity, config);
   entity.types.forEach((type) => augmentType(type, config));
   entity.fields.forEach((field) => augmentField(field));
+  entity.isAugmented = true;
 }
 
 module.exports = { augment };

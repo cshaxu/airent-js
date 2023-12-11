@@ -1,11 +1,11 @@
-<% getEntityBeforeLines().forEach((line) => { -%>
+<% entity.code.beforeEntity.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
 import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackageForSkippable %>';
 import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
-<% if (!entity.internal || entity.fields.some(utils.isCustomType)) { -%>
+<% if (utils.isPresentableEntity(entity) || entity.fields.some(utils.isCustomType)) { -%>
 import {
-  <%_ if (!entity.internal) { -%>
+  <%_ if (utils.isPresentableEntity(entity)) { -%>
   <%= entity.strings.fieldRequestClass %>,
   <%= entity.strings.responseClass %>,
   <%_ } -%>
@@ -84,10 +84,10 @@ export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseCl
     throw new Error('not implemented');
   }
 <% }); -%>
-<% getEntityInsideLines().forEach((line) => { -%>
+<% entity.code.insideEntity.forEach((line) => { -%>
 <%= line.length > 0 ? '  ' : '' %><%- line %>
 <% }); -%>
 }
-<% getEntityAfterLines().forEach((line) => { -%>
+<% entity.code.afterEntity.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
