@@ -14,7 +14,7 @@ import {
   <%_ }); -%>
 } from './generated/<%= entity.strings.typePackage %>';
 <% } -%>
-<% entity.types.filter(utils.isEntityType).filter((type) => type.name !== entity.name).forEach((type) => { -%>
+<% entity.types.filter(utils.isEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
 import { <%= type.strings.entityClass %> } from './<%= type.strings.entityPackage %>';
 <% }); -%>
 <% entity.types.filter(utils.isImportType).forEach((type) => { -%>
@@ -25,32 +25,32 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
 /** @deprecated */
 <% } -%>
 export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseClass %> {
-<% if (entity.fields.filter(utils.isAssociationField).some((field) => !isAssociationFieldGeneratable(field))) { -%>
+<% if (entity.fields.filter(utils.isAssociationField).some((field) => !field.code.loadConfig.isGeneratable)) { -%>
   protected initialize() {
     super.initialize();
 
     /** associations */
   <%_ entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
-    <%_ if (!isGetterGeneratable(field)) { -%>
+    <%_ if (!field.code.loadConfig.isGetterGeneratable) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= entity.strings.baseClass %>[]) => {
-      <%_ getLoadConfigGetterLines(field).forEach((line) => { -%>
+      <%_ template.functions.getLoadConfigGetterLines(field).forEach((line) => { -%>
       <%- line %>
       <%_ }); -%>
     };
     <%_ } -%>
-    <%_ if (!isLoaderGeneratable(field)) { -%>
+    <%_ if (!field.code.loadConfig.isLoaderGeneratable) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.loader = async (keys: LoadKey[]) => {
-      <%_ getLoadConfigLoaderLines(field).forEach((line) => { -%>
+      <%_ template.functions.getLoadConfigLoaderLines(field).forEach((line) => { -%>
       <%- line %>
       <%_ }); -%>
     };
     <%_ } -%>
-    <%_ if (!isSetterGeneratable(field)) { -%>
+    <%_ if (!field.code.loadConfig.isSetterGeneratable) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= entity.strings.entityClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
-      <%_ getLoadConfigSetterLines(field).forEach((line) => { -%>
+      <%_ template.functions.getLoadConfigSetterLines(field).forEach((line) => { -%>
       <%- line %>
       <%_ }); -%>
     }) as (sources: <%= entity.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => Promise<void>;
@@ -67,7 +67,7 @@ export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseCl
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= getFieldGetterName(field) %>: <%= field.strings.fieldType %> {
+  public <%= field.strings.fieldGetter %>: <%= field.strings.fieldType %> {
     throw new Error('not implemented');
   }
 <% }); -%>
@@ -80,7 +80,7 @@ export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseCl
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public async <%= getFieldGetterName(field) %>: Promise<<%= field.strings.fieldType %>> {
+  public async <%= field.strings.fieldGetter %>: Promise<<%= field.strings.fieldType %>> {
     throw new Error('not implemented');
   }
 <% }); -%>

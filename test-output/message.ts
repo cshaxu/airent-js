@@ -17,22 +17,22 @@ export class MessageEntity extends MessageEntityBase {
     /** associations */
 
     this.chatLoadConfig.loader = async (keys: LoadKey[]) => {
-      const models = [/* TODO: load associated models */];
+      const models = [/* TODO: load ChatEntity models */];
       return ChatEntity.fromArray(models);
     };
 
     this.userLoadConfig.loader = async (keys: LoadKey[]) => {
-      const models = [/* TODO: load associated models */];
+      const models = [/* TODO: load UserEntity models */];
       return UserEntity.fromArray(models);
     };
 
     this.parentMessageLoadConfig.loader = async (keys: LoadKey[]) => {
-      const models = [/* TODO: load associated models */];
+      const models = [/* TODO: load MessageEntity models */];
       return MessageEntity.fromArray(models);
     };
 
     this.mentorLoadConfig.loader = async (keys: LoadKey[]) => {
-      const models = [/* TODO: load associated models */];
+      const models = [/* TODO: load UserEntity models */];
       return UserEntity.fromArray(models);
     };
   }

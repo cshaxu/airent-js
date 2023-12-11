@@ -15,7 +15,7 @@ export class UserEntity extends UserEntityBase {
     /** associations */
 
     this.chatUsersLoadConfig.loader = async (keys: LoadKey[]) => {
-      const models = [/* TODO: load associated models */];
+      const models = [/* TODO: load ChatUserEntity models */];
       return ChatUserEntity.fromArray(models);
     };
 
@@ -26,7 +26,7 @@ export class UserEntity extends UserEntityBase {
     };
 
     this.messagesLoadConfig.loader = async (keys: LoadKey[]) => {
-      const models = [/* TODO: load associated models */];
+      const models = [/* TODO: load MessageEntity models */];
       return MessageEntity.fromArray(models);
     };
 

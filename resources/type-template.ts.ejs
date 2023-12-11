@@ -2,7 +2,7 @@
 <%- line %>
 <% }); -%>
 <% if (!utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
-  <%_ entity.types.filter(utils.isPresentableEntityType).filter((type) => type.name !== entity.name).forEach((type) => { -%>
+  <%_ entity.types.filter(utils.isPresentableEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
 import { <%= type.strings.fieldRequestClass %>, <%= type.strings.responseClass %> } from './<%= type.strings.typePackage %>';
   <%_ }); -%>
   <%_ entity.types.filter(utils.isImportType).forEach((type) => { -%>

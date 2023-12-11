@@ -88,7 +88,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
       : request;
     return {
   <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
-      <%= field.name %>: <%- getFieldPresenter(field) %>,
+      <%= field.name %>: <%- field.code.presenter %>,
   <%_ }); -%>
     };
   }
@@ -110,7 +110,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
     this: EntityConstructor<<%= entity.model %>, ENTITY>,
     keys: LoadKey[]
   ): Promise<ENTITY[]> {
-    <%_ getSelfLoaderLines().forEach((line) => { -%>
+    <%_ template.functions.getSelfLoaderLines(entity).forEach((line) => { -%>
     <%- line %>
     <%_ }); -%>
   }
@@ -125,38 +125,38 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   /** @deprecated */
   <%_ } -%>
   protected <%= `${field.name}LoadConfig` %>: LoadConfig<<%= entity.strings.baseClass %>, <%= field.strings.fieldClass %>> = {
-    name: '<%= getFieldLoadConfigName(field) %>',
+    name: '<%= field.code.loadConfig.name %>',
     filter: (one: <%= entity.strings.baseClass %>) => one.<%= field.name %> === undefined,
-  <%_ if (!isGetterGeneratable(field)) { -%>
+  <%_ if (!field.code.loadConfig.isGetterGeneratable) { -%>
     // TODO: build your association key getter
   <%_ } -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>getter: (sources: <%= entity.strings.baseClass %>[]) => {
-  <%_ getLoadConfigGetterLines(field).forEach((line) => { -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>  <%- line %>
+    <%= field.code.loadConfig.isGetterGeneratable ? '' : '// ' %>getter: (sources: <%= entity.strings.baseClass %>[]) => {
+  <%_ template.functions.getLoadConfigGetterLines(field).forEach((line) => { -%>
+    <%= field.code.loadConfig.isGetterGeneratable ? '' : '// ' %>  <%- line %>
   <%_ }); -%>
-    <%= isGetterGeneratable(field) ? '' : '// ' %>},
-  <%_ if (!isLoaderGeneratable(field)) { -%>
+    <%= field.code.loadConfig.isGetterGeneratable ? '' : '// ' %>},
+  <%_ if (!field.code.loadConfig.isLoaderGeneratable) { -%>
     // TODO: build your association data loader
   <%_ } -%>
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>loader: async (keys: LoadKey[]) => {
-  <%_ getLoadConfigLoaderLines(field).forEach((line) => { -%>
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>  <%- line %>
+    <%= field.code.loadConfig.isLoaderGeneratable ? '' : '// ' %>loader: async (keys: LoadKey[]) => {
+  <%_ template.functions.getLoadConfigLoaderLines(field).forEach((line) => { -%>
+    <%= field.code.loadConfig.isLoaderGeneratable ? '' : '// ' %>  <%- line %>
   <%_ }); -%>
-    <%= isLoaderGeneratable(field) ? '' : '// ' %>},
-  <%_ if (!isSetterGeneratable(field)) { -%>
+    <%= field.code.loadConfig.isLoaderGeneratable ? '' : '// ' %>},
+  <%_ if (!field.code.loadConfig.isSetterGeneratable) { -%>
     // TODO: build your association value setter
   <%_ } -%>
-    <%= isSetterGeneratable(field) ? '' : '// ' %>setter: (sources: <%= entity.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
-  <%_ getLoadConfigSetterLines(field).forEach((line) => { -%>
-    <%= isSetterGeneratable(field) ? '' : '// ' %>  <%- line %>
+    <%= field.code.loadConfig.isSetterGeneratable ? '' : '// ' %>setter: (sources: <%= entity.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
+  <%_ template.functions.getLoadConfigSetterLines(field).forEach((line) => { -%>
+    <%= field.code.loadConfig.isSetterGeneratable ? '' : '// ' %>  <%- line %>
   <%_ }); -%>
-    <%= isSetterGeneratable(field) ? '' : '// ' %>},
+    <%= field.code.loadConfig.isSetterGeneratable ? '' : '// ' %>},
   };
 
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public async <%= getFieldGetterName(field) %>: Promise<<%= field.strings.fieldType %>> {
+  public async <%= field.strings.fieldGetter %>: Promise<<%= field.strings.fieldType %>> {
     if (this.<%= field.name %> !== undefined) {
       return this.<%= field.name %>;
     }
@@ -180,7 +180,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= getFieldGetterName(field) %>: <%= field.strings.fieldType %> {
+  public <%= field.strings.fieldGetter %>: <%= field.strings.fieldType %> {
     throw new Error('not implemented');
   }
 <% }); -%>
@@ -193,7 +193,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public async <%= getFieldGetterName(field) %>: Promise<<%= field.strings.fieldType %>> {
+  public async <%= field.strings.fieldGetter %>: Promise<<%= field.strings.fieldType %>> {
     throw new Error('not implemented');
   }
 <% }); -%>

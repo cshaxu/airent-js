@@ -85,7 +85,6 @@ async function configure() {
  *  @property {string} schemaPath
  *  @property {string} entityPath
  *  @property {?string[]} [augmentors]
- *  @property {?string[]} [prologues]
  *  @property {?Template[]} [templates]
  */
 
@@ -97,10 +96,6 @@ const AIRENT_RESOURCES_PATH = path.join(AIRENT_PATH, "resources");
 
 const DEFALUT_AUGMENTOR_NAMES = [
   path.join(AIRENT_RESOURCES_PATH, "augmentor.js"),
-];
-
-const DEFALUT_PROLOGUE_NAMES = [
-  path.join(AIRENT_RESOURCES_PATH, "prologue.js"),
 ];
 
 const BASE_TEMPLATE_NAME = path.join(
@@ -128,7 +123,6 @@ async function loadConfig(isVerbose) {
     entityPath,
     airentPackage: airentPackageRaw,
     augmentors: extAugmentorNamesRaw,
-    prologues: extPrologueNamesRaw,
     templates: extTemplateConfigsRaw,
   } = config;
   const airentPackageForSkippable = airentPackageRaw ?? "airent";
@@ -143,27 +137,24 @@ async function loadConfig(isVerbose) {
   );
   const augmentors = [...DEFALUT_AUGMENTOR_NAMES, ...externalAugmentorNames];
 
-  // configure prologues
-  const extPrologueNames = (extPrologueNamesRaw ?? []).map((n) =>
-    path.join(PROJECT_PATH, n)
-  );
-  const prologues = [...DEFALUT_PROLOGUE_NAMES, ...extPrologueNames];
-
   // configure templates
   const generatedOutputPath = path.join(entityPath, "generated");
   const baseTemplateConfig = {
+    _type: "base",
     name: BASE_TEMPLATE_NAME,
     suffix: "base",
     skippable: false,
     outputPath: generatedOutputPath,
   };
   const typeTemplateConfig = {
+    _type: "type",
     name: TYPE_TEMPLATE_NAME,
     suffix: "type",
     skippable: false,
     outputPath: generatedOutputPath,
   };
   const entityTemplateConfig = {
+    _type: "entity",
     name: ENTITY_TEMPLATE_NAME,
     suffix: null,
     skippable: true,
@@ -190,7 +181,6 @@ async function loadConfig(isVerbose) {
     airentPackageForSkippable,
     airentPackageForGenerated,
     augmentors,
-    prologues,
     templates,
   };
   if (isVerbose) {
@@ -199,26 +189,13 @@ async function loadConfig(isVerbose) {
   return loadedConfig;
 }
 
-async function loadPrologues(prologues, isVerbose) {
-  const functions = prologues.map((n) => () => {
-    if (isVerbose) {
-      console.log(`[AIRENT/INFO] Loading prologue ${n} ...`);
-    }
-    return fs.promises.readFile(n, "utf8");
-  });
-  return await sequential(functions);
-}
-
 async function loadTemplates(config, isVerbose) {
-  const prologues = await loadPrologues(config.prologues, isVerbose);
-  const prologue = "<% " + prologues.join("\n") + "\n-%>\n";
-
   const { templates: templateConfigs } = config;
   const functions = templateConfigs.map((c) => () => {
     if (isVerbose) {
       console.log(`[AIRENT/INFO] Loading template ${c.name} ...`);
     }
-    return fs.promises.readFile(c.name, "utf8").then((t) => prologue + t);
+    return fs.promises.readFile(c.name, "utf8");
   });
   const tepmlateContents = await sequential(functions);
   return templateConfigs.map((c, i) => ({
@@ -253,7 +230,6 @@ async function loadSchema(schemaFilePath, isVerbose) {
     skipSelfLoader: entity.skipSelfLoader ?? false,
     types: entity.types ?? [],
     fields: entity.fields ?? [],
-    isAugmented: false,
   };
 }
 
@@ -265,17 +241,12 @@ async function loadSchemas(schemaPath, isVerbose) {
   return await sequential(functions);
 }
 
-function augment(augmentorName, entityMap, config, isVerbose) {
+function augment(augmentorName, entityMap, templates, config, isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Augmenting with ${augmentorName} ...`);
   }
   const augmentor = require(augmentorName);
-  Object.values(entityMap).map((entity) => {
-    if (isVerbose) {
-      console.log(`[AIRENT/INFO] - ${entity.name}`);
-    }
-    return augmentor.augment({ entity, entityMap, config });
-  });
+  return augmentor.augment({ entityMap, templates, config });
 }
 
 async function generateOne(name, entityMap, templates, config, isVerbose) {
@@ -339,7 +310,7 @@ async function generate(isVerbose) {
 
   // perform augmentation
   config.augmentors.map((augmentorName) =>
-    augment(augmentorName, entityMap, config, isVerbose)
+    augment(augmentorName, entityMap, templates, config, isVerbose)
   );
 
   // create the output folders if not exist

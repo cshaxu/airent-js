@@ -91,7 +91,7 @@ export class ChatUserEntityBase extends BaseEntity<
     this: EntityConstructor<ChatUserModel, ENTITY>,
     keys: LoadKey[]
   ): Promise<ENTITY[]> {
-    const models = [/* TODO: load entity models */];
+    const models = [/* TODO: load models for ChatUserEntity */];
     return (this as any).fromArray(models);
   }
 
@@ -108,7 +108,7 @@ export class ChatUserEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const models = [/* TODO: load associated models */];
+    //   const models = [/* TODO: load ChatEntity models */];
     //   return ChatEntity.fromArray(models);
     // },
     setter: (sources: ChatUserEntityBase[], targets: ChatEntity[]) => {
@@ -140,7 +140,7 @@ export class ChatUserEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const models = [/* TODO: load associated models */];
+    //   const models = [/* TODO: load UserEntity models */];
     //   return UserEntity.fromArray(models);
     // },
     setter: (sources: ChatUserEntityBase[], targets: UserEntity[]) => {
