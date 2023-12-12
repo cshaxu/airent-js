@@ -246,7 +246,7 @@ function augment(augmentorName, entityMap, templates, config, isVerbose) {
     console.log(`[AIRENT/INFO] Augmenting with ${augmentorName} ...`);
   }
   const augmentor = require(augmentorName);
-  return augmentor.augment({ entityMap, templates, config });
+  return augmentor.augment({ entityMap, templates, config }, isVerbose);
 }
 
 async function generateOne(name, entityMap, templates, config, isVerbose) {
