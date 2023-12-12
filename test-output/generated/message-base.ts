@@ -109,7 +109,7 @@ export class MessageEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const models = [/* TODO: load associated models */];
+    //   const models = [/* TODO: load ChatEntity models */];
     //   return ChatEntity.fromArray(models);
     // },
     setter: (sources: MessageEntityBase[], targets: ChatEntity[]) => {
@@ -142,7 +142,7 @@ export class MessageEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const models = [/* TODO: load associated models */];
+    //   const models = [/* TODO: load UserEntity models */];
     //   return UserEntity.fromArray(models);
     // },
     setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
@@ -175,7 +175,7 @@ export class MessageEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const models = [/* TODO: load associated models */];
+    //   const models = [/* TODO: load MessageEntity models */];
     //   return MessageEntity.fromArray(models);
     // },
     setter: (sources: MessageEntityBase[], targets: MessageEntity[]) => {
@@ -208,7 +208,7 @@ export class MessageEntityBase extends BaseEntity<
     },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
-    //   const models = [/* TODO: load associated models */];
+    //   const models = [/* TODO: load UserEntity models */];
     //   return UserEntity.fromArray(models);
     // },
     setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {

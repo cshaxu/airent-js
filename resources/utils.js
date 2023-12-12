@@ -67,6 +67,10 @@ function toPrimitiveTypeName(string) /** string */ {
   return string.split("|")[0].split("[]")[0].trim();
 }
 
+function getModuleSuffix(config) /* string */ {
+  return config.isModule ? ".js" : "";
+}
+
 /**********/
 /* QUERY  */
 /**********/
@@ -200,6 +204,7 @@ module.exports = {
   toSnakeCase,
   toTitleCase,
   toPrimitiveTypeName,
+  getModuleSuffix,
   queryField,
   getSourceFields,
   getTargetFields,

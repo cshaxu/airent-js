@@ -1,6 +1,90 @@
 const utils = require("./utils.js");
 
-function buildTypes(entity, entityMap) /* void */ {
+// build templates
+
+function getSelfLoaderLines(entity) /* Code[] */ {
+  const { selfModelsLoader, selfLoaderLines } = entity.code;
+  if (selfLoaderLines !== undefined) {
+    return selfLoaderLines;
+  }
+  return [
+    `const models = ${selfModelsLoader};`,
+    "return (this as any).fromArray(models);",
+  ];
+}
+
+function getLoadConfigGetterLines(field) /* Code[] */ {
+  const { getterLines } = field.code.loadConfig;
+  if (getterLines !== undefined) {
+    return getterLines;
+  }
+  const sourceFields = utils.getSourceFields(field);
+  const targetFields = utils.getTargetFields(field);
+  // reject nullable sourceField whose targetField is required
+  const filters = sourceFields
+    .filter(
+      (sf, i) =>
+        utils.isNullableField(sf) && !utils.isNullableField(targetFields[i])
+    )
+    .map((sf) => `  .filter((one) => one.${sf.strings.fieldGetter} !== null)`);
+  const mappedFields = sourceFields.map((sf, i) => {
+    const rawTargetFieldName = targetFields[i].aliasOf ?? targetFields[i].name;
+    return `    ${rawTargetFieldName}: one.${sf.strings.fieldGetter},`;
+  });
+  return [
+    "return sources",
+    ...filters,
+    "  .map((one) => ({",
+    ...mappedFields,
+    "  }));",
+  ];
+}
+
+function getLoadConfigLoaderLines(field) /* Code[] */ {
+  const { targetModelsLoader, loaderLines } = field.code.loadConfig;
+  if (loaderLines !== undefined) {
+    return loaderLines;
+  }
+  if (utils.isEntityTypeField(field)) {
+    const { fieldClass } = field.strings;
+    return [
+      `const models = ${targetModelsLoader};`,
+      `return ${fieldClass}.fromArray(models);`,
+    ];
+  } else {
+    return [`return ${targetModelsLoader};`];
+  }
+}
+
+function getLoadConfigSetterLines(field) /* Code[] */ {
+  const { targetMapper, sourceSetter, setterLines } = field.code.loadConfig;
+  if (setterLines !== undefined) {
+    return setterLines;
+  }
+  return [
+    `const map = ${targetMapper};`,
+    `sources.forEach((one) => (one.${field.name} = ${sourceSetter}));`,
+  ];
+}
+
+function augmentTemplates(templates) /* void */ {
+  const entityTemplate = templates.find((t) => t._type === "entity");
+  entityTemplate.functions = {
+    getLoadConfigGetterLines,
+    getLoadConfigLoaderLines,
+    getLoadConfigSetterLines,
+  };
+  const baseTemplate = templates.find((t) => t._type === "base");
+  baseTemplate.functions = {
+    getSelfLoaderLines,
+    ...entityTemplate.functions,
+  };
+}
+
+// augment entity - add metadata
+
+function buildTypes(entity) /* void */ {
+  const { _parent: entityMap } = entity;
   const allEntityNameSet = new Set(Object.keys(entityMap));
   const selectedEntityNames = entity.fields
     .map((field) => field.type)
@@ -25,16 +109,20 @@ function buildFields(entity) /* void */ {
   }));
 }
 
-function getModuleSuffix(config) /* string */ {
-  return config.isModule ? ".js" : "";
+function addMetadata(entity, entityMap) /* void */ {
+  entity._parent = entityMap;
+  entity.types = buildTypes(entity);
+  entity.fields = buildFields(entity);
 }
 
-function augmentEntity(entity, config) /** void */ {
+// augment entity - add strings
+
+function buildEntityStrings(entity, config) /* Object */ {
   const { name } = entity;
   const entName = utils.toTitleCase(name);
   const prefix = utils.toKababCase(name);
-  const suffix = getModuleSuffix(config);
-  entity.strings = {
+  const suffix = utils.getModuleSuffix(config);
+  return {
     loaderName: `${utils.toCamelCase(entName)}Loader`,
     baseClass: `${entName}EntityBase`,
     entityClass: `${entName}Entity`,
@@ -46,12 +134,12 @@ function augmentEntity(entity, config) /** void */ {
   };
 }
 
-function augmentType(type, config) /* Object */ {
+function buildTypeStrings(type, config) /* Object */ {
   if (type._entity !== undefined) {
     const entName = utils.toTitleCase(type.name);
     const prefix = `${utils.toKababCase(entName)}`;
-    const suffix = getModuleSuffix(config);
-    type.strings = {
+    const suffix = utils.getModuleSuffix(config);
+    return {
       entityClass: `${entName}Entity`,
       entityPackage: `${prefix}${suffix}`,
       fieldRequestClass: `${entName}FieldRequest`,
@@ -61,26 +149,32 @@ function augmentType(type, config) /* Object */ {
   } else if (utils.isImportType(type)) {
     const aliasSuffix = type.aliasOf ? ` as ${type.name}` : "";
     const externalClass = `${type.aliasOf ?? type.name}${aliasSuffix}`;
-    type.strings = { externalClass, externalPackage: type.import };
+    return { externalClass, externalPackage: type.import };
   } else if (utils.isDefineType(type)) {
-    type.strings = { typeDefinition: type.define };
+    return { typeDefinition: type.define };
   } else if (utils.isEnumType(type)) {
-    type.strings = { typeDefinition: type.enum };
+    return { typeDefinition: type.enum };
   }
 }
 
-function augmentField(field) /* Object */ {
+function buildFieldStrings(field) /* Object */ {
   const typeName = utils.toPrimitiveTypeName(field.type);
-  if (field._type?._entity !== undefined) {
+  const isEntityTypeField = field._type?._entity !== undefined;
+  const fieldGetter = utils.isPrimitiveField(field)
+    ? field.name
+    : `get${utils.toTitleCase(field.name)}()`;
+
+  if (isEntityTypeField) {
     const entName = utils.toTitleCase(typeName);
     const entityClass = `${entName}Entity`;
     const responseClass = `${entName}Response`;
 
-    field.strings = {
+    return {
       fieldClass: entityClass,
       fieldType: field.type.replace(typeName, entityClass),
       fieldRequestType: `${entName}FieldRequest | boolean`,
       fieldResponseType: field.type.replace(typeName, responseClass),
+      fieldGetter,
     };
   } else {
     const fieldModelName = field.aliasOf ?? field.name;
@@ -89,24 +183,154 @@ function augmentField(field) /* Object */ {
       ? `model.${fieldModelName}${fieldAliasSuffix}`
       : undefined;
 
-    field.strings = {
+    return {
       fieldInitializer,
       fieldClass: typeName,
       fieldType: field.type,
       fieldRequestType: "boolean",
       fieldResponseType: field.type,
+      fieldGetter,
     };
   }
 }
 
+function addStrings(entity, config) /* void */ {
+  entity.strings = buildEntityStrings(entity, config);
+  entity.types.forEach((t) => (t.strings = buildTypeStrings(t, config)));
+  entity.fields.forEach((f) => (f.strings = buildFieldStrings(f)));
+}
+
+// augment entity - add code
+
+function buildEntityCode(entity) /* Object */ {
+  return {
+    beforeBase: [],
+    insideBase: [],
+    afterBase: [],
+    beforeEntity: [],
+    insideEntity: [],
+    afterEntity: [],
+    beforeType: [],
+    afterType: [],
+    selfModelsLoader: `[/* TODO: load models for ${entity.strings.entityClass} */]`,
+    selfLoaderLines: undefined,
+  };
+}
+
+function buildFieldPresenter(field) /* Code */ {
+  const { name, strings } = field;
+  const { fieldGetter } = strings;
+  const presentCondition = `fieldRequest?.${name}`;
+  let presenter = utils.isSyncField(field)
+    ? `this.${fieldGetter}`
+    : `await this.${fieldGetter}`;
+  if (utils.isEntityTypeField(field)) {
+    if (utils.isArrayField(field)) {
+      presenter += `.then((a) => Promise.all(a.map((one) => one.present(${presentCondition}))))`;
+    } else if (utils.isNullableField(field)) {
+      presenter += `.then((one) => one === null ? Promise.resolve(null) : one.present(${presentCondition}))`;
+    } else {
+      presenter += `.then((one) => one.present(${presentCondition}))`;
+    }
+  }
+  return `${presentCondition} ? ${presenter} : undefined`;
+}
+
+function buildFieldAssociationKey(keyFields, keyType) /* Code */ {
+  if (keyFields.length === 0) {
+    return `'TODO: map your ${keyType} entity to key'`;
+  }
+  const jointKey = keyFields
+    .map((kf) => `\${one.${kf.strings.fieldGetter}}`)
+    .join("*");
+  return "`" + jointKey + "`";
+}
+
+function buildFieldLoadConfigTargetMapper(field) /* Code */ {
+  const mapBuilder = utils.isArrayField(field) ? "toArrayMap" : "toObjectMap";
+  const targetFields = utils.getTargetFields(field);
+  const targetKey = buildFieldAssociationKey(targetFields, "target");
+  return `${mapBuilder}(targets, (one) => ${targetKey}, (one) => one)`;
+}
+
+function buildFieldLoadConfigSourceSetter(field) /* Code */ {
+  const sourceFields = utils.getSourceFields(field);
+  const sourceKey = buildFieldAssociationKey(sourceFields, "source");
+  const fallback = utils.isArrayField(field)
+    ? " ?? []"
+    : utils.isNullableField(field)
+    ? " ?? null"
+    : "!";
+  return `map.get(${sourceKey})${fallback}`;
+}
+
+function buildFieldLoadConfig(field) /* Object */ {
+  const loadConfig = {};
+  const sourceKeySize = utils.getSourceKeySize(field);
+  const targetKeySize = utils.getTargetKeySize(field);
+  loadConfig.isGetterGeneratable =
+    sourceKeySize > 0 && sourceKeySize === targetKeySize;
+  loadConfig.isLoaderGeneratable = false;
+  loadConfig.isSetterGeneratable =
+    sourceKeySize > 0 && sourceKeySize === targetKeySize;
+  loadConfig.isGeneratable =
+    utils.isAssociationField(field) &&
+    loadConfig.isGetterGeneratable &&
+    loadConfig.isLoaderGeneratable &&
+    loadConfig.isSetterGeneratable;
+  loadConfig.name = `${field._parent.strings.entityClass}.${field.name}`;
+  // for loadConfig.getter
+  loadConfig.getterLines = undefined;
+  // for loadConfig.loader
+  loadConfig.targetModelsLoader = `[/* TODO: load ${
+    field._type?._entity?.strings.entityClass ?? "associated"
+  } models */]`;
+  loadConfig.loaderLines = undefined;
+  // for loadConfg.setter
+  loadConfig.targetMapper = buildFieldLoadConfigTargetMapper(field);
+  loadConfig.sourceSetter = buildFieldLoadConfigSourceSetter(field);
+  loadConfig.setterLines = undefined;
+  return loadConfig;
+}
+
+function buildFieldCode(field) /* Object */ {
+  const code = {};
+
+  // bulid code - field presenter
+  code.presenter = buildFieldPresenter(field);
+
+  // build code - field association
+  if (utils.isAssociationField(field)) {
+    code.loadConfig = buildFieldLoadConfig(field);
+  }
+  return code;
+}
+
+function addCode(entity) /* void */ {
+  entity.code = buildEntityCode(entity);
+  entity.fields.forEach((f) => (f.code = buildFieldCode(f)));
+}
+
+function augmentEntities(entityMap, config) /* void */ {
+  const entityNames = Object.keys(entityMap).sort();
+  const entities = entityNames.map((n) => entityMap[n]);
+
+  // build entities
+  entities.forEach((e) => addMetadata(e, entityMap));
+
+  // augment entities - add strings
+  entities.forEach((e) => addStrings(e, config));
+
+  // augment entities - add code
+  entities.forEach((e) => addCode(e, config));
+}
+
 function augment(data) /* void */ {
-  const { entity, entityMap, config } = data;
-  entity._parent = entityMap;
-  entity.types = buildTypes(entity, entityMap);
-  entity.fields = buildFields(entity);
-  augmentEntity(entity, config);
-  entity.types.forEach((type) => augmentType(type, config));
-  entity.fields.forEach((field) => augmentField(field));
+  const { config, templates, entityMap } = data;
+
+  augmentTemplates(templates);
+
+  augmentEntities(entityMap, config);
 }
 
 module.exports = { augment };
