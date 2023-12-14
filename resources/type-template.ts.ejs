@@ -1,7 +1,7 @@
 <% entity.code.beforeType.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
-<% if (!utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
+<% if (utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
   <%_ entity.types.filter(utils.isPresentableEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
 import { <%= type.strings.fieldRequestClass %>, <%= type.strings.responseClass %> } from './<%= type.strings.typePackage %>';
   <%_ }); -%>
