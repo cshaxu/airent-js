@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "airentPackage": "../src",
+  "airentPackage": "src",
   "schemaPath": "test-schemas",
   "entityPath": "test-output"
 }

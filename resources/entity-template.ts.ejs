@@ -1,7 +1,7 @@
 <% entity.code.beforeEntity.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
-import { LoadKey, toArrayMap, toObjectMap } from '<%= config.airentPackageForSkippable %>';
+import { LoadKey, toArrayMap, toObjectMap } from '<%= airentPackage %>';
 import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
 <% if (utils.isPresentableEntity(entity) || entity.fields.some(utils.isCustomType)) { -%>
 import {

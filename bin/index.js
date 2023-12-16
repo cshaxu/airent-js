@@ -75,7 +75,6 @@ async function configure() {
 /** @typedef {Object} Template
  *  @property {string} name
  *  @property {string} outputPath
- *  @property {string | null} suffix
  *  @property {boolean} skippable
  */
 
@@ -89,15 +88,13 @@ async function configure() {
  */
 
 const PROJECT_PATH = process.cwd();
-const AIRENT_PATH = path.join(__dirname, "..");
-
 const CONFIG_FILE_PATH = path.join(PROJECT_PATH, "airent.config.json");
-const AIRENT_RESOURCES_PATH = path.join(AIRENT_PATH, "resources");
 
+const AIRENT_PATH = path.join(__dirname, "..");
+const AIRENT_RESOURCES_PATH = path.join(AIRENT_PATH, "resources");
 const DEFALUT_AUGMENTOR_NAMES = [
   path.join(AIRENT_RESOURCES_PATH, "augmentor.js"),
 ];
-
 const BASE_TEMPLATE_NAME = path.join(
   AIRENT_RESOURCES_PATH,
   "base-template.ts.ejs"
@@ -110,6 +107,40 @@ const ENTITY_TEMPLATE_NAME = path.join(
   AIRENT_RESOURCES_PATH,
   "entity-template.ts.ejs"
 );
+const DEFAULT_TEMPLATE_NAMES = [
+  BASE_TEMPLATE_NAME,
+  TYPE_TEMPLATE_NAME,
+  ENTITY_TEMPLATE_NAME,
+];
+
+const BASE_TEMPLATE_CONFIG = {
+  name: BASE_TEMPLATE_NAME,
+  skippable: false,
+  outputPath: path.join(
+    "{entityPath}",
+    "generated",
+    "{kababEntityName}-base.ts"
+  ),
+};
+const TYPE_TEMPLATE_CONFIG = {
+  name: TYPE_TEMPLATE_NAME,
+  skippable: false,
+  outputPath: path.join(
+    "{entityPath}",
+    "generated",
+    "{kababEntityName}-type.ts"
+  ),
+};
+const ENTITY_TEMPLATE_CONFIG = {
+  name: ENTITY_TEMPLATE_NAME,
+  skippable: true,
+  outputPath: path.join("{entityPath}", "{kababEntityName}.ts"),
+};
+const DEFAULT_TEMPLATE_CONFIGS = [
+  BASE_TEMPLATE_CONFIG,
+  TYPE_TEMPLATE_CONFIG,
+  ENTITY_TEMPLATE_CONFIG,
+];
 
 async function loadConfig(isVerbose) {
   if (isVerbose) {
@@ -119,67 +150,24 @@ async function loadConfig(isVerbose) {
   const config = JSON.parse(configContent);
   const {
     type,
-    schemaPath,
-    entityPath,
     airentPackage: airentPackageRaw,
-    augmentors: extAugmentorNamesRaw,
-    templates: extTemplateConfigsRaw,
+    augmentors: extAugmentorNames,
+    templates: extTemplateConfigs,
   } = config;
-  const airentPackageForSkippable = airentPackageRaw ?? "airent";
-  const airentPackageForGenerated =
-    airentPackageForSkippable === "airent"
-      ? "airent"
-      : path.join("..", airentPackageForSkippable).replace(/\\/g, "/");
 
   // configure augmentors
-  const externalAugmentorNames = (extAugmentorNamesRaw ?? []).map((n) =>
-    path.join(PROJECT_PATH, n)
-  );
-  const augmentors = [...DEFALUT_AUGMENTOR_NAMES, ...externalAugmentorNames];
+  const augmentors = [...DEFALUT_AUGMENTOR_NAMES, ...(extAugmentorNames ?? [])];
 
   // configure templates
-  const generatedOutputPath = path.join(entityPath, "generated");
-  const baseTemplateConfig = {
-    _type: "base",
-    name: BASE_TEMPLATE_NAME,
-    suffix: "base",
-    skippable: false,
-    outputPath: generatedOutputPath,
-  };
-  const typeTemplateConfig = {
-    _type: "type",
-    name: TYPE_TEMPLATE_NAME,
-    suffix: "type",
-    skippable: false,
-    outputPath: generatedOutputPath,
-  };
-  const entityTemplateConfig = {
-    _type: "entity",
-    name: ENTITY_TEMPLATE_NAME,
-    suffix: null,
-    skippable: true,
-    outputPath: entityPath,
-  };
-  const defualtTemplateConfigs = [
-    baseTemplateConfig,
-    typeTemplateConfig,
-    entityTemplateConfig,
+  const templates = [
+    ...DEFAULT_TEMPLATE_CONFIGS,
+    ...(extTemplateConfigs ?? []),
   ];
-  const extTemplateConfigs = (extTemplateConfigsRaw ?? []).map((c) => ({
-    ...c,
-    name: path.join(PROJECT_PATH, c.name),
-    outputPath:
-      c.outputPath ?? (c.skippable ? entityPath : generatedOutputPath),
-  }));
-  const templates = [...defualtTemplateConfigs, ...extTemplateConfigs];
 
   const loadedConfig = {
     ...config,
     isModule: type === "module",
-    schemaPath: path.join(PROJECT_PATH, schemaPath),
-    entityPath: path.join(PROJECT_PATH, entityPath),
-    airentPackageForSkippable,
-    airentPackageForGenerated,
+    airentPackage: airentPackageRaw ?? "airent",
     augmentors,
     templates,
   };
@@ -192,10 +180,13 @@ async function loadConfig(isVerbose) {
 async function loadTemplates(config, isVerbose) {
   const { templates: templateConfigs } = config;
   const functions = templateConfigs.map((c) => () => {
+    const templateFilePath = DEFAULT_TEMPLATE_NAMES.includes(c.name)
+      ? c.name
+      : path.join(PROJECT_PATH, c.name);
     if (isVerbose) {
-      console.log(`[AIRENT/INFO] Loading template ${c.name} ...`);
+      console.log(`[AIRENT/INFO] Loading template ${templateFilePath} ...`);
     }
-    return fs.promises.readFile(c.name, "utf8");
+    return fs.promises.readFile(templateFilePath, "utf8");
   });
   const tepmlateContents = await sequential(functions);
   return templateConfigs.map((c, i) => ({
@@ -204,9 +195,10 @@ async function loadTemplates(config, isVerbose) {
   }));
 }
 
-async function getSchemaFilePaths(schemaPath) {
+async function getAbsoluteSchemaFilePaths(schemaPath) {
+  const absoluteSchemaPath = path.join(PROJECT_PATH, schemaPath);
   // Read all files in the YAML directory
-  const allFileNames = await fs.promises.readdir(schemaPath);
+  const allFileNames = await fs.promises.readdir(absoluteSchemaPath);
 
   // Filter only YAML files (with .yml or .yaml extension)
   return allFileNames
@@ -214,14 +206,17 @@ async function getSchemaFilePaths(schemaPath) {
       const extname = path.extname(fileName).toLowerCase();
       return extname === ".yml" || extname === ".yaml";
     })
-    .map((fileName) => path.join(schemaPath, fileName));
+    .map((fileName) => path.join(absoluteSchemaPath, fileName));
 }
 
-async function loadSchema(schemaFilePath, isVerbose) {
+async function loadSchema(absoluteSchemaFilePath, isVerbose) {
   if (isVerbose) {
-    console.log(`[AIRENT/INFO] Loading schema ${schemaFilePath} ...`);
+    console.log(`[AIRENT/INFO] Loading schema ${absoluteSchemaFilePath} ...`);
   }
-  const schemaContent = await fs.promises.readFile(schemaFilePath, "utf8");
+  const schemaContent = await fs.promises.readFile(
+    absoluteSchemaFilePath,
+    "utf8"
+  );
   const entity = yaml.load(schemaContent);
   return {
     ...entity,
@@ -234,60 +229,77 @@ async function loadSchema(schemaFilePath, isVerbose) {
 }
 
 async function loadSchemas(schemaPath, isVerbose) {
-  const schemaFilePaths = await getSchemaFilePaths(schemaPath);
-  const functions = schemaFilePaths
+  const absoluteSchemaFilePaths = await getAbsoluteSchemaFilePaths(schemaPath);
+  const functions = absoluteSchemaFilePaths
     .sort()
-    .map((path) => () => loadSchema(path, isVerbose));
+    .map((p) => () => loadSchema(p, isVerbose));
   return await sequential(functions);
 }
 
 function augment(augmentorName, entityMap, templates, config, isVerbose) {
+  const isDefaultAugmentor = DEFALUT_AUGMENTOR_NAMES.includes(augmentorName);
+  const absoluteAugmentorFilePath = isDefaultAugmentor
+    ? augmentorName
+    : path.join(PROJECT_PATH, augmentorName);
   if (isVerbose) {
-    console.log(`[AIRENT/INFO] Augmenting with ${augmentorName} ...`);
+    console.log(
+      `[AIRENT/INFO] Augmenting with ${absoluteAugmentorFilePath} ...`
+    );
   }
-  const augmentor = require(augmentorName);
-  return augmentor.augment({ entityMap, templates, config }, isVerbose);
+  const augmentor = require(absoluteAugmentorFilePath);
+  return augmentor.augment({ entityMap, templates, config, utils }, isVerbose);
+}
+
+function buildAbsoluteOutputPath(entity, template, config) {
+  const { entityPath } = config;
+  const { name } = entity;
+  const kababEntityName = utils.toKababCase(name);
+  const augmentedOutputPath = (entity.outputs ?? {})[template.name];
+  const configOutputPath = (template.outputPath ?? "")
+    .replaceAll("{entityPath}", entityPath)
+    .replaceAll("{kababEntityName}", kababEntityName);
+  return path.join(PROJECT_PATH, augmentedOutputPath ?? configOutputPath);
 }
 
 async function generateOne(name, entityMap, templates, config, isVerbose) {
-  const entity = entityMap[name];
-
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Generating ${name} ...`);
   }
-
-  const fileNamePrefix = utils.toKababCase(name);
+  const { airentPackage: airentPackageRaw } = config;
+  const entity = entityMap[name];
   for (const template of templates) {
-    const fileName =
-      [fileNamePrefix, template.suffix].filter((s) => s?.length).join("-") +
-      ".ts";
-    const filePath = path.join(template.outputPath, fileName);
+    const absoluteFilePath = buildAbsoluteOutputPath(entity, template, config);
+    const airentPackage =
+      airentPackageRaw === "airent"
+        ? "airent"
+        : path
+            .relative(
+              path.dirname(absoluteFilePath),
+              path.join(PROJECT_PATH, airentPackageRaw)
+            )
+            .replaceAll("\\", "/");
     const fileContent =
-      template.skippable && fs.existsSync(filePath)
+      template.skippable && fs.existsSync(absoluteFilePath)
         ? ""
         : ejs.render(template.content, {
             entity,
             template,
             config,
             utils,
+            airentPackage,
           });
     if (fileContent.length === 0) {
       if (isVerbose) {
-        console.log(
-          `[AIRENT/INFO] - Skipped ${
-            template.suffix ?? "entity"
-          } class '${filePath}'`
-        );
+        console.log(`[AIRENT/INFO] - Skipped '${absoluteFilePath}'`);
       }
       continue;
     } else {
-      await fs.promises.writeFile(filePath, fileContent);
+      // create the output folders if not exist
+      const folderPath = path.dirname(absoluteFilePath);
+      await fs.promises.mkdir(folderPath, { recursive: true });
+      await fs.promises.writeFile(absoluteFilePath, fileContent);
       if (isVerbose) {
-        console.log(
-          `[AIRENT/INFO] - Generated ${
-            template.suffix ?? "entity"
-          } class '${filePath}'`
-        );
+        console.log(`[AIRENT/INFO] - Generated '${absoluteFilePath}'`);
       }
     }
   }
@@ -312,15 +324,6 @@ async function generate(isVerbose) {
   config.augmentors.map((augmentorName) =>
     augment(augmentorName, entityMap, templates, config, isVerbose)
   );
-
-  // create the output folders if not exist
-  const folderNames = Array.from(
-    new Set(templates.map((t) => t.outputPath))
-  ).sort();
-  const createFolderPromises = folderNames.map((path) =>
-    fs.promises.mkdir(path, { recursive: true })
-  );
-  await Promise.all(createFolderPromises);
 
   // loop through each YAML file and generate code
   const functions = entityNames.map(
