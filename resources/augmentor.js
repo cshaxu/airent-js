@@ -68,13 +68,17 @@ function getLoadConfigSetterLines(field) /* Code[] */ {
 }
 
 function augmentTemplates(templates) /* void */ {
-  const entityTemplate = templates.find((t) => t._type === "entity");
+  const entityTemplate = templates.find((t) =>
+    t.name.includes("entity-template.ts.ejs")
+  );
   entityTemplate.functions = {
     getLoadConfigGetterLines,
     getLoadConfigLoaderLines,
     getLoadConfigSetterLines,
   };
-  const baseTemplate = templates.find((t) => t._type === "base");
+  const baseTemplate = templates.find((t) =>
+    t.name.includes("base-template.ts.ejs")
+  );
   baseTemplate.functions = {
     getSelfLoaderLines,
     ...entityTemplate.functions,
