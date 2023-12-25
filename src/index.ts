@@ -30,7 +30,7 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
 
   protected initialize(): void {}
 
-  public async present(_request?: FIELD_REQUEST | boolean): Promise<RESPONSE> {
+  public async present(_fieldRequest: FIELD_REQUEST): Promise<RESPONSE> {
     throw new Error("not implemented");
   }
 
@@ -97,8 +97,8 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     FIELD_REQUEST,
     RESPONSE,
     ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>
-  >(entities: ENTITY[], request?: FIELD_REQUEST | boolean): Promise<any[]> {
-    return await Promise.all(entities.map((one) => one.present(request)));
+  >(entities: ENTITY[], fieldRequest: FIELD_REQUEST): Promise<any[]> {
+    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
   }
 }
 

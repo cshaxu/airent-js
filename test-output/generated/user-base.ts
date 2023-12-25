@@ -55,34 +55,18 @@ export class UserEntityBase extends BaseEntity<
     this.initialize();
   }
 
-  public static defaultFieldRequest: UserFieldRequest = {
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-    email: true,
-    firstName: true,
-    lastName: true,
-    imageUrl: true,
-  };
-
-  public async present(request?: UserFieldRequest | boolean): Promise<UserResponse> {
-    if (request === false) {
-      throw new Error('unprocessable field request');
-    }
-    const fieldRequest = request === true || request === undefined
-      ? UserEntityBase.defaultFieldRequest
-      : request;
+  public async present(fieldRequest: UserFieldRequest): Promise<UserResponse> {
     return {
-      id: fieldRequest?.id ? this.id : undefined,
-      createdAt: fieldRequest?.createdAt ? this.createdAt : undefined,
-      updatedAt: fieldRequest?.updatedAt ? this.updatedAt : undefined,
-      email: fieldRequest?.email ? this.email : undefined,
-      firstName: fieldRequest?.firstName ? this.firstName : undefined,
-      lastName: fieldRequest?.lastName ? this.lastName : undefined,
-      imageUrl: fieldRequest?.imageUrl ? this.imageUrl : undefined,
-      chatUsers: fieldRequest?.chatUsers ? await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest?.chatUsers)))) : undefined,
-      firstMessage: fieldRequest?.firstMessage ? await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.firstMessage)) : undefined,
-      hasAnyMessage: fieldRequest?.hasAnyMessage ? await this.getHasAnyMessage() : undefined,
+      id: fieldRequest.id === undefined ? undefined : this.id,
+      createdAt: fieldRequest.createdAt === undefined ? undefined : this.createdAt,
+      updatedAt: fieldRequest.updatedAt === undefined ? undefined : this.updatedAt,
+      email: fieldRequest.email === undefined ? undefined : this.email,
+      firstName: fieldRequest.firstName === undefined ? undefined : this.firstName,
+      lastName: fieldRequest.lastName === undefined ? undefined : this.lastName,
+      imageUrl: fieldRequest.imageUrl === undefined ? undefined : this.imageUrl,
+      chatUsers: fieldRequest.chatUsers === undefined ? undefined : await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))),
+      firstMessage: fieldRequest.firstMessage === undefined ? undefined : await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.firstMessage!)),
+      hasAnyMessage: fieldRequest.hasAnyMessage === undefined ? undefined : await this.getHasAnyMessage(),
     };
   }
 

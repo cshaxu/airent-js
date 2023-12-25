@@ -50,29 +50,15 @@ export class ChatUserEntityBase extends BaseEntity<
     this.initialize();
   }
 
-  public static defaultFieldRequest: ChatUserFieldRequest = {
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-    chatId: true,
-    userId: true,
-  };
-
-  public async present(request?: ChatUserFieldRequest | boolean): Promise<ChatUserResponse> {
-    if (request === false) {
-      throw new Error('unprocessable field request');
-    }
-    const fieldRequest = request === true || request === undefined
-      ? ChatUserEntityBase.defaultFieldRequest
-      : request;
+  public async present(fieldRequest: ChatUserFieldRequest): Promise<ChatUserResponse> {
     return {
-      id: fieldRequest?.id ? this.id : undefined,
-      createdAt: fieldRequest?.createdAt ? this.createdAt : undefined,
-      updatedAt: fieldRequest?.updatedAt ? this.updatedAt : undefined,
-      chatId: fieldRequest?.chatId ? this.chatId : undefined,
-      userId: fieldRequest?.userId ? this.userId : undefined,
-      chat: fieldRequest?.chat ? await this.getChat().then((one) => one.present(fieldRequest?.chat)) : undefined,
-      user: fieldRequest?.user ? await this.getUser().then((one) => one.present(fieldRequest?.user)) : undefined,
+      id: fieldRequest.id === undefined ? undefined : this.id,
+      createdAt: fieldRequest.createdAt === undefined ? undefined : this.createdAt,
+      updatedAt: fieldRequest.updatedAt === undefined ? undefined : this.updatedAt,
+      chatId: fieldRequest.chatId === undefined ? undefined : this.chatId,
+      userId: fieldRequest.userId === undefined ? undefined : this.userId,
+      chat: fieldRequest.chat === undefined ? undefined : await this.getChat().then((one) => one.present(fieldRequest.chat!)),
+      user: fieldRequest.user === undefined ? undefined : await this.getUser().then((one) => one.present(fieldRequest.user!)),
     };
   }
 

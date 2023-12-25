@@ -73,19 +73,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   }
 <% if (utils.isPresentableEntity(entity)) { -%>
 
-  public static defaultFieldRequest: <%= entity.strings.fieldRequestClass %> = {
-  <%_ entity.fields.filter(utils.isDefaultPresentableField).forEach((field) => { -%>
-    <%= field.name %>: true,
-  <%_ }); -%>
-  };
-
-  public async present(request?: <%= entity.strings.fieldRequestClass %> | boolean): Promise<<%= entity.strings.responseClass %>> {
-    if (request === false) {
-      throw new Error('unprocessable field request');
-    }
-    const fieldRequest = request === true || request === undefined
-      ? <%= entity.strings.baseClass %>.defaultFieldRequest
-      : request;
+  public async present(fieldRequest: <%= entity.strings.fieldRequestClass %>): Promise<<%= entity.strings.responseClass %>> {
     return {
   <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
       <%= field.name %>: <%- field.code.presenter %>,

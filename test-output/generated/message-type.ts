@@ -19,12 +19,12 @@ export type MessageFieldRequest = {
   userId?: boolean;
   content?: boolean;
   attachment?: boolean;
-  chat?: ChatFieldRequest | boolean;
-  user?: UserFieldRequest | boolean;
+  chat?: ChatFieldRequest;
+  user?: UserFieldRequest;
   parentMessageId?: boolean;
-  parentMessage?: MessageFieldRequest | boolean;
+  parentMessage?: MessageFieldRequest;
   mentorId?: boolean;
-  mentor?: UserFieldRequest | boolean;
+  mentor?: UserFieldRequest;
 };
 
 export type MessageResponse = {

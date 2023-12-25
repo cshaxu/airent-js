@@ -176,7 +176,7 @@ function buildFieldStrings(field) /* Object */ {
     return {
       fieldClass: entityClass,
       fieldType: field.type.replace(typeName, entityClass),
-      fieldRequestType: `${entName}FieldRequest | boolean`,
+      fieldRequestType: `${entName}FieldRequest`,
       fieldResponseType: field.type.replace(typeName, responseClass),
       fieldGetter,
     };
@@ -224,20 +224,20 @@ function buildEntityCode(entity) /* Object */ {
 function buildFieldPresenter(field) /* Code */ {
   const { name, strings } = field;
   const { fieldGetter } = strings;
-  const presentCondition = `fieldRequest?.${name}`;
+  const childFieldRequest = `fieldRequest.${name}!`;
   let presenter = utils.isSyncField(field)
     ? `this.${fieldGetter}`
     : `await this.${fieldGetter}`;
   if (utils.isEntityTypeField(field)) {
     if (utils.isArrayField(field)) {
-      presenter += `.then((a) => Promise.all(a.map((one) => one.present(${presentCondition}))))`;
+      presenter += `.then((a) => Promise.all(a.map((one) => one.present(${childFieldRequest}))))`;
     } else if (utils.isNullableField(field)) {
-      presenter += `.then((one) => one === null ? Promise.resolve(null) : one.present(${presentCondition}))`;
+      presenter += `.then((one) => one === null ? Promise.resolve(null) : one.present(${childFieldRequest}))`;
     } else {
-      presenter += `.then((one) => one.present(${presentCondition}))`;
+      presenter += `.then((one) => one.present(${childFieldRequest}))`;
     }
   }
-  return `${presentCondition} ? ${presenter} : undefined`;
+  return `fieldRequest.${name} === undefined ? undefined : ${presenter}`;
 }
 
 function buildFieldAssociationKey(keyFields, keyType) /* Code */ {
@@ -277,11 +277,6 @@ function buildFieldLoadConfig(field) /* Object */ {
   loadConfig.isLoaderGeneratable = false;
   loadConfig.isSetterGeneratable =
     sourceKeySize > 0 && sourceKeySize === targetKeySize;
-  loadConfig.isGeneratable =
-    utils.isAssociationField(field) &&
-    loadConfig.isGetterGeneratable &&
-    loadConfig.isLoaderGeneratable &&
-    loadConfig.isSetterGeneratable;
   loadConfig.name = `${field._parent.strings.entityClass}.${field.name}`;
   // for loadConfig.getter
   loadConfig.getterLines = undefined;

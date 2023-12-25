@@ -59,39 +59,21 @@ export class MessageEntityBase extends BaseEntity<
     this.initialize();
   }
 
-  public static defaultFieldRequest: MessageFieldRequest = {
-    id: true,
-    createdAt: true,
-    chatId: true,
-    derivedChatId: true,
-    userId: true,
-    content: true,
-    attachment: true,
-    parentMessageId: true,
-    mentorId: true,
-  };
-
-  public async present(request?: MessageFieldRequest | boolean): Promise<MessageResponse> {
-    if (request === false) {
-      throw new Error('unprocessable field request');
-    }
-    const fieldRequest = request === true || request === undefined
-      ? MessageEntityBase.defaultFieldRequest
-      : request;
+  public async present(fieldRequest: MessageFieldRequest): Promise<MessageResponse> {
     return {
-      id: fieldRequest?.id ? this.id : undefined,
-      createdAt: fieldRequest?.createdAt ? this.createdAt : undefined,
-      chatId: fieldRequest?.chatId ? this.chatId : undefined,
-      derivedChatId: fieldRequest?.derivedChatId ? this.getDerivedChatId() : undefined,
-      userId: fieldRequest?.userId ? this.userId : undefined,
-      content: fieldRequest?.content ? this.content : undefined,
-      attachment: fieldRequest?.attachment ? this.attachment : undefined,
-      chat: fieldRequest?.chat ? await this.getChat().then((one) => one.present(fieldRequest?.chat)) : undefined,
-      user: fieldRequest?.user ? await this.getUser().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.user)) : undefined,
-      parentMessageId: fieldRequest?.parentMessageId ? this.parentMessageId : undefined,
-      parentMessage: fieldRequest?.parentMessage ? await this.getParentMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.parentMessage)) : undefined,
-      mentorId: fieldRequest?.mentorId ? this.getMentorId() : undefined,
-      mentor: fieldRequest?.mentor ? await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.mentor)) : undefined,
+      id: fieldRequest.id === undefined ? undefined : this.id,
+      createdAt: fieldRequest.createdAt === undefined ? undefined : this.createdAt,
+      chatId: fieldRequest.chatId === undefined ? undefined : this.chatId,
+      derivedChatId: fieldRequest.derivedChatId === undefined ? undefined : this.getDerivedChatId(),
+      userId: fieldRequest.userId === undefined ? undefined : this.userId,
+      content: fieldRequest.content === undefined ? undefined : this.content,
+      attachment: fieldRequest.attachment === undefined ? undefined : this.attachment,
+      chat: fieldRequest.chat === undefined ? undefined : await this.getChat().then((one) => one.present(fieldRequest.chat!)),
+      user: fieldRequest.user === undefined ? undefined : await this.getUser().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.user!)),
+      parentMessageId: fieldRequest.parentMessageId === undefined ? undefined : this.parentMessageId,
+      parentMessage: fieldRequest.parentMessage === undefined ? undefined : await this.getParentMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.parentMessage!)),
+      mentorId: fieldRequest.mentorId === undefined ? undefined : this.getMentorId(),
+      mentor: fieldRequest.mentor === undefined ? undefined : await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.mentor!)),
     };
   }
 

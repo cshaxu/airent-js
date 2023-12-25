@@ -11,8 +11,8 @@ export type ChatFieldRequest = {
   updatedAt?: boolean;
   deletedAt?: boolean;
   /** @deprecated */
-  chatUsers?: ChatUserFieldRequest | boolean;
-  messages?: MessageFieldRequest | boolean;
+  chatUsers?: ChatUserFieldRequest;
+  messages?: MessageFieldRequest;
 };
 
 export type ChatResponse = {
