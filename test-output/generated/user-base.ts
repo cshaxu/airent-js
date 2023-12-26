@@ -4,6 +4,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   toArrayMap,
   toObjectMap,
 } from '../../src';
@@ -55,19 +56,26 @@ export class UserEntityBase extends BaseEntity<
     this.initialize();
   }
 
-  public async present(fieldRequest: UserFieldRequest): Promise<UserResponse> {
+  public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<Select<UserResponse, S>> {
     return {
-      id: fieldRequest.id === undefined ? undefined : this.id,
-      createdAt: fieldRequest.createdAt === undefined ? undefined : this.createdAt,
-      updatedAt: fieldRequest.updatedAt === undefined ? undefined : this.updatedAt,
-      email: fieldRequest.email === undefined ? undefined : this.email,
-      firstName: fieldRequest.firstName === undefined ? undefined : this.firstName,
-      lastName: fieldRequest.lastName === undefined ? undefined : this.lastName,
-      imageUrl: fieldRequest.imageUrl === undefined ? undefined : this.imageUrl,
-      chatUsers: fieldRequest.chatUsers === undefined ? undefined : await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))),
-      firstMessage: fieldRequest.firstMessage === undefined ? undefined : await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.firstMessage!)),
-      hasAnyMessage: fieldRequest.hasAnyMessage === undefined ? undefined : await this.getHasAnyMessage(),
-    };
+      ...(fieldRequest.id !== undefined && { id: this.id }),
+      ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
+      ...(fieldRequest.updatedAt !== undefined && { updatedAt: this.updatedAt }),
+      ...(fieldRequest.email !== undefined && { email: this.email }),
+      ...(fieldRequest.firstName !== undefined && { firstName: this.firstName }),
+      ...(fieldRequest.lastName !== undefined && { lastName: this.lastName }),
+      ...(fieldRequest.imageUrl !== undefined && { imageUrl: this.imageUrl }),
+      ...(fieldRequest.chatUsers !== undefined && { chatUsers: await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))) }),
+      ...(fieldRequest.firstMessage !== undefined && { firstMessage: await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.firstMessage!)) }),
+      ...(fieldRequest.hasAnyMessage !== undefined && { hasAnyMessage: await this.getHasAnyMessage() }),
+    } as Select<UserResponse, S>;
+  }
+
+  public static async presentMany<
+    ENTITY extends UserEntityBase,
+    S extends UserFieldRequest
+  >(entities: ENTITY[], fieldRequest: S): Promise<Select<UserResponse, S>[]> {
+    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
   }
 
   /** self loaders */

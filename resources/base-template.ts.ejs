@@ -7,6 +7,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   toArrayMap,
   toObjectMap,
 } from '<%= airentPackage %>';
@@ -73,12 +74,19 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   }
 <% if (utils.isPresentableEntity(entity)) { -%>
 
-  public async present(fieldRequest: <%= entity.strings.fieldRequestClass %>): Promise<<%= entity.strings.responseClass %>> {
+  public async present<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<Select<<%= entity.strings.responseClass %>, S>> {
     return {
   <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
-      <%= field.name %>: <%- field.code.presenter %>,
+      ...(fieldRequest.<%= field.name %> !== undefined && { <%= field.name %>: <%- field.code.presenter %> }),
   <%_ }); -%>
-    };
+    } as Select<<%= entity.strings.responseClass %>, S>;
+  }
+
+  public static async presentMany<
+    ENTITY extends <%= entity.strings.baseClass %>,
+    S extends <%= entity.strings.fieldRequestClass %>
+  >(entities: ENTITY[], fieldRequest: S): Promise<Select<<%= entity.strings.responseClass %>, S>[]> {
+    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
   }
 <% } -%>
 <% if (!entity.skipSelfLoader) { -%>

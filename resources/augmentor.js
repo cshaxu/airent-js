@@ -237,7 +237,7 @@ function buildFieldPresenter(field) /* Code */ {
       presenter += `.then((one) => one.present(${childFieldRequest}))`;
     }
   }
-  return `fieldRequest.${name} === undefined ? undefined : ${presenter}`;
+  return presenter;
 }
 
 function buildFieldAssociationKey(keyFields, keyType) /* Code */ {

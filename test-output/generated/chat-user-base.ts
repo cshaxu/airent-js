@@ -4,6 +4,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   toArrayMap,
   toObjectMap,
 } from '../../src';
@@ -50,16 +51,23 @@ export class ChatUserEntityBase extends BaseEntity<
     this.initialize();
   }
 
-  public async present(fieldRequest: ChatUserFieldRequest): Promise<ChatUserResponse> {
+  public async present<S extends ChatUserFieldRequest>(fieldRequest: S): Promise<Select<ChatUserResponse, S>> {
     return {
-      id: fieldRequest.id === undefined ? undefined : this.id,
-      createdAt: fieldRequest.createdAt === undefined ? undefined : this.createdAt,
-      updatedAt: fieldRequest.updatedAt === undefined ? undefined : this.updatedAt,
-      chatId: fieldRequest.chatId === undefined ? undefined : this.chatId,
-      userId: fieldRequest.userId === undefined ? undefined : this.userId,
-      chat: fieldRequest.chat === undefined ? undefined : await this.getChat().then((one) => one.present(fieldRequest.chat!)),
-      user: fieldRequest.user === undefined ? undefined : await this.getUser().then((one) => one.present(fieldRequest.user!)),
-    };
+      ...(fieldRequest.id !== undefined && { id: this.id }),
+      ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
+      ...(fieldRequest.updatedAt !== undefined && { updatedAt: this.updatedAt }),
+      ...(fieldRequest.chatId !== undefined && { chatId: this.chatId }),
+      ...(fieldRequest.userId !== undefined && { userId: this.userId }),
+      ...(fieldRequest.chat !== undefined && { chat: await this.getChat().then((one) => one.present(fieldRequest.chat!)) }),
+      ...(fieldRequest.user !== undefined && { user: await this.getUser().then((one) => one.present(fieldRequest.user!)) }),
+    } as Select<ChatUserResponse, S>;
+  }
+
+  public static async presentMany<
+    ENTITY extends ChatUserEntityBase,
+    S extends ChatUserFieldRequest
+  >(entities: ENTITY[], fieldRequest: S): Promise<Select<ChatUserResponse, S>[]> {
+    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
   }
 
   /** self loaders */

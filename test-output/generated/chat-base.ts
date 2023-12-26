@@ -4,6 +4,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   toArrayMap,
   toObjectMap,
 } from '../../src';
@@ -47,15 +48,22 @@ export class ChatEntityBase extends BaseEntity<
     this.initialize();
   }
 
-  public async present(fieldRequest: ChatFieldRequest): Promise<ChatResponse> {
+  public async present<S extends ChatFieldRequest>(fieldRequest: S): Promise<Select<ChatResponse, S>> {
     return {
-      id: fieldRequest.id === undefined ? undefined : this.id,
-      createdAt: fieldRequest.createdAt === undefined ? undefined : this.createdAt,
-      updatedAt: fieldRequest.updatedAt === undefined ? undefined : this.updatedAt,
-      deletedAt: fieldRequest.deletedAt === undefined ? undefined : this.deletedAt,
-      chatUsers: fieldRequest.chatUsers === undefined ? undefined : await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))),
-      messages: fieldRequest.messages === undefined ? undefined : await this.getMessages().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.messages!)))),
-    };
+      ...(fieldRequest.id !== undefined && { id: this.id }),
+      ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
+      ...(fieldRequest.updatedAt !== undefined && { updatedAt: this.updatedAt }),
+      ...(fieldRequest.deletedAt !== undefined && { deletedAt: this.deletedAt }),
+      ...(fieldRequest.chatUsers !== undefined && { chatUsers: await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))) }),
+      ...(fieldRequest.messages !== undefined && { messages: await this.getMessages().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.messages!)))) }),
+    } as Select<ChatResponse, S>;
+  }
+
+  public static async presentMany<
+    ENTITY extends ChatEntityBase,
+    S extends ChatFieldRequest
+  >(entities: ENTITY[], fieldRequest: S): Promise<Select<ChatResponse, S>[]> {
+    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
   }
 
   /** self loaders */
