@@ -14,9 +14,9 @@ export type UserFieldRequest = {
   lastName?: boolean;
   imageUrl?: boolean;
   /** @deprecated */
-  chatUsers?: ChatUserFieldRequest | boolean;
+  chatUsers?: ChatUserFieldRequest;
   /** @deprecated */
-  firstMessage?: MessageFieldRequest | boolean;
+  firstMessage?: MessageFieldRequest;
   hasAnyMessage?: boolean;
 };
 

@@ -4,6 +4,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   toArrayMap,
   toObjectMap,
 } from '../../src';
@@ -50,30 +51,23 @@ export class ChatUserEntityBase extends BaseEntity<
     this.initialize();
   }
 
-  public static defaultFieldRequest: ChatUserFieldRequest = {
-    id: true,
-    createdAt: true,
-    updatedAt: true,
-    chatId: true,
-    userId: true,
-  };
-
-  public async present(request?: ChatUserFieldRequest | boolean): Promise<ChatUserResponse> {
-    if (request === false) {
-      throw new Error('unprocessable field request');
-    }
-    const fieldRequest = request === true || request === undefined
-      ? ChatUserEntityBase.defaultFieldRequest
-      : request;
+  public async present<S extends ChatUserFieldRequest>(fieldRequest: S): Promise<Select<ChatUserResponse, S>> {
     return {
-      id: fieldRequest?.id ? this.id : undefined,
-      createdAt: fieldRequest?.createdAt ? this.createdAt : undefined,
-      updatedAt: fieldRequest?.updatedAt ? this.updatedAt : undefined,
-      chatId: fieldRequest?.chatId ? this.chatId : undefined,
-      userId: fieldRequest?.userId ? this.userId : undefined,
-      chat: fieldRequest?.chat ? await this.getChat().then((one) => one.present(fieldRequest?.chat)) : undefined,
-      user: fieldRequest?.user ? await this.getUser().then((one) => one.present(fieldRequest?.user)) : undefined,
-    };
+      ...(fieldRequest.id !== undefined && { id: this.id }),
+      ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
+      ...(fieldRequest.updatedAt !== undefined && { updatedAt: this.updatedAt }),
+      ...(fieldRequest.chatId !== undefined && { chatId: this.chatId }),
+      ...(fieldRequest.userId !== undefined && { userId: this.userId }),
+      ...(fieldRequest.chat !== undefined && { chat: await this.getChat().then((one) => one.present(fieldRequest.chat!)) }),
+      ...(fieldRequest.user !== undefined && { user: await this.getUser().then((one) => one.present(fieldRequest.user!)) }),
+    } as Select<ChatUserResponse, S>;
+  }
+
+  public static async presentMany<
+    ENTITY extends ChatUserEntityBase,
+    S extends ChatUserFieldRequest
+  >(entities: ENTITY[], fieldRequest: S): Promise<Select<ChatUserResponse, S>[]> {
+    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
   }
 
   /** self loaders */

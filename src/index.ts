@@ -16,6 +16,50 @@ type LoadConfig<ENTITY, LOADED> = {
   setter?: (sources: ENTITY[], targets: LOADED[]) => void;
 };
 
+// Note: it selects field when you set the field key to either true or false.
+type Select<RESPONSE, FIELD_REQUEST> = FIELD_REQUEST extends Record<string, any>
+  ? /* select fields */ {
+      [KEY in keyof FIELD_REQUEST as FIELD_REQUEST[KEY] extends
+        | boolean
+        | Record<string, any>
+        ? KEY
+        : never]: KEY extends keyof RESPONSE
+        ? /* valid type key */ FIELD_REQUEST[KEY] extends Record<string, any>
+          ? /* nest-select inner type */ RESPONSE[KEY] extends
+              | Array<infer INNER>
+              | undefined
+            ? /* type is array */ INNER extends Record<string, any>
+              ? /* inner type is object */ Array<
+                  Select<INNER, FIELD_REQUEST[KEY]>
+                >
+              : /* inner type is primitive */ never
+            : /* type is single */ null extends RESPONSE[KEY]
+            ? /* type is nullable */ RESPONSE[KEY] extends
+                | Record<string, any>
+                | null
+                | undefined
+              ? /* type is object */ Select<
+                  NonNullable<RESPONSE[KEY]>,
+                  FIELD_REQUEST[KEY]
+                > | null
+              : /* type is primitive */ never
+            : /* type is non-nullable */ RESPONSE[KEY] extends
+                | Record<string, any>
+                | undefined
+            ? /* type is object */ Select<
+                NonNullable<RESPONSE[KEY]>,
+                FIELD_REQUEST[KEY]
+              >
+            : /* type is primitive */ never
+          : /* otherwise */ FIELD_REQUEST[KEY] extends boolean
+          ? /* gross-select field */ Exclude<RESPONSE[KEY], undefined>
+          : /* invalid selection */ never
+        : /* invalid type key */ never;
+    }
+  : /* otherwise */ FIELD_REQUEST extends boolean
+  ? /* original response */ RESPONSE
+  : /* invalid selection */ never;
+
 class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
   protected _group: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[];
   protected _lock: AsyncLock;
@@ -30,7 +74,9 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
 
   protected initialize(): void {}
 
-  public async present(_request?: FIELD_REQUEST | boolean): Promise<RESPONSE> {
+  public async present<S extends FIELD_REQUEST>(
+    _fieldRequest: S
+  ): Promise<Select<RESPONSE, S>> {
     throw new Error("not implemented");
   }
 
@@ -91,15 +137,6 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     models.forEach((model) => group.push(new this(model, group, lock)));
     return group;
   }
-
-  public static async presentMany<
-    MODEL,
-    FIELD_REQUEST,
-    RESPONSE,
-    ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>
-  >(entities: ENTITY[], request?: FIELD_REQUEST | boolean): Promise<any[]> {
-    return await Promise.all(entities.map((one) => one.present(request)));
-  }
 }
 
 function toArrayMap<OBJECT, KEY, VALUE>(
@@ -131,6 +168,7 @@ export {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   toArrayMap,
   toObjectMap,
 };

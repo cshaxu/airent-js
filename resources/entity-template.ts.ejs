@@ -1,3 +1,12 @@
+<%
+function isLoadConfigGeneratable(field) {
+  const { loadConfig } = field.code;
+  return utils.isAssociationField(field) &&
+    loadConfig.isGetterGeneratable &&
+    loadConfig.isLoaderGeneratable &&
+    loadConfig.isSetterGeneratable;
+}
+-%>
 <% entity.code.beforeEntity.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
@@ -25,7 +34,7 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
 /** @deprecated */
 <% } -%>
 export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseClass %> {
-<% if (entity.fields.filter(utils.isAssociationField).some((field) => !field.code.loadConfig.isGeneratable)) { -%>
+<% if (entity.fields.filter(utils.isAssociationField).some((field) => !isLoadConfigGeneratable(field))) { -%>
   protected initialize() {
     super.initialize();
 

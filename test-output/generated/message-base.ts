@@ -4,6 +4,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   toArrayMap,
   toObjectMap,
 } from '../../src';
@@ -59,40 +60,29 @@ export class MessageEntityBase extends BaseEntity<
     this.initialize();
   }
 
-  public static defaultFieldRequest: MessageFieldRequest = {
-    id: true,
-    createdAt: true,
-    chatId: true,
-    derivedChatId: true,
-    userId: true,
-    content: true,
-    attachment: true,
-    parentMessageId: true,
-    mentorId: true,
-  };
-
-  public async present(request?: MessageFieldRequest | boolean): Promise<MessageResponse> {
-    if (request === false) {
-      throw new Error('unprocessable field request');
-    }
-    const fieldRequest = request === true || request === undefined
-      ? MessageEntityBase.defaultFieldRequest
-      : request;
+  public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<Select<MessageResponse, S>> {
     return {
-      id: fieldRequest?.id ? this.id : undefined,
-      createdAt: fieldRequest?.createdAt ? this.createdAt : undefined,
-      chatId: fieldRequest?.chatId ? this.chatId : undefined,
-      derivedChatId: fieldRequest?.derivedChatId ? this.getDerivedChatId() : undefined,
-      userId: fieldRequest?.userId ? this.userId : undefined,
-      content: fieldRequest?.content ? this.content : undefined,
-      attachment: fieldRequest?.attachment ? this.attachment : undefined,
-      chat: fieldRequest?.chat ? await this.getChat().then((one) => one.present(fieldRequest?.chat)) : undefined,
-      user: fieldRequest?.user ? await this.getUser().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.user)) : undefined,
-      parentMessageId: fieldRequest?.parentMessageId ? this.parentMessageId : undefined,
-      parentMessage: fieldRequest?.parentMessage ? await this.getParentMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.parentMessage)) : undefined,
-      mentorId: fieldRequest?.mentorId ? this.getMentorId() : undefined,
-      mentor: fieldRequest?.mentor ? await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest?.mentor)) : undefined,
-    };
+      ...(fieldRequest.id !== undefined && { id: this.id }),
+      ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
+      ...(fieldRequest.chatId !== undefined && { chatId: this.chatId }),
+      ...(fieldRequest.derivedChatId !== undefined && { derivedChatId: this.getDerivedChatId() }),
+      ...(fieldRequest.userId !== undefined && { userId: this.userId }),
+      ...(fieldRequest.content !== undefined && { content: this.content }),
+      ...(fieldRequest.attachment !== undefined && { attachment: this.attachment }),
+      ...(fieldRequest.chat !== undefined && { chat: await this.getChat().then((one) => one.present(fieldRequest.chat!)) }),
+      ...(fieldRequest.user !== undefined && { user: await this.getUser().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.user!)) }),
+      ...(fieldRequest.parentMessageId !== undefined && { parentMessageId: this.parentMessageId }),
+      ...(fieldRequest.parentMessage !== undefined && { parentMessage: await this.getParentMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.parentMessage!)) }),
+      ...(fieldRequest.mentorId !== undefined && { mentorId: this.getMentorId() }),
+      ...(fieldRequest.mentor !== undefined && { mentor: await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.mentor!)) }),
+    } as Select<MessageResponse, S>;
+  }
+
+  public static async presentMany<
+    ENTITY extends MessageEntityBase,
+    S extends MessageFieldRequest
+  >(entities: ENTITY[], fieldRequest: S): Promise<Select<MessageResponse, S>[]> {
+    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
   }
 
   /** associations */

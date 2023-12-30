@@ -14,8 +14,8 @@ export type ChatUserFieldRequest = {
   updatedAt?: boolean;
   chatId?: boolean;
   userId?: boolean;
-  chat?: ChatFieldRequest | boolean;
-  user?: UserFieldRequest | boolean;
+  chat?: ChatFieldRequest;
+  user?: UserFieldRequest;
 };
 
 /** @deprecated */
