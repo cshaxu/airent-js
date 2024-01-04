@@ -5,6 +5,7 @@ import {
   LoadConfig,
   LoadKey,
   Select,
+  sequential,
   toArrayMap,
   toObjectMap,
 } from '../../src';
@@ -67,7 +68,7 @@ export class ChatUserEntityBase extends BaseEntity<
     ENTITY extends ChatUserEntityBase,
     S extends ChatUserFieldRequest
   >(entities: ENTITY[], fieldRequest: S): Promise<Select<ChatUserResponse, S>[]> {
-    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
+    return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 
   /** self loaders */

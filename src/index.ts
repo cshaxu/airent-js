@@ -162,6 +162,15 @@ function toObjectMap<OBJECT, KEY, VALUE>(
   return new Map(objects.map((o) => [keyMapper(o), valueMapper(o)]));
 }
 
+async function sequential<T>(functions: (() => Promise<T>)[]): Promise<T[]> {
+  const results = new Array();
+  for (const f of functions) {
+    const result = await f();
+    results.push(result);
+  }
+  return results;
+}
+
 export {
   AsyncLock,
   BaseEntity,
@@ -169,6 +178,7 @@ export {
   LoadConfig,
   LoadKey,
   Select,
+  sequential,
   toArrayMap,
   toObjectMap,
 };

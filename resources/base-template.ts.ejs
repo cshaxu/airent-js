@@ -8,6 +8,7 @@ import {
   LoadConfig,
   LoadKey,
   Select,
+  sequential,
   toArrayMap,
   toObjectMap,
 } from '<%= airentPackage %>';
@@ -86,7 +87,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
     ENTITY extends <%= entity.strings.baseClass %>,
     S extends <%= entity.strings.fieldRequestClass %>
   >(entities: ENTITY[], fieldRequest: S): Promise<Select<<%= entity.strings.responseClass %>, S>[]> {
-    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
+    return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 <% } -%>
 <% if (!entity.skipSelfLoader) { -%>

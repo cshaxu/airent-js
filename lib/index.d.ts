@@ -26,4 +26,5 @@ declare class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
 }
 declare function toArrayMap<OBJECT, KEY, VALUE>(objects: OBJECT[], keyMapper: (object: OBJECT) => KEY, valueMapper: (object: OBJECT) => VALUE): Map<KEY, VALUE[]>;
 declare function toObjectMap<OBJECT, KEY, VALUE>(objects: OBJECT[], keyMapper: (object: OBJECT) => KEY, valueMapper: (object: OBJECT) => VALUE): Map<KEY, VALUE>;
-export { AsyncLock, BaseEntity, EntityConstructor, LoadConfig, LoadKey, Select, toArrayMap, toObjectMap, };
+declare function sequential<T>(functions: (() => Promise<T>)[]): Promise<T[]>;
+export { AsyncLock, BaseEntity, EntityConstructor, LoadConfig, LoadKey, Select, sequential, toArrayMap, toObjectMap, };

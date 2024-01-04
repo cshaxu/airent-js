@@ -5,6 +5,7 @@ import {
   LoadConfig,
   LoadKey,
   Select,
+  sequential,
   toArrayMap,
   toObjectMap,
 } from '../../src';
@@ -82,7 +83,7 @@ export class MessageEntityBase extends BaseEntity<
     ENTITY extends MessageEntityBase,
     S extends MessageFieldRequest
   >(entities: ENTITY[], fieldRequest: S): Promise<Select<MessageResponse, S>[]> {
-    return await Promise.all(entities.map((one) => one.present(fieldRequest)));
+    return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 
   /** associations */
