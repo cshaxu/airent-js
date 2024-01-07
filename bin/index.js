@@ -252,56 +252,96 @@ function augment(augmentorName, entityMap, templates, config, isVerbose) {
 
 function buildAbsoluteOutputPath(entity, template, config) {
   const { entityPath } = config;
-  const { name } = entity;
-  const kababEntityName = utils.toKababCase(name);
-  const augmentedOutputPath = (entity.outputs ?? {})[template.name];
+  const kababEntityName = utils.toKababCase(entity?.name ?? "");
+  const augmentedOutputPath = (entity?.outputs ?? {})[template.name];
   const configOutputPath = (template.outputPath ?? "")
     .replaceAll("{entityPath}", entityPath)
     .replaceAll("{kababEntityName}", kababEntityName);
   return path.join(PROJECT_PATH, augmentedOutputPath ?? configOutputPath);
 }
 
-async function generateOne(name, entityMap, templates, config, isVerbose) {
+async function generateEntity(name, entityMap, templates, config, isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Generating ${name} ...`);
   }
   const { airentPackage: airentPackageRaw } = config;
   const entity = entityMap[name];
   for (const template of templates) {
-    const absoluteFilePath = buildAbsoluteOutputPath(entity, template, config);
-    const airentPackage =
-      airentPackageRaw === "airent"
-        ? "airent"
-        : path
-            .relative(
-              path.dirname(absoluteFilePath),
-              path.join(PROJECT_PATH, airentPackageRaw)
-            )
-            .replaceAll("\\", "/");
-    const fileContent =
-      template.skippable && fs.existsSync(absoluteFilePath)
-        ? ""
-        : ejs.render(template.content, {
-            entity,
-            template,
-            config,
-            utils,
-            airentPackage,
-          });
-    if (fileContent.length === 0) {
-      if (isVerbose) {
+    if (template.outputPath?.includes("{kababEntityName}")) {
+      const absoluteFilePath = buildAbsoluteOutputPath(
+        entity,
+        template,
+        config
+      );
+      const airentPackage =
+        airentPackageRaw === "airent"
+          ? "airent"
+          : path
+              .relative(
+                path.dirname(absoluteFilePath),
+                path.join(PROJECT_PATH, airentPackageRaw)
+              )
+              .replaceAll("\\", "/");
+      const fileContent =
+        template.skippable && fs.existsSync(absoluteFilePath)
+          ? ""
+          : ejs.render(template.content, {
+              entity,
+              template,
+              config,
+              utils,
+              airentPackage,
+            });
+      if (fileContent.length > 0) {
+        // create the output folders if not exist
+        const folderPath = path.dirname(absoluteFilePath);
+        await fs.promises.mkdir(folderPath, { recursive: true });
+        await fs.promises.writeFile(absoluteFilePath, fileContent);
+        if (isVerbose) {
+          console.log(`[AIRENT/INFO] - Generated '${absoluteFilePath}'`);
+        }
+      } else if (isVerbose) {
         console.log(`[AIRENT/INFO] - Skipped '${absoluteFilePath}'`);
       }
-      continue;
-    } else {
-      // create the output folders if not exist
-      const folderPath = path.dirname(absoluteFilePath);
-      await fs.promises.mkdir(folderPath, { recursive: true });
-      await fs.promises.writeFile(absoluteFilePath, fileContent);
-      if (isVerbose) {
-        console.log(`[AIRENT/INFO] - Generated '${absoluteFilePath}'`);
-      }
     }
+  }
+}
+
+async function generateNonEntity(entityMap, template, config, isVerbose) {
+  if (isVerbose) {
+    console.log(`[AIRENT/INFO] Generating ${template.name} ...`);
+  }
+  const { airentPackage: airentPackageRaw } = config;
+  const absoluteFilePath = buildAbsoluteOutputPath(null, template, config);
+  const airentPackage =
+    airentPackageRaw === "airent"
+      ? "airent"
+      : path
+          .relative(
+            path.dirname(absoluteFilePath),
+            path.join(PROJECT_PATH, airentPackageRaw)
+          )
+          .replaceAll("\\", "/");
+  const fileContent =
+    template.skippable && fs.existsSync(absoluteFilePath)
+      ? ""
+      : ejs.render(template.content, {
+          entityMap,
+          template,
+          config,
+          utils,
+          airentPackage,
+        });
+  if (fileContent.length > 0) {
+    // create the output folders if not exist
+    const folderPath = path.dirname(absoluteFilePath);
+    await fs.promises.mkdir(folderPath, { recursive: true });
+    await fs.promises.writeFile(absoluteFilePath, fileContent);
+    if (isVerbose) {
+      console.log(`[AIRENT/INFO] - Generated '${absoluteFilePath}'`);
+    }
+  } else if (isVerbose) {
+    console.log(`[AIRENT/INFO] - Skipped '${absoluteFilePath}'`);
   }
 }
 
@@ -326,10 +366,20 @@ async function generate(isVerbose) {
   );
 
   // loop through each YAML file and generate code
-  const functions = entityNames.map(
-    (name) => () => generateOne(name, entityMap, templates, config, isVerbose)
+  const entityFunctions = entityNames.map(
+    (name) => () =>
+      generateEntity(name, entityMap, templates, config, isVerbose)
   );
-  await sequential(functions);
+  await sequential(entityFunctions);
+
+  // generate non entity files
+  const nonEntityFunctions = templates
+    .filter((template) => !template.outputPath?.includes("{kababEntityName}"))
+    .map(
+      (template) => () =>
+        generateNonEntity(entityMap, template, config, isVerbose)
+    );
+  await sequential(nonEntityFunctions);
   console.log("[AIRENT/INFO] Task completed.");
 }
 

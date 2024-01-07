@@ -2,5 +2,12 @@
   "type": "module",
   "airentPackage": "src",
   "schemaPath": "test-schemas",
-  "entityPath": "test-output"
+  "entityPath": "test-output",
+  "templates": [
+    {
+      "name": "test-resources/README.ejs",
+      "outputPath": "test-output/README",
+      "skippable": false
+    }
+  ]
 }
