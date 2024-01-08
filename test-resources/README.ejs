@@ -1,0 +1,7 @@
+<% Object.values(entityMap).forEach((entity) => { %>
+Entity name: <%= entity.name %>
+  Primitive fields: <%= entity.fields.filter(utils.isPrimitiveField).length %>
+  Association fields: <%= entity.fields.filter(utils.isAssociationField).length %>
+  ComputedSync fields: <%= entity.fields.filter(utils.isComputedSyncField).length %>
+  ComputedAsync fields: <%= entity.fields.filter(utils.isComputedAsyncField).length %>
+<% }); %>
