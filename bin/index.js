@@ -195,6 +195,12 @@ async function loadTemplates(config, isVerbose) {
   }));
 }
 
+function isEntityTemplate(template) {
+  return (
+    !template.outputPath || template.outputPath.includes("{kababEntityName}")
+  );
+}
+
 async function getAbsoluteSchemaFilePaths(schemaPath) {
   const absoluteSchemaPath = path.join(PROJECT_PATH, schemaPath);
   // Read all files in the YAML directory
@@ -267,7 +273,7 @@ async function generateEntity(name, entityMap, templates, config, isVerbose) {
   const { airentPackage: airentPackageRaw } = config;
   const entity = entityMap[name];
   for (const template of templates) {
-    if (template.outputPath?.includes("{kababEntityName}")) {
+    if (isEntityTemplate(template)) {
       const absoluteFilePath = buildAbsoluteOutputPath(
         entity,
         template,
@@ -374,7 +380,7 @@ async function generate(isVerbose) {
 
   // generate non entity files
   const nonEntityFunctions = templates
-    .filter((template) => !template.outputPath?.includes("{kababEntityName}"))
+    .filter((template) => !isEntityTemplate(template))
     .map(
       (template) => () =>
         generateNonEntity(entityMap, template, config, isVerbose)

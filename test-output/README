@@ -1,0 +1,25 @@
+
+Entity name: chatUser
+  Primitive fields: 5
+  Association fields: 2
+  ComputedSync fields: 0
+  ComputedAsync fields: 0
+
+Entity name: Chat
+  Primitive fields: 4
+  Association fields: 2
+  ComputedSync fields: 0
+  ComputedAsync fields: 0
+
+Entity name: Message
+  Primitive fields: 7
+  Association fields: 4
+  ComputedSync fields: 3
+  ComputedAsync fields: 0
+
+Entity name: User
+  Primitive fields: 7
+  Association fields: 3
+  ComputedSync fields: 1
+  ComputedAsync fields: 1
+
