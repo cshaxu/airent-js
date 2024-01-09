@@ -25,7 +25,7 @@ Then, create the configuration file `airent.config.js` in the root directory of 
 {
   "type": "commonjs",
   "schemaPath": "schemas",
-  "outputPath": "src/entities"
+  "entityPath": "src/entities"
 }
 ```
 
@@ -171,3 +171,15 @@ const responses = await UserEntity.presentMany(userEntities);
 ```
 
 This is it. Have fun!
+
+## Latest Updates
+
+I've also developed a bunch of Airent Extensions. Check them out and enjoy the full power of Airent!
+
+- https://github.com/cshaxu/airent-prisma-js: Airent Extension for Prisma ORM, which automatically takes your Prisma schema DBML file and generate Airent schema YAML definitions. It also generates the data loaders for your entities so you don't need to write any data-level code at all! Simply run `npx airent-prisma` to set it up.
+
+- https://github.com/cshaxu/airent-api-js: Airent API Extension, which provides an opinioned framework to write your entire backend with Airent. It automatically generates the backend-side services, actions and endpoint handlers for your entities, and provides a bunch of useful features such as authentication, authorization, and pagination. What's even more amazing is it also generates the frontend side SDK for your Airent APIs with field selection to help you build your frontend with ease! Simply run `npx airent-api` to set it up.
+
+- https://github.com/cshaxu/airent-api-next-js: Airent API Extension for Next.js, which automatically generates the code for API routes for your Next.js project with app routing. Simply run `npx airent-api-next` to set it up.
+
+- https://github.com/cshaxu/airent-api-express-js: Airent API Extension for Express.js, which automatically generates the code for API routes for your Express.js project. Simply run `npx airent-api-express` to set it up.
