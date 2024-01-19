@@ -19,7 +19,14 @@ First, install with npm:
 npm install airent
 ```
 
-Then, create the configuration file `airent.config.js` in the root directory of your project:
+Then, run the `airent` command to create the configuration file.
+
+```bash
+npx airent
+```
+
+You may specify `"type": "module"` if you are using ES modules.
+You should see the `airent.config.js` file in the root directory of your project:
 
 ```json
 {
@@ -28,8 +35,6 @@ Then, create the configuration file `airent.config.js` in the root directory of 
   "entityPath": "src/entities"
 }
 ```
-
-You may specify `"type": "module"` if you are using ES modules.
 
 ## Build your data application with Airent
 
