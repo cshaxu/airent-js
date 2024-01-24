@@ -71,7 +71,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
     this.<%= field.name %> = <%= field.strings.fieldInitializer %>;
 <% }); -%>
 
-    this.initialize();
+    this.initialize(model);
   }
 <% if (utils.isPresentableEntity(entity)) { -%>
 

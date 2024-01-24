@@ -49,7 +49,7 @@ export class ChatUserEntityBase extends BaseEntity<
     this.chatId = model.chatId;
     this.userId = model.userId;
 
-    this.initialize();
+    this.initialize(model);
   }
 
   public async present<S extends ChatUserFieldRequest>(fieldRequest: S): Promise<Select<ChatUserResponse, S>> {
