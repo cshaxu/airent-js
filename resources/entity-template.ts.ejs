@@ -35,8 +35,8 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
 <% } -%>
 export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseClass %> {
 <% if (entity.fields.filter(utils.isAssociationField).some((field) => !isLoadConfigGeneratable(field))) { -%>
-  protected initialize() {
-    super.initialize();
+  protected initialize(model: <%= entity.model %>) {
+    super.initialize(model);
 
     /** associations */
   <%_ entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>

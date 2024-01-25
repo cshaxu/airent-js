@@ -9,8 +9,8 @@ import { MessageEntity } from './message.js';
 import { ChatUserEntity } from './chat-user.js';
 
 export class UserEntity extends UserEntityBase {
-  protected initialize() {
-    super.initialize();
+  protected initialize(model: UserModel) {
+    super.initialize(model);
 
     /** associations */
 

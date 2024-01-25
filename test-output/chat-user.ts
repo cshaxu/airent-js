@@ -10,8 +10,8 @@ import { UserEntity } from './user.js';
 
 /** @deprecated */
 export class ChatUserEntity extends ChatUserEntityBase {
-  protected initialize() {
-    super.initialize();
+  protected initialize(model: ChatUserModel) {
+    super.initialize(model);
 
     /** associations */
 
