@@ -1,6 +1,6 @@
 {
   "name": "airent",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Airent Framework for JavaScript Backend - a lightweight data entity and presentation framework",
   "main": "./lib/index.js",
   "bin": {
@@ -23,7 +23,8 @@
     "framework",
     "orm",
     "pojo",
-    "presentation"
+    "presentation",
+    "typescript"
   ],
   "author": "cshaxu",
   "license": "MIT",

@@ -54,7 +54,7 @@ export class UserEntityBase extends BaseEntity<
     this.lastName = model.lastName;
     this.imageUrl = model.image;
 
-    this.initialize();
+    this.initialize(model);
   }
 
   public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<Select<UserResponse, S>> {

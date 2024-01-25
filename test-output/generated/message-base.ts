@@ -58,7 +58,7 @@ export class MessageEntityBase extends BaseEntity<
     this.attachment = model.attachmentJson as Attachment | null;
     this.parentMessageId = model.parentMessageId;
 
-    this.initialize();
+    this.initialize(model);
   }
 
   public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<Select<MessageResponse, S>> {

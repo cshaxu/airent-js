@@ -46,7 +46,7 @@ export class ChatEntityBase extends BaseEntity<
     this.updatedAt = model.updatedAt;
     this.deletedAt = model.deletedAt;
 
-    this.initialize();
+    this.initialize(model);
   }
 
   public async present<S extends ChatFieldRequest>(fieldRequest: S): Promise<Select<ChatResponse, S>> {

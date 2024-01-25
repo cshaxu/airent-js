@@ -72,7 +72,7 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     this._lock = lock;
   }
 
-  protected initialize(): void {}
+  protected initialize(_model: MODEL): void {}
 
   public async present<S extends FIELD_REQUEST>(
     _fieldRequest: S
