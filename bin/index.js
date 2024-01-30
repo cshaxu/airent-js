@@ -22,15 +22,20 @@ async function sequential(functions) {
   return results;
 }
 
-// Function to ask a question and store the answer in the config object
-function askQuestion(question) {
-  return new Promise((resolve) => rl.question(question, resolve));
+async function askQuestion(question, defaultAnswer) {
+  const a = await new Promise((resolve) =>
+    rl.question(`${question} (${defaultAnswer}): `, resolve)
+  );
+  return a?.length ? a : defaultAnswer;
 }
 
 async function configure() {
-  const type = await askQuestion("Project type (commonjs/module): ");
-  const schemaPath = await askQuestion("Schema path: (./schemas): ");
-  const entityPath = await askQuestion("Entity path: (./src/entities): ");
+  const type = await askQuestion(
+    "Project type [commonjs or module]",
+    "commonjs"
+  );
+  const schemaPath = await askQuestion("Schema path", "./schemas");
+  const entityPath = await askQuestion("Entity path", "./src/entities");
   const config = {
     type: type.length > 0 ? type : "commonjs",
     schemaPath: schemaPath.length > 0 ? schemaPath : "schemas",
