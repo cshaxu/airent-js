@@ -23,7 +23,7 @@ fields:
     strategy: primitive
   - id: 31
     name: derivedChatId
-    type: string | null
+    type: string
     strategy: computed
   - id: 4
     name: userId

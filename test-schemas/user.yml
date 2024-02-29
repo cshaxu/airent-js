@@ -51,6 +51,8 @@ fields:
     name: messages
     type: Message[]
     strategy: association
+    sourceFields:
+      - id
     targetFields:
       - userId
     internal: true
@@ -62,4 +64,4 @@ fields:
   - id: 12
     name: hasAnyMessage
     type: boolean
-    strategy: association
+    strategy: computedAsync

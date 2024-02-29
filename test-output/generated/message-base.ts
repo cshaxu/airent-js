@@ -93,7 +93,6 @@ export class MessageEntityBase extends BaseEntity<
     filter: (one: MessageEntityBase) => one.chat === undefined,
     getter: (sources: MessageEntityBase[]) => {
       return sources
-        .filter((one) => one.getDerivedChatId() !== null)
         .map((one) => ({
           id: one.getDerivedChatId(),
         }));
@@ -138,7 +137,7 @@ export class MessageEntityBase extends BaseEntity<
     // },
     setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
-      sources.forEach((one) => (one.user = map.get(`${one.userId}`) ?? null));
+      sources.forEach((one) => (one.user = (one.userId === null) ? null : map.get(`${one.userId}`) ?? null));
     },
   };
 
@@ -171,7 +170,7 @@ export class MessageEntityBase extends BaseEntity<
     // },
     setter: (sources: MessageEntityBase[], targets: MessageEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
-      sources.forEach((one) => (one.parentMessage = map.get(`${one.parentMessageId}`) ?? null));
+      sources.forEach((one) => (one.parentMessage = (one.parentMessageId === null) ? null : map.get(`${one.parentMessageId}`) ?? null));
     },
   };
 
@@ -204,7 +203,7 @@ export class MessageEntityBase extends BaseEntity<
     // },
     setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
       const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
-      sources.forEach((one) => (one.mentor = map.get(`${one.getMentorId()}`) ?? null));
+      sources.forEach((one) => (one.mentor = (one.getMentorId() === null) ? null : map.get(`${one.getMentorId()}`) ?? null));
     },
   };
 
@@ -222,7 +221,7 @@ export class MessageEntityBase extends BaseEntity<
 
   /** computed sync fields */
 
-  public getDerivedChatId(): string | null {
+  public getDerivedChatId(): string {
     throw new Error('not implemented');
   }
 

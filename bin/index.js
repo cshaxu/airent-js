@@ -70,7 +70,7 @@ async function configure() {
 /** @typedef {Object} Entity
  *  @property {string} name
  *  @property {string} model
- *  @property {boolean} internal
+ *  @property {?boolean} internal
  *  @property {?boolean} deprecated
  *  @property {?boolean} [skipSelfLoader]
  *  @property {Type[]} [types]
@@ -79,8 +79,8 @@ async function configure() {
 
 /** @typedef {Object} Template
  *  @property {string} name
- *  @property {string} outputPath
- *  @property {boolean} skippable
+ *  @property {?string} outputPath
+ *  @property {?boolean} skippable
  */
 
 /** @typedef {Object} Config
@@ -153,6 +153,7 @@ async function loadConfig(isVerbose) {
   }
   const configContent = await fs.promises.readFile(CONFIG_FILE_PATH, "utf8");
   const config = JSON.parse(configContent);
+
   const {
     type,
     airentPackage: airentPackageRaw,
@@ -161,13 +162,46 @@ async function loadConfig(isVerbose) {
   } = config;
 
   // configure augmentors
-  const augmentors = [...DEFALUT_AUGMENTOR_NAMES, ...(extAugmentorNames ?? [])];
+  const augmentors = [
+    ...DEFALUT_AUGMENTOR_NAMES,
+    ...(extAugmentorNames ?? []),
+  ].filter((s) => s?.length);
 
   // configure templates
   const templates = [
     ...DEFAULT_TEMPLATE_CONFIGS,
     ...(extTemplateConfigs ?? []),
   ];
+
+  // validate config
+  if (config.type !== "commonjs" && config.type !== "module") {
+    throw new Error(
+      `[AIRENT/ERROR] config.type '${config.type}' must be one of 'commonjs' or 'module'.`
+    );
+  }
+  if (!config.schemaPath?.length) {
+    throw new Error(`[AIRENT/ERROR] config.schemaPath is missing.`);
+  }
+  if (!config.entityPath?.length) {
+    throw new Error(`[AIRENT/ERROR] config.entityPath is missing.`);
+  }
+  const templateNameCountMap = templates
+    .filter((t) => t.name?.length)
+    .reduce((map, t) => {
+      map.set(t.name, (map.get(t.name) ?? 0) + 1);
+      return map;
+    }, new Map());
+  templates.forEach((t) => {
+    if (!t.name?.length) {
+      throw new Error("[AIRENT/ERROR] template.name is missing.");
+    }
+    const count = templateNameCountMap.get(t.name) ?? 0;
+    if (count !== 1) {
+      throw new Error(
+        `[AIRENT/ERROR] template.name '${t.name}' is duplicated ${count} times.`
+      );
+    }
+  });
 
   const loadedConfig = {
     ...config,
@@ -179,6 +213,7 @@ async function loadConfig(isVerbose) {
   if (isVerbose) {
     console.log(loadedConfig);
   }
+
   return loadedConfig;
 }
 
@@ -194,10 +229,11 @@ async function loadTemplates(config, isVerbose) {
     return fs.promises.readFile(templateFilePath, "utf8");
   });
   const tepmlateContents = await sequential(functions);
-  return templateConfigs.map((c, i) => ({
+  const templates = templateConfigs.map((c, i) => ({
     ...c,
     content: tepmlateContents[i],
   }));
+  return templates;
 }
 
 function isEntityTemplate(template) {
@@ -222,20 +258,101 @@ async function getAbsoluteSchemaFilePaths(schemaPath) {
 
 async function loadSchema(absoluteSchemaFilePath, isVerbose) {
   if (isVerbose) {
-    console.log(`[AIRENT/INFO] Loading schema ${absoluteSchemaFilePath} ...`);
+    console.log(`[AIRENT/INFO] Loading entity ${absoluteSchemaFilePath} ...`);
   }
   const schemaContent = await fs.promises.readFile(
     absoluteSchemaFilePath,
     "utf8"
   );
   const entity = yaml.load(schemaContent);
+  const types = entity.types ?? [];
+  const fields = entity.fields ?? [];
+
+  // validate entity
+  if (!entity.name?.length) {
+    throw new Error("[AIRENT/ERROR] entity.name is missing.");
+  }
+  if (!entity.model?.length) {
+    throw new Error(
+      `[AIRENT/ERROR] entity.model on '${entity.name}' is missing.`
+    );
+  }
+
+  const typeNameCountMap = types
+    .filter((t) => t.name?.length)
+    .reduce((map, t) => {
+      map.set(t.name, (map.get(t.name) ?? 0) + 1);
+      return map;
+    }, new Map());
+  types.forEach((t) => {
+    if (!t.name?.length) {
+      throw new Error(
+        `[AIRENT/ERROR] type.name on '${entity.name}' is missing.`
+      );
+    }
+    const count = typeNameCountMap.get(t.name) ?? 0;
+    if (count !== 1) {
+      throw new Error(
+        `[AIRENT/ERROR] type.name '${entity.name}.${t.name}' is duplicated ${count} times.`
+      );
+    }
+    const point = (t.enum ? 1 : 0) + (t.define ? 1 : 0) + (t.import ? 1 : 0);
+    if (point !== 1) {
+      throw new Error(
+        `[AIRENT/ERROR] type '${entity.name}.${t.name}' must have exactly one of 'enum', 'define' or 'import'.`
+      );
+    }
+  });
+
+  const fieldNameCountMap = fields
+    .filter((f) => f.name?.length)
+    .reduce((map, f) => {
+      map.set(f.name, (map.get(f.name) ?? 0) + 1);
+      return map;
+    }, new Map());
+  fields.forEach((f) => {
+    if (!f.name?.length) {
+      throw new Error(
+        `[AIRENT/ERROR] field.name on '${entity.name}.' is missing.`
+      );
+    }
+    const count = fieldNameCountMap.get(f.name) ?? 0;
+    if (count !== 1) {
+      throw new Error(
+        `[AIRENT/ERROR] field.name '${entity.name}.${f.name}' is duplicated ${count} times.`
+      );
+    }
+    if (!f.type?.length) {
+      throw new Error(
+        `[AIRENT/ERROR] field.type on '${entity.name}.${f.name}' is missing.`
+      );
+    }
+    if (
+      !["primitive", "computed", "computedAsync", "association"].includes(
+        f.strategy ?? ""
+      )
+    ) {
+      throw new Error(
+        `[AIRENT/ERROR] field.strategy '${f.strategy}' on '${entity.name}.${f.name}' is must be one of 'primitive', 'computed', 'computedAsync' or 'association'.`
+      );
+    }
+    if (
+      f.strategy === "association" &&
+      (!f.sourceFields?.length || !f.targetFields?.length)
+    ) {
+      throw new Error(
+        `[AIRENT/ERROR] field.sourceFields and field.targetFields on '${entity.name}.${f.name}' must be present for association fields.`
+      );
+    }
+  });
+
   return {
     ...entity,
     internal: entity.internal ?? false,
     deprecated: entity.deprecated ?? false,
     skipSelfLoader: entity.skipSelfLoader ?? false,
-    types: entity.types ?? [],
-    fields: entity.fields ?? [],
+    types,
+    fields,
   };
 }
 
@@ -244,7 +361,20 @@ async function loadSchemas(schemaPath, isVerbose) {
   const functions = absoluteSchemaFilePaths
     .sort()
     .map((p) => () => loadSchema(p, isVerbose));
-  return await sequential(functions);
+  const schemas = await sequential(functions);
+  const entityNameCountMap = schemas.reduce((map, e) => {
+    map.set(e.name, (map.get(e.name) ?? 0) + 1);
+    return map;
+  }, new Map());
+  schemas.forEach((e) => {
+    const count = entityNameCountMap.get(e.name) ?? 0;
+    if (count !== 1) {
+      throw new Error(
+        `[AIRENT/ERROR] entity.name '${e.name}' is duplicated ${count} times.`
+      );
+    }
+  });
+  return schemas;
 }
 
 function augment(augmentorName, entityMap, templates, config, isVerbose) {

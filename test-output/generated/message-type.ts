@@ -31,7 +31,7 @@ export type MessageResponse = {
   id?: string;
   createdAt?: Date;
   chatId?: string;
-  derivedChatId?: string | null;
+  derivedChatId?: string;
   userId?: string | null;
   content?: string | null;
   attachment?: Attachment | null;

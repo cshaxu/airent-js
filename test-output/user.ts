@@ -19,36 +19,10 @@ export class UserEntity extends UserEntityBase {
       return ChatUserEntity.fromArray(models);
     };
 
-    this.messagesLoadConfig.getter = (sources: UserEntityBase[]) => {
-      return sources
-        .map((one) => ({
-        }));
-    };
-
     this.messagesLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load MessageEntity models */];
       return MessageEntity.fromArray(models);
     };
-
-    this.messagesLoadConfig.setter = ((sources: UserEntity[], targets: MessageEntity[]) => {
-      const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
-      sources.forEach((one) => (one.messages = map.get('TODO: map your source entity to key') ?? []));
-    }) as (sources: UserEntityBase[], targets: MessageEntity[]) => Promise<void>;
-
-    this.hasAnyMessageLoadConfig.getter = (sources: UserEntityBase[]) => {
-      return sources
-        .map((one) => ({
-        }));
-    };
-
-    this.hasAnyMessageLoadConfig.loader = async (keys: LoadKey[]) => {
-      return [/* TODO: load associated models */];
-    };
-
-    this.hasAnyMessageLoadConfig.setter = ((sources: UserEntity[], targets: boolean[]) => {
-      const map = toObjectMap(targets, (one) => 'TODO: map your target entity to key', (one) => one);
-      sources.forEach((one) => (one.hasAnyMessage = map.get('TODO: map your source entity to key')!));
-    }) as (sources: UserEntityBase[], targets: boolean[]) => Promise<void>;
   }
 
   /** computed sync fields */
@@ -61,6 +35,10 @@ export class UserEntity extends UserEntityBase {
 
   /** @deprecated */
   public async getFirstMessage(): Promise<MessageEntity | null> {
+    throw new Error('not implemented');
+  }
+
+  public async getHasAnyMessage(): Promise<boolean> {
     throw new Error('not implemented');
   }
 }

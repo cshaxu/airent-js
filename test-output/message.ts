@@ -39,7 +39,7 @@ export class MessageEntity extends MessageEntityBase {
 
   /** computed sync fields */
 
-  public getDerivedChatId(): string | null {
+  public getDerivedChatId(): string {
     throw new Error('not implemented');
   }
 
