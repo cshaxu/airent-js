@@ -140,6 +140,7 @@ export class UserEntityBase extends BaseEntity<
       return sources
         .map((one) => ({
           userId: one.id,
+          content: null,
         }));
     },
     // TODO: build your association data loader

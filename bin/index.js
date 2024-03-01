@@ -63,8 +63,9 @@ async function configure() {
  *  @property {?string} [aliasOf]
  *  @property {?boolean} cast
  *  @property {?boolean} deprecated
- *  @property {?string[]} [sourceFields]
- *  @property {?string[]} [targetFields]
+ *  @property {?string[]} [sourceKeys]
+ *  @property {?string[]} [targetKeys]
+ *  @property {?string} [targetFilters]
  */
 
 /** @typedef {Object} Entity
@@ -338,10 +339,12 @@ async function loadSchema(absoluteSchemaFilePath, isVerbose) {
     }
     if (
       f.strategy === "association" &&
-      (!f.sourceFields?.length || !f.targetFields?.length)
+      (!f.sourceKeys?.length ||
+        !f.targetKeys?.length ||
+        f.sourceKeys.length !== f.targetKeys.length)
     ) {
       throw new Error(
-        `[AIRENT/ERROR] field.sourceFields and field.targetFields on '${entity.name}.${f.name}' must be present for association fields.`
+        `[AIRENT/ERROR] field.sourceKeys and field.targetKeys on '${entity.name}.${f.name}' must be present and match for association fields.`
       );
     }
   });

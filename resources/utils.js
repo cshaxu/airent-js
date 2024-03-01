@@ -81,17 +81,33 @@ function queryField(fieldName, entity) /* Field? */ {
 
 // UNSAFE BEFORE AUGMENTATION
 function getSourceFields(field) /* Field[] */ {
-  return (field.sourceFields ?? [])
+  return (field.sourceKeys ?? [])
     .map((sfName) => queryField(sfName, field._parent))
     .filter(isSyncField);
 }
 
 // UNSAFE BEFORE AUGMENTATION
 function getTargetFields(field) /* Field[] */ {
-  return (field.targetFields ?? [])
+  return (field.targetKeys ?? [])
     .map((tfName) => queryField(tfName, field._type._entity))
     .filter(Boolean)
     .filter(isPrimitiveField);
+}
+
+// UNSAFE BEFORE AUGMENTATION
+function getTargetFilters(field) /* Field[] */ {
+  return (field.targetFilters ?? [])
+    .flatMap((tf) =>
+      Object.keys(tf).map((tfn) => {
+        const name = tfn;
+        const targetField = queryField(name, field._type._entity);
+        if (!targetField || !isPrimitiveField(targetField)) {
+          return null;
+        }
+        return { ...targetField, value: tf[tfn] };
+      })
+    )
+    .filter(Boolean);
 }
 
 /**********/
@@ -208,6 +224,7 @@ module.exports = {
   queryField,
   getSourceFields,
   getTargetFields,
+  getTargetFilters,
   getSourceKeySize,
   getTargetKeySize,
   isPresentableEntity,

@@ -43,18 +43,20 @@ fields:
     type: chatUser[]
     strategy: association
     deprecated: true
-    sourceFields:
+    sourceKeys:
       - id
-    targetFields:
+    targetKeys:
       - userId
   - id: 10
     name: messages
     type: Message[]
     strategy: association
-    sourceFields:
+    sourceKeys:
       - id
-    targetFields:
+    targetKeys:
       - userId
+    targetFilters:
+      - content: null
     internal: true
   - id: 11
     name: firstMessage

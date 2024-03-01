@@ -34,15 +34,15 @@ fields:
     name: chat
     type: Chat
     strategy: association
-    sourceFields:
+    sourceKeys:
       - chatId
-    targetFields:
+    targetKeys:
       - id
   - id: 7
     name: user
     type: User
     strategy: association
-    sourceFields:
+    sourceKeys:
       - userId
-    targetFields:
+    targetKeys:
       - id
