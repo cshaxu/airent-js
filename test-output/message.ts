@@ -16,6 +16,13 @@ export class MessageEntity extends MessageEntityBase {
 
     /** associations */
 
+    this.chatLoadConfig.getter = (sources: MessageEntityBase[]) => {
+      return sources
+        .map((one) => ({
+          id: one.getDerivedChatId(),
+        }));
+    };
+
     this.chatLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load ChatEntity models */];
       return ChatEntity.fromArray(models);
@@ -25,6 +32,11 @@ export class MessageEntity extends MessageEntityBase {
       const models = [/* TODO: load UserEntity models */];
       return UserEntity.fromArray(models);
     };
+
+    this.userLoadConfig.setter = ((sources: MessageEntity[], targets: UserEntity[]) => {
+      const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
+      sources.forEach((one) => (one.user = (one.userId === null) ? null : map.get(`${one.userId}`) ?? null));
+    }) as (sources: MessageEntityBase[], targets: UserEntity[]) => Promise<void>;
 
     this.parentMessageLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load MessageEntity models */];

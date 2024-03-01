@@ -294,13 +294,9 @@ function buildFieldLoadConfigSourceSetter(field) /* Code */ {
 
 function buildFieldLoadConfig(field) /* Object */ {
   const loadConfig = {};
-  const sourceKeySize = utils.getSourceKeySize(field);
-  const targetKeySize = utils.getTargetKeySize(field);
-  loadConfig.isGetterGeneratable =
-    sourceKeySize > 0 && sourceKeySize === targetKeySize;
+  loadConfig.isGetterGeneratable = field.skipGetter !== true;
   loadConfig.isLoaderGeneratable = false;
-  loadConfig.isSetterGeneratable =
-    sourceKeySize > 0 && sourceKeySize === targetKeySize;
+  loadConfig.isSetterGeneratable = field.skipSetter !== true;
   loadConfig.name = `${field._parent.strings.entityClass}.${field.name}`;
   // for loadConfig.getter
   loadConfig.getterLines = undefined;
