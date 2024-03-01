@@ -114,8 +114,8 @@ export class UserEntityBase extends BaseEntity<
     //   return ChatUserEntity.fromArray(models);
     // },
     setter: (sources: UserEntityBase[], targets: ChatUserEntity[]) => {
-      const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
-      sources.forEach((one) => (one.chatUsers = map.get(`${one.id}`) ?? []));
+      const map = toArrayMap(targets, (one) => JSON.stringify({ userId: one.userId }), (one) => one);
+      sources.forEach((one) => (one.chatUsers = map.get(JSON.stringify({ userId: one.id })) ?? []));
     },
   };
 
@@ -149,8 +149,8 @@ export class UserEntityBase extends BaseEntity<
     //   return MessageEntity.fromArray(models);
     // },
     setter: (sources: UserEntityBase[], targets: MessageEntity[]) => {
-      const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
-      sources.forEach((one) => (one.messages = map.get(`${one.id}`) ?? []));
+      const map = toArrayMap(targets, (one) => JSON.stringify({ userId: one.userId }), (one) => one);
+      sources.forEach((one) => (one.messages = map.get(JSON.stringify({ userId: one.id })) ?? []));
     },
   };
 

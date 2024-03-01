@@ -34,8 +34,8 @@ export class MessageEntity extends MessageEntityBase {
     };
 
     this.userLoadConfig.setter = ((sources: MessageEntity[], targets: UserEntity[]) => {
-      const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
-      sources.forEach((one) => (one.user = (one.userId === null) ? null : map.get(`${one.userId}`) ?? null));
+      const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
+      sources.forEach((one) => (one.user = (one.userId === null) ? null : map.get(JSON.stringify({ id: one.userId })) ?? null));
     }) as (sources: MessageEntityBase[], targets: UserEntity[]) => Promise<void>;
 
     this.parentMessageLoadConfig.loader = async (keys: LoadKey[]) => {
