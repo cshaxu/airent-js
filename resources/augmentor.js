@@ -246,14 +246,10 @@ function buildFieldPresenter(field) /* Code */ {
   return presenter;
 }
 
-function buildFieldAssociationKeyString(keyFields, keyType) /* Code */ {
-  if (keyFields.length === 0) {
-    return `'TODO: map your ${keyType} entity to key'`;
-  }
-  const jointKey = keyFields
-    .map((kf) => `\${one.${kf.strings.fieldGetter}}`)
-    .join("*");
-  return "`" + jointKey + "`";
+function buildFieldAssociationKeyString(sourceFields, targetFields) /* Code */ {
+  return `JSON.stringify({ ${targetFields
+    .map((tf, i) => `${tf.name}: one.${sourceFields[i].strings.fieldGetter}`)
+    .join(", ")} })`;
 }
 
 function buildFieldLoadConfigTargetMapper(field) /* Code */ {
@@ -261,7 +257,7 @@ function buildFieldLoadConfigTargetMapper(field) /* Code */ {
   const targetFields = utils.getTargetFields(field);
   const targetKeyString = buildFieldAssociationKeyString(
     targetFields,
-    "target"
+    targetFields
   );
   return `${mapBuilder}(targets, (one) => ${targetKeyString}, (one) => one)`;
 }
@@ -282,7 +278,7 @@ function buildFieldLoadConfigSourceSetter(field) /* Code */ {
       : `(${nullConditions}) ? ${utils.isArrayField(field) ? "[]" : "null"} : `;
   const sourceKeyString = buildFieldAssociationKeyString(
     sourceFields,
-    "source"
+    targetFields
   );
   const fallback = utils.isArrayField(field)
     ? " ?? []"
