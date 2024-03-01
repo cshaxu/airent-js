@@ -87,18 +87,18 @@ fields:
     name: chatUsers
     type: ChatUser[] # the ChatUser entity is defined in the types section above
     strategy: association # this field is to be loaded from db by foreign keys
-    sourceFields:
+    sourceKeys:
       - id # the key field in User entity
-    targetFields:
+    targetKeys:
       - userId # the key field in ChatUser entity
     internal: true
   - id: 10
     name: messages
     type: Message[] # the Messsage entity is defined in the types section above
     strategy: association # this field is to be loaded from db by foreign keys
-    sourceFields:
+    sourceKeys:
       - id # the key field in User entity
-    targetFields:
+    targetKeys:
       - userId # the key field in Message entity
     internal: true
   - id: 11

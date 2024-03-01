@@ -25,15 +25,15 @@ fields:
     type: chatUser[]
     strategy: association
     deprecated: true
-    sourceFields:
+    sourceKeys:
       - id
-    targetFields:
+    targetKeys:
       - chatId
   - id: 6
     name: messages
     type: Message[]
     strategy: association
-    sourceFields:
+    sourceKeys:
       - id
-    targetFields:
+    targetKeys:
       - chatId

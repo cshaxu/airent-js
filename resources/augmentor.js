@@ -20,6 +20,7 @@ function getLoadConfigGetterLines(field) /* Code[] */ {
   }
   const sourceFields = utils.getSourceFields(field);
   const targetFields = utils.getTargetFields(field);
+  const targetFilters = utils.getTargetFilters(field);
   // reject nullable sourceField whose targetField is required
   const filters = sourceFields
     .filter(
@@ -31,11 +32,16 @@ function getLoadConfigGetterLines(field) /* Code[] */ {
     const rawTargetFieldName = targetFields[i].aliasOf ?? targetFields[i].name;
     return `    ${rawTargetFieldName}: one.${sf.strings.fieldGetter},`;
   });
+  const filterFields = targetFilters.map((tf) => {
+    const rawTargetFieldName = tf.aliasOf ?? tf.name;
+    return `    ${rawTargetFieldName}: ${tf.value},`;
+  });
   return [
     "return sources",
     ...filters,
     "  .map((one) => ({",
     ...mappedFields,
+    ...filterFields,
     "  }));",
   ];
 }
@@ -240,7 +246,7 @@ function buildFieldPresenter(field) /* Code */ {
   return presenter;
 }
 
-function buildFieldAssociationKey(keyFields, keyType) /* Code */ {
+function buildFieldAssociationKeyString(keyFields, keyType) /* Code */ {
   if (keyFields.length === 0) {
     return `'TODO: map your ${keyType} entity to key'`;
   }
@@ -253,8 +259,11 @@ function buildFieldAssociationKey(keyFields, keyType) /* Code */ {
 function buildFieldLoadConfigTargetMapper(field) /* Code */ {
   const mapBuilder = utils.isArrayField(field) ? "toArrayMap" : "toObjectMap";
   const targetFields = utils.getTargetFields(field);
-  const targetKey = buildFieldAssociationKey(targetFields, "target");
-  return `${mapBuilder}(targets, (one) => ${targetKey}, (one) => one)`;
+  const targetKeyString = buildFieldAssociationKeyString(
+    targetFields,
+    "target"
+  );
+  return `${mapBuilder}(targets, (one) => ${targetKeyString}, (one) => one)`;
 }
 
 function buildFieldLoadConfigSourceSetter(field) /* Code */ {
@@ -271,13 +280,16 @@ function buildFieldLoadConfigSourceSetter(field) /* Code */ {
     nullConditions.length === 0
       ? ""
       : `(${nullConditions}) ? ${utils.isArrayField(field) ? "[]" : "null"} : `;
-  const sourceKey = buildFieldAssociationKey(sourceFields, "source");
+  const sourceKeyString = buildFieldAssociationKeyString(
+    sourceFields,
+    "source"
+  );
   const fallback = utils.isArrayField(field)
     ? " ?? []"
     : utils.isNullableField(field)
     ? " ?? null"
     : "!";
-  return `${nullSetter}map.get(${sourceKey})${fallback}`;
+  return `${nullSetter}map.get(${sourceKeyString})${fallback}`;
 }
 
 function buildFieldLoadConfig(field) /* Object */ {

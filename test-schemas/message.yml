@@ -43,17 +43,17 @@ fields:
     name: chat
     type: Chat
     strategy: association
-    sourceFields:
+    sourceKeys:
       - derivedChatId
-    targetFields:
+    targetKeys:
       - id
   - id: 8
     name: user
     type: User | null
     strategy: association
-    sourceFields:
+    sourceKeys:
       - userId
-    targetFields:
+    targetKeys:
       - id
   - id: 9
     name: hasContent
@@ -68,9 +68,9 @@ fields:
     name: parentMessage
     type: Message | null
     strategy: association
-    sourceFields:
+    sourceKeys:
       - parentMessageId
-    targetFields:
+    targetKeys:
       - id
   - id: 12
     name: mentorId
@@ -80,7 +80,7 @@ fields:
     name: mentor
     type: User | null
     strategy: association
-    sourceFields:
+    sourceKeys:
       - mentorId
-    targetFields:
+    targetKeys:
       - id
