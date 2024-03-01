@@ -91,12 +91,13 @@ export class MessageEntityBase extends BaseEntity<
   protected chatLoadConfig: LoadConfig<MessageEntityBase, ChatEntity> = {
     name: 'MessageEntity.chat',
     filter: (one: MessageEntityBase) => one.chat === undefined,
-    getter: (sources: MessageEntityBase[]) => {
-      return sources
-        .map((one) => ({
-          id: one.getDerivedChatId(),
-        }));
-    },
+    // TODO: build your association key getter
+    // getter: (sources: MessageEntityBase[]) => {
+    //   return sources
+    //     .map((one) => ({
+    //       id: one.getDerivedChatId(),
+    //     }));
+    // },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load ChatEntity models */];
@@ -135,10 +136,11 @@ export class MessageEntityBase extends BaseEntity<
     //   const models = [/* TODO: load UserEntity models */];
     //   return UserEntity.fromArray(models);
     // },
-    setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
-      const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
-      sources.forEach((one) => (one.user = (one.userId === null) ? null : map.get(`${one.userId}`) ?? null));
-    },
+    // TODO: build your association value setter
+    // setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
+    //   const map = toObjectMap(targets, (one) => `${one.id}`, (one) => one);
+    //   sources.forEach((one) => (one.user = (one.userId === null) ? null : map.get(`${one.userId}`) ?? null));
+    // },
   };
 
   public async getUser(): Promise<UserEntity | null> {

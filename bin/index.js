@@ -48,7 +48,7 @@ async function configure() {
 
 /** @typedef {Object} Type
  *  @property {string} name
- *  @property {?string} [aliasOf]
+ *  @property {?string} aliasOf
  *  @property {?string} enum
  *  @property {?string} define
  *  @property {?string} import
@@ -60,12 +60,14 @@ async function configure() {
  *  @property {string} type
  *  @property {"primitive" | "association" | "computed" | "computedAsync"} strategy
  *  @property {string} name
- *  @property {?string} [aliasOf]
+ *  @property {?string} aliasOf
  *  @property {?boolean} cast
  *  @property {?boolean} deprecated
  *  @property {?string[]} [sourceKeys]
  *  @property {?string[]} [targetKeys]
- *  @property {?string} [targetFilters]
+ *  @property {?object[]} [targetFilters]
+ *  @property {?boolean} skipGetter
+ *  @property {?boolean} skipSetter
  */
 
 /** @typedef {Object} Entity

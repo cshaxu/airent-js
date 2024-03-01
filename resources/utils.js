@@ -110,20 +110,6 @@ function getTargetFilters(field) /* Field[] */ {
     .filter(Boolean);
 }
 
-/**********/
-/* NUMBER */
-/**********/
-
-// UNSAFE BEFORE AUGMENTATION
-function getSourceKeySize(field) /* number */ {
-  return getSourceFields(field).length;
-}
-
-// UNSAFE BEFORE AUGMENTATION
-function getTargetKeySize(field) /* number */ {
-  return getTargetFields(field).length;
-}
-
 /***********/
 /* BOOLEAN */
 /***********/
@@ -225,8 +211,6 @@ module.exports = {
   getSourceFields,
   getTargetFields,
   getTargetFilters,
-  getSourceKeySize,
-  getTargetKeySize,
   isPresentableEntity,
   isEntityType,
   isImportType,
