@@ -19,7 +19,7 @@ Entity name: Message
 
 Entity name: User
   Primitive fields: 7
-  Association fields: 3
+  Association fields: 2
   ComputedSync fields: 1
-  ComputedAsync fields: 1
+  ComputedAsync fields: 2
 

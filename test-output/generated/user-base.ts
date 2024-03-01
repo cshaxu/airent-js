@@ -37,8 +37,6 @@ export class UserEntityBase extends BaseEntity<
 
   protected messages?: MessageEntity[];
 
-  protected hasAnyMessage?: boolean;
-
   public constructor(
     model: UserModel,
     group: UserEntityBase[],
@@ -138,22 +136,21 @@ export class UserEntityBase extends BaseEntity<
   protected messagesLoadConfig: LoadConfig<UserEntityBase, MessageEntity> = {
     name: 'UserEntity.messages',
     filter: (one: UserEntityBase) => one.messages === undefined,
-    // TODO: build your association key getter
-    // getter: (sources: UserEntityBase[]) => {
-    //   return sources
-    //     .map((one) => ({
-    //     }));
-    // },
+    getter: (sources: UserEntityBase[]) => {
+      return sources
+        .map((one) => ({
+          userId: one.id,
+        }));
+    },
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load MessageEntity models */];
     //   return MessageEntity.fromArray(models);
     // },
-    // TODO: build your association value setter
-    // setter: (sources: UserEntityBase[], targets: MessageEntity[]) => {
-    //   const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
-    //   sources.forEach((one) => (one.messages = map.get('TODO: map your source entity to key') ?? []));
-    // },
+    setter: (sources: UserEntityBase[], targets: MessageEntity[]) => {
+      const map = toArrayMap(targets, (one) => `${one.userId}`, (one) => one);
+      sources.forEach((one) => (one.messages = map.get(`${one.id}`) ?? []));
+    },
   };
 
   public async getMessages(): Promise<MessageEntity[]> {
@@ -168,38 +165,6 @@ export class UserEntityBase extends BaseEntity<
     this.messages = messages;
   }
 
-  protected hasAnyMessageLoadConfig: LoadConfig<UserEntityBase, boolean> = {
-    name: 'UserEntity.hasAnyMessage',
-    filter: (one: UserEntityBase) => one.hasAnyMessage === undefined,
-    // TODO: build your association key getter
-    // getter: (sources: UserEntityBase[]) => {
-    //   return sources
-    //     .map((one) => ({
-    //     }));
-    // },
-    // TODO: build your association data loader
-    // loader: async (keys: LoadKey[]) => {
-    //   return [/* TODO: load associated models */];
-    // },
-    // TODO: build your association value setter
-    // setter: (sources: UserEntityBase[], targets: boolean[]) => {
-    //   const map = toObjectMap(targets, (one) => 'TODO: map your target entity to key', (one) => one);
-    //   sources.forEach((one) => (one.hasAnyMessage = map.get('TODO: map your source entity to key')!));
-    // },
-  };
-
-  public async getHasAnyMessage(): Promise<boolean> {
-    if (this.hasAnyMessage !== undefined) {
-      return this.hasAnyMessage;
-    }
-    await this.load(this.hasAnyMessageLoadConfig);
-    return this.hasAnyMessage!;
-  }
-
-  public setHasAnyMessage(hasAnyMessage?: boolean): void {
-    this.hasAnyMessage = hasAnyMessage;
-  }
-
   /** computed sync fields */
 
   public getIsAdmin(): boolean {
@@ -210,6 +175,10 @@ export class UserEntityBase extends BaseEntity<
 
   /** @deprecated */
   public async getFirstMessage(): Promise<MessageEntity | null> {
+    throw new Error('not implemented');
+  }
+
+  public async getHasAnyMessage(): Promise<boolean> {
     throw new Error('not implemented');
   }
 }

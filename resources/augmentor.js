@@ -259,13 +259,25 @@ function buildFieldLoadConfigTargetMapper(field) /* Code */ {
 
 function buildFieldLoadConfigSourceSetter(field) /* Code */ {
   const sourceFields = utils.getSourceFields(field);
+  const targetFields = utils.getTargetFields(field);
+  const nullConditions = sourceFields
+    .filter(
+      (sf, i) =>
+        utils.isNullableField(sf) && !utils.isNullableField(targetFields[i])
+    )
+    .map((sf) => `one.${sf.strings.fieldGetter} === null`)
+    .join(" || ");
+  const nullSetter =
+    nullConditions.length === 0
+      ? ""
+      : `(${nullConditions}) ? ${utils.isArrayField(field) ? "[]" : "null"} : `;
   const sourceKey = buildFieldAssociationKey(sourceFields, "source");
   const fallback = utils.isArrayField(field)
     ? " ?? []"
     : utils.isNullableField(field)
     ? " ?? null"
     : "!";
-  return `map.get(${sourceKey})${fallback}`;
+  return `${nullSetter}map.get(${sourceKey})${fallback}`;
 }
 
 function buildFieldLoadConfig(field) /* Object */ {
