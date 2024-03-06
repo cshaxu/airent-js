@@ -59,7 +59,7 @@ export class ChatUserEntityBase extends BaseEntity<
   }
 
   public async present<S extends ChatUserFieldRequest>(fieldRequest: S): Promise<SelectedChatUserResponse<S>> {
-    this.beforePresent(fieldRequest);
+    await this.beforePresent(fieldRequest);
     const response = {
       ...(fieldRequest.id !== undefined && { id: this.id }),
       ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
@@ -69,7 +69,7 @@ export class ChatUserEntityBase extends BaseEntity<
       ...(fieldRequest.chat !== undefined && { chat: await this.getChat().then((one) => one.present(fieldRequest.chat!)) }),
       ...(fieldRequest.user !== undefined && { user: await this.getUser().then((one) => one.present(fieldRequest.user!)) }),
     } as SelectedChatUserResponse<S>;
-    this.afterPresent(fieldRequest, response);
+    await this.afterPresent(fieldRequest, response);
     return response;
   }
 

@@ -88,13 +88,13 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   }
 
   public async present<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<<%= entity.strings.selectedResponseClass %><S>> {
-    this.beforePresent(fieldRequest);
+    await this.beforePresent(fieldRequest);
     const response = {
   <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
       ...(fieldRequest.<%= field.name %> !== undefined && { <%= field.name %>: <%- field.code.presenter %> }),
   <%_ }); -%>
     } as <%= entity.strings.selectedResponseClass %><S>;
-    this.afterPresent(fieldRequest, response);
+    await this.afterPresent(fieldRequest, response);
     return response;
   }
 
