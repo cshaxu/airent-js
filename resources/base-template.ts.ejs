@@ -7,7 +7,6 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
-  Select,
   sequential,
   toArrayMap,
   toObjectMap,
@@ -19,7 +18,7 @@ import {
   <%_ if (utils.isPresentableEntity(entity)) { -%>
   <%= entity.strings.fieldRequestClass %>,
   <%= entity.strings.responseClass %>,
-  <%= `Selected${entity.strings.responseClass}` %>,
+  <%= entity.strings.selectedResponseClass %>,
   <%_ } -%>
   <%_ entity.types.filter(utils.isCustomType).forEach((type) => { -%>
   <%= type.name %>,
@@ -82,19 +81,19 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   <%_ }); -%>
   }
 
-  protected async afterPresent<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S, response: Selected<%= entity.strings.responseClass %><S>): Promise<void> {
+  protected async afterPresent<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S, response: <%= entity.strings.selectedResponseClass %><S>): Promise<void> {
   <%_ entity.code.afterPresent.forEach((line) => { -%>
 <%- line %>
   <%_ }); -%>
   }
 
-  public async present<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<Selected<%= entity.strings.responseClass %><S>> {
+  public async present<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<<%= entity.strings.selectedResponseClass %><S>> {
     this.beforePresent(fieldRequest);
     const response = {
   <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
       ...(fieldRequest.<%= field.name %> !== undefined && { <%= field.name %>: <%- field.code.presenter %> }),
   <%_ }); -%>
-    } as Selected<%= entity.strings.responseClass %><S>;
+    } as <%= entity.strings.selectedResponseClass %><S>;
     this.afterPresent(fieldRequest, response);
     return response;
   }
@@ -102,7 +101,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   public static async presentMany<
     ENTITY extends <%= entity.strings.baseClass %>,
     S extends <%= entity.strings.fieldRequestClass %>
-  >(entities: ENTITY[], fieldRequest: S): Promise<Selected<%= entity.strings.responseClass %><S>[]> {
+  >(entities: ENTITY[], fieldRequest: S): Promise<<%= entity.strings.selectedResponseClass %><S>[]> {
     return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 <% } -%>

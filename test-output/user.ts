@@ -3,6 +3,7 @@ import { UserEntityBase } from './generated/user-base.js';
 import {
   UserFieldRequest,
   UserResponse,
+  SelectedUserResponse,
   UserModel,
 } from './generated/user-type.js';
 import { MessageEntity } from './message.js';

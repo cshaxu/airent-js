@@ -4,7 +4,6 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
-  Select,
   sequential,
   toArrayMap,
   toObjectMap,

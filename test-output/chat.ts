@@ -3,6 +3,7 @@ import { ChatEntityBase } from './generated/chat-base.js';
 import {
   ChatFieldRequest,
   ChatResponse,
+  SelectedChatResponse,
   ChatModel,
 } from './generated/chat-type.js';
 import { MessageEntity } from './message.js';
