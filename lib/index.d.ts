@@ -18,6 +18,8 @@ declare class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
     protected _lock: AsyncLock;
     protected constructor(group: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[], lock: AsyncLock);
     protected initialize(_model: MODEL): void;
+    protected beforePresent<S extends FIELD_REQUEST>(_fieldRequest: S): Promise<void>;
+    protected afterPresent<S extends FIELD_REQUEST>(_fieldRequest: S, _response: Select<RESPONSE, S>): Promise<void>;
     present<S extends FIELD_REQUEST>(_fieldRequest: S): Promise<Select<RESPONSE, S>>;
     protected load<ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>, LOADED>(config: LoadConfig<ENTITY, LOADED>): Promise<void>;
     /** factories */

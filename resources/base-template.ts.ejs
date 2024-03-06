@@ -7,6 +7,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   sequential,
   toArrayMap,
   toObjectMap,
@@ -75,27 +76,15 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   }
 <% if (utils.isPresentableEntity(entity)) { -%>
 
-  protected async beforePresent<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<void> {
-  <%_ entity.code.beforePresent.forEach((line) => { -%>
-<%- line %>
-  <%_ }); -%>
-  }
-
-  protected async afterPresent<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S, response: <%= entity.strings.selectedResponseClass %><S>): Promise<void> {
-  <%_ entity.code.afterPresent.forEach((line) => { -%>
-<%- line %>
-  <%_ }); -%>
-  }
-
   public async present<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<<%= entity.strings.selectedResponseClass %><S>> {
     await this.beforePresent(fieldRequest);
     const response = {
   <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
       ...(fieldRequest.<%= field.name %> !== undefined && { <%= field.name %>: <%- field.code.presenter %> }),
   <%_ }); -%>
-    } as <%= entity.strings.selectedResponseClass %><S>;
-    await this.afterPresent(fieldRequest, response);
-    return response;
+    };
+    await this.afterPresent(fieldRequest, response as Select<<%= entity.strings.responseClass %>, S>);
+    return response as <%= entity.strings.selectedResponseClass %><S>;
   }
 
   public static async presentMany<

@@ -225,8 +225,6 @@ function buildEntityCode(entity) /* Object */ {
     afterType: [],
     selfModelsLoader: `[/* TODO: load models for ${entity.strings.entityClass} */]`,
     selfLoaderLines: undefined,
-    beforePresent: [],
-    afterPresent: [],
   };
 }
 
