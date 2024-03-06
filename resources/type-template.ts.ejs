@@ -57,12 +57,12 @@ export type <%= entity.strings.responseClass %> = {
   <%= field.name %>?: <%= field.strings.fieldResponseType %>;
   <%_ }); -%>
 };
-<% } -%>
-<% entity.code.afterType.forEach((line) => { -%>
-<%- line %>
-<% }); -%>
 
   <%_ if (entity.deprecated) { -%>
 /** @deprecated */
   <%_ } -%>
 export type <%= entity.strings.selectedResponseClass %><S extends <%= entity.strings.fieldRequestClass %>> = Select<<%= entity.strings.responseClass %>, S>;
+<% } -%>
+<% entity.code.afterType.forEach((line) => { -%>
+<%- line %>
+<% }); -%>
