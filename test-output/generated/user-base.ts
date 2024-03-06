@@ -14,6 +14,7 @@ import {
 import {
   UserFieldRequest,
   UserResponse,
+  SelectedUserResponse,
   UserModel,
 } from './user-type.js';
 
@@ -55,8 +56,15 @@ export class UserEntityBase extends BaseEntity<
     this.initialize(model);
   }
 
-  public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<Select<UserResponse, S>> {
-    return {
+  protected async beforePresent<S extends UserFieldRequest>(fieldRequest: S): Promise<void> {
+  }
+
+  protected async afterPresent<S extends UserFieldRequest>(fieldRequest: S, response: SelectedUserResponse<S>): Promise<void> {
+  }
+
+  public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<SelectedUserResponse<S>> {
+    this.beforePresent(fieldRequest);
+    const response = {
       ...(fieldRequest.id !== undefined && { id: this.id }),
       ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
       ...(fieldRequest.updatedAt !== undefined && { updatedAt: this.updatedAt }),
@@ -67,13 +75,15 @@ export class UserEntityBase extends BaseEntity<
       ...(fieldRequest.chatUsers !== undefined && { chatUsers: await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))) }),
       ...(fieldRequest.firstMessage !== undefined && { firstMessage: await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.firstMessage!)) }),
       ...(fieldRequest.hasAnyMessage !== undefined && { hasAnyMessage: await this.getHasAnyMessage() }),
-    } as Select<UserResponse, S>;
+    } as SelectedUserResponse<S>;
+    this.afterPresent(fieldRequest, response);
+    return response;
   }
 
   public static async presentMany<
     ENTITY extends UserEntityBase,
     S extends UserFieldRequest
-  >(entities: ENTITY[], fieldRequest: S): Promise<Select<UserResponse, S>[]> {
+  >(entities: ENTITY[], fieldRequest: S): Promise<SelectedUserResponse<S>[]> {
     return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 
