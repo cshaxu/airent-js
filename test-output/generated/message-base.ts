@@ -68,7 +68,7 @@ export class MessageEntityBase extends BaseEntity<
   }
 
   public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<SelectedMessageResponse<S>> {
-    this.beforePresent(fieldRequest);
+    await this.beforePresent(fieldRequest);
     const response = {
       ...(fieldRequest.id !== undefined && { id: this.id }),
       ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
@@ -84,7 +84,7 @@ export class MessageEntityBase extends BaseEntity<
       ...(fieldRequest.mentorId !== undefined && { mentorId: this.getMentorId() }),
       ...(fieldRequest.mentor !== undefined && { mentor: await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.mentor!)) }),
     } as SelectedMessageResponse<S>;
-    this.afterPresent(fieldRequest, response);
+    await this.afterPresent(fieldRequest, response);
     return response;
   }
 

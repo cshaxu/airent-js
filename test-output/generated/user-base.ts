@@ -62,7 +62,7 @@ export class UserEntityBase extends BaseEntity<
   }
 
   public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<SelectedUserResponse<S>> {
-    this.beforePresent(fieldRequest);
+    await this.beforePresent(fieldRequest);
     const response = {
       ...(fieldRequest.id !== undefined && { id: this.id }),
       ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
@@ -75,7 +75,7 @@ export class UserEntityBase extends BaseEntity<
       ...(fieldRequest.firstMessage !== undefined && { firstMessage: await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.firstMessage!)) }),
       ...(fieldRequest.hasAnyMessage !== undefined && { hasAnyMessage: await this.getHasAnyMessage() }),
     } as SelectedUserResponse<S>;
-    this.afterPresent(fieldRequest, response);
+    await this.afterPresent(fieldRequest, response);
     return response;
   }
 
