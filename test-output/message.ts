@@ -3,6 +3,7 @@ import { MessageEntityBase } from './generated/message-base.js';
 import {
   MessageFieldRequest,
   MessageResponse,
+  SelectedMessageResponse,
   MessageModel,
   Attachment,
   SenderType,

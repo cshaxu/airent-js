@@ -138,6 +138,7 @@ function buildEntityStrings(entity, config) /* Object */ {
     entityClass: `${entName}Entity`,
     fieldRequestClass: `${entName}FieldRequest`,
     responseClass: `${entName}Response`,
+    selectedResponseClass: `Selected${entName}Response`,
     basePackage: `${prefix}-base${suffix}`,
     entityPackage: `${prefix}${suffix}`,
     typePackage: `${prefix}-type${suffix}`,

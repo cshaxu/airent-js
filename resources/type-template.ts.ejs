@@ -65,4 +65,4 @@ export type <%= entity.strings.responseClass %> = {
   <%_ if (entity.deprecated) { -%>
 /** @deprecated */
   <%_ } -%>
-export type Selected<%= entity.strings.responseClass %><S extends <%= entity.strings.fieldRequestClass %>> = Select<<%= entity.strings.responseClass %>, S>;
+export type <%= entity.strings.selectedResponseClass %><S extends <%= entity.strings.fieldRequestClass %>> = Select<<%= entity.strings.responseClass %>, S>;

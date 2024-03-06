@@ -17,6 +17,7 @@ import {
   <%_ if (utils.isPresentableEntity(entity)) { -%>
   <%= entity.strings.fieldRequestClass %>,
   <%= entity.strings.responseClass %>,
+  <%= entity.strings.selectedResponseClass %>,
   <%_ } -%>
   <%_ entity.types.filter(utils.isCustomType).forEach((type) => { -%>
   <%= type.name %>,
