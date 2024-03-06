@@ -1,3 +1,4 @@
+import { Select } from '../../src';
 import { MessageFieldRequest, MessageResponse } from './message-type.js';
 import { ChatUserFieldRequest, ChatUserResponse } from './chat-user-type.js';
 
@@ -34,3 +35,5 @@ export type UserResponse = {
   firstMessage?: MessageResponse | null;
   hasAnyMessage?: boolean;
 };
+
+export type SelectedUserResponse<S extends UserFieldRequest> = Select<UserResponse, S>;

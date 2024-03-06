@@ -19,6 +19,7 @@ import {
   <%_ if (utils.isPresentableEntity(entity)) { -%>
   <%= entity.strings.fieldRequestClass %>,
   <%= entity.strings.responseClass %>,
+  <%= `Selected${entity.strings.responseClass}` %>,
   <%_ } -%>
   <%_ entity.types.filter(utils.isCustomType).forEach((type) => { -%>
   <%= type.name %>,
@@ -75,18 +76,33 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   }
 <% if (utils.isPresentableEntity(entity)) { -%>
 
-  public async present<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<Select<<%= entity.strings.responseClass %>, S>> {
-    return {
+  protected async beforePresent<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<void> {
+  <%_ entity.code.beforePresent.forEach((line) => { -%>
+<%- line %>
+  <%_ }); -%>
+  }
+
+  protected async afterPresent<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S, response: Selected<%= entity.strings.responseClass %><S>): Promise<void> {
+  <%_ entity.code.afterPresent.forEach((line) => { -%>
+<%- line %>
+  <%_ }); -%>
+  }
+
+  public async present<S extends <%= entity.strings.fieldRequestClass %>>(fieldRequest: S): Promise<Selected<%= entity.strings.responseClass %><S>> {
+    this.beforePresent(fieldRequest);
+    const response = {
   <%_ entity.fields.filter(utils.isPresentableField).forEach((field) => { -%>
       ...(fieldRequest.<%= field.name %> !== undefined && { <%= field.name %>: <%- field.code.presenter %> }),
   <%_ }); -%>
-    } as Select<<%= entity.strings.responseClass %>, S>;
+    } as Selected<%= entity.strings.responseClass %><S>;
+    this.afterPresent(fieldRequest, response);
+    return response;
   }
 
   public static async presentMany<
     ENTITY extends <%= entity.strings.baseClass %>,
     S extends <%= entity.strings.fieldRequestClass %>
-  >(entities: ENTITY[], fieldRequest: S): Promise<Select<<%= entity.strings.responseClass %>, S>[]> {
+  >(entities: ENTITY[], fieldRequest: S): Promise<Selected<%= entity.strings.responseClass %><S>[]> {
     return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 <% } -%>

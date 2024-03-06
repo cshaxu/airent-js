@@ -1,3 +1,4 @@
+import { Select } from '../../src';
 import { ChatFieldRequest, ChatResponse } from './chat-type.js';
 import { UserFieldRequest, UserResponse } from './user-type.js';
 
@@ -29,3 +30,6 @@ export type ChatUserResponse = {
   chat?: ChatResponse;
   user?: UserResponse;
 };
+
+/** @deprecated */
+export type SelectedChatUserResponse<S extends ChatUserFieldRequest> = Select<ChatUserResponse, S>;

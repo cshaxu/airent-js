@@ -14,6 +14,7 @@ import {
 import {
   MessageFieldRequest,
   MessageResponse,
+  SelectedMessageResponse,
   MessageModel,
   Attachment,
   SenderType,
@@ -61,8 +62,15 @@ export class MessageEntityBase extends BaseEntity<
     this.initialize(model);
   }
 
-  public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<Select<MessageResponse, S>> {
-    return {
+  protected async beforePresent<S extends MessageFieldRequest>(fieldRequest: S): Promise<void> {
+  }
+
+  protected async afterPresent<S extends MessageFieldRequest>(fieldRequest: S, response: SelectedMessageResponse<S>): Promise<void> {
+  }
+
+  public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<SelectedMessageResponse<S>> {
+    this.beforePresent(fieldRequest);
+    const response = {
       ...(fieldRequest.id !== undefined && { id: this.id }),
       ...(fieldRequest.createdAt !== undefined && { createdAt: this.createdAt }),
       ...(fieldRequest.chatId !== undefined && { chatId: this.chatId }),
@@ -76,13 +84,15 @@ export class MessageEntityBase extends BaseEntity<
       ...(fieldRequest.parentMessage !== undefined && { parentMessage: await this.getParentMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.parentMessage!)) }),
       ...(fieldRequest.mentorId !== undefined && { mentorId: this.getMentorId() }),
       ...(fieldRequest.mentor !== undefined && { mentor: await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.mentor!)) }),
-    } as Select<MessageResponse, S>;
+    } as SelectedMessageResponse<S>;
+    this.afterPresent(fieldRequest, response);
+    return response;
   }
 
   public static async presentMany<
     ENTITY extends MessageEntityBase,
     S extends MessageFieldRequest
-  >(entities: ENTITY[], fieldRequest: S): Promise<Select<MessageResponse, S>[]> {
+  >(entities: ENTITY[], fieldRequest: S): Promise<SelectedMessageResponse<S>[]> {
     return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 
