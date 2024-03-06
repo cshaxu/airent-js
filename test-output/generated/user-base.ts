@@ -4,6 +4,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   sequential,
   toArrayMap,
   toObjectMap,
@@ -55,12 +56,6 @@ export class UserEntityBase extends BaseEntity<
     this.initialize(model);
   }
 
-  protected async beforePresent<S extends UserFieldRequest>(fieldRequest: S): Promise<void> {
-  }
-
-  protected async afterPresent<S extends UserFieldRequest>(fieldRequest: S, response: SelectedUserResponse<S>): Promise<void> {
-  }
-
   public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<SelectedUserResponse<S>> {
     await this.beforePresent(fieldRequest);
     const response = {
@@ -74,9 +69,9 @@ export class UserEntityBase extends BaseEntity<
       ...(fieldRequest.chatUsers !== undefined && { chatUsers: await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))) }),
       ...(fieldRequest.firstMessage !== undefined && { firstMessage: await this.getFirstMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.firstMessage!)) }),
       ...(fieldRequest.hasAnyMessage !== undefined && { hasAnyMessage: await this.getHasAnyMessage() }),
-    } as SelectedUserResponse<S>;
-    await this.afterPresent(fieldRequest, response);
-    return response;
+    };
+    await this.afterPresent(fieldRequest, response as Select<UserResponse, S>);
+    return response as SelectedUserResponse<S>;
   }
 
   public static async presentMany<

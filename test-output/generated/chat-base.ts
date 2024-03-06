@@ -4,6 +4,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   sequential,
   toArrayMap,
   toObjectMap,
@@ -49,12 +50,6 @@ export class ChatEntityBase extends BaseEntity<
     this.initialize(model);
   }
 
-  protected async beforePresent<S extends ChatFieldRequest>(fieldRequest: S): Promise<void> {
-  }
-
-  protected async afterPresent<S extends ChatFieldRequest>(fieldRequest: S, response: SelectedChatResponse<S>): Promise<void> {
-  }
-
   public async present<S extends ChatFieldRequest>(fieldRequest: S): Promise<SelectedChatResponse<S>> {
     await this.beforePresent(fieldRequest);
     const response = {
@@ -64,9 +59,9 @@ export class ChatEntityBase extends BaseEntity<
       ...(fieldRequest.deletedAt !== undefined && { deletedAt: this.deletedAt }),
       ...(fieldRequest.chatUsers !== undefined && { chatUsers: await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))) }),
       ...(fieldRequest.messages !== undefined && { messages: await this.getMessages().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.messages!)))) }),
-    } as SelectedChatResponse<S>;
-    await this.afterPresent(fieldRequest, response);
-    return response;
+    };
+    await this.afterPresent(fieldRequest, response as Select<ChatResponse, S>);
+    return response as SelectedChatResponse<S>;
   }
 
   public static async presentMany<

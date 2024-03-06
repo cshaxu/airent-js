@@ -74,6 +74,15 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
 
   protected initialize(_model: MODEL): void {}
 
+  protected async beforePresent<S extends FIELD_REQUEST>(
+    _fieldRequest: S
+  ): Promise<void> {}
+
+  protected async afterPresent<S extends FIELD_REQUEST>(
+    _fieldRequest: S,
+    _response: Select<RESPONSE, S>
+  ): Promise<void> {}
+
   public async present<S extends FIELD_REQUEST>(
     _fieldRequest: S
   ): Promise<Select<RESPONSE, S>> {

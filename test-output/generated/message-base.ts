@@ -4,6 +4,7 @@ import {
   EntityConstructor,
   LoadConfig,
   LoadKey,
+  Select,
   sequential,
   toArrayMap,
   toObjectMap,
@@ -61,12 +62,6 @@ export class MessageEntityBase extends BaseEntity<
     this.initialize(model);
   }
 
-  protected async beforePresent<S extends MessageFieldRequest>(fieldRequest: S): Promise<void> {
-  }
-
-  protected async afterPresent<S extends MessageFieldRequest>(fieldRequest: S, response: SelectedMessageResponse<S>): Promise<void> {
-  }
-
   public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<SelectedMessageResponse<S>> {
     await this.beforePresent(fieldRequest);
     const response = {
@@ -83,9 +78,9 @@ export class MessageEntityBase extends BaseEntity<
       ...(fieldRequest.parentMessage !== undefined && { parentMessage: await this.getParentMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.parentMessage!)) }),
       ...(fieldRequest.mentorId !== undefined && { mentorId: this.getMentorId() }),
       ...(fieldRequest.mentor !== undefined && { mentor: await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.mentor!)) }),
-    } as SelectedMessageResponse<S>;
-    await this.afterPresent(fieldRequest, response);
-    return response;
+    };
+    await this.afterPresent(fieldRequest, response as Select<MessageResponse, S>);
+    return response as SelectedMessageResponse<S>;
   }
 
   public static async presentMany<
