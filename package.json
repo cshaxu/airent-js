@@ -1,6 +1,6 @@
 {
   "name": "airent",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Airent Framework for JavaScript Backend - a lightweight data entity and presentation framework",
   "main": "./lib/index.js",
   "bin": {

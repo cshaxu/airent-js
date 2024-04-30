@@ -361,7 +361,7 @@ async function loadSchema(absoluteSchemaFilePath, isVerbose) {
   };
 }
 
-async function loadSchemas(schemaPath, isVerbose) {
+async function loadEntityMap(schemaPath, isVerbose) {
   const absoluteSchemaFilePaths = await getAbsoluteSchemaFilePaths(schemaPath);
   const functions = absoluteSchemaFilePaths
     .sort()
@@ -379,7 +379,58 @@ async function loadSchemas(schemaPath, isVerbose) {
       );
     }
   });
-  return schemas;
+  const entityMap = schemas.reduce((map, entity) => {
+    map[entity.name] = entity;
+    return map;
+  }, {});
+  schemas.forEach((entity) => {
+    entity.fields.forEach((f) => {
+      const primitiveType = utils.toPrimitiveTypeName(f.type);
+      switch (primitiveType) {
+        case "bigint":
+        case "boolean":
+        case "number":
+        case "string":
+        case "Date":
+          break;
+        default:
+          const type = entity.types.find((t) => t.name === primitiveType);
+          const typeEntity = entityMap[primitiveType];
+          if (!type && !typeEntity) {
+            throw new Error(
+              `[AIRENT/ERROR] field.type '${f.type}' on '${entity.name}.${f.name}' is not supported or pre-defined.`
+            );
+          }
+          break;
+      }
+      if (f.strategy === "association") {
+        const typeEntity = entityMap[primitiveType];
+        f.sourceKeys.forEach((sk, index) => {
+          const tk = f.targetKeys[index];
+          const sf = entity.fields.find((f) => f.name === sk);
+          const tf = typeEntity.fields.find((f) => f.name === tk);
+          if (!sf) {
+            throw new Error(
+              `[AIRENT/ERROR] field.sourceKey '${sk}' on '${entity.name}.${f.name}' is not found.`
+            );
+          }
+          if (!tf) {
+            throw new Error(
+              `[AIRENT/ERROR] field.targetKey '${tk}' on '${entity.name}.${f.name}' is not found.`
+            );
+          }
+          const spf = utils.toPrimitiveTypeName(sf.type);
+          const tpf = utils.toPrimitiveTypeName(tf.type);
+          if (spf !== tpf) {
+            throw new Error(
+              `[AIRENT/ERROR] field.sourceKey '${sk}' and field.targetKey '${tk}' on '${entity.name}.${f.name}' must have the same type.`
+            );
+          }
+        });
+      }
+    });
+  });
+  return entityMap;
 }
 
 function augment(augmentorName, entityMap, templates, config, isVerbose) {
@@ -499,12 +550,7 @@ async function generate(isVerbose) {
   const templates = await loadTemplates(config, isVerbose);
 
   // load schemas
-  const schemas = await loadSchemas(config.schemaPath, isVerbose);
-  const entityNames = schemas.map((entity) => entity.name);
-  const entityMap = schemas.reduce((map, entity) => {
-    map[entity.name] = entity;
-    return map;
-  }, {});
+  const entityMap = await loadEntityMap(config.schemaPath, isVerbose);
 
   // perform augmentation
   config.augmentors.map((augmentorName) =>
@@ -512,7 +558,7 @@ async function generate(isVerbose) {
   );
 
   // loop through each YAML file and generate code
-  const entityFunctions = entityNames.map(
+  const entityFunctions = Object.keys(entityMap).map(
     (name) => () =>
       generateEntity(name, entityMap, templates, config, isVerbose)
   );
