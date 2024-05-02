@@ -12,6 +12,7 @@ import {
   toArrayMap,
   toObjectMap,
 } from '<%= airentPackage %>';
+import { Context } from '<%= contextPackage %>';
 <% if (utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
 
 /** generated */
@@ -45,7 +46,7 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
 /** @deprecated */
 <% } -%>
 export class <%= entity.strings.baseClass %> extends BaseEntity<
-  <%= entity.model %><%= utils.isPresentableEntity(entity) ? `, ${entity.strings.fieldRequestClass}, ${entity.strings.responseClass}`: '' %>
+  <%= entity.model %>, Context<%= utils.isPresentableEntity(entity) ? `, ${entity.strings.fieldRequestClass}, ${entity.strings.responseClass}`: '' %>
 > {
 <% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
@@ -63,16 +64,17 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
 
   public constructor(
     model: <%= entity.model %>,
+    context: Context,
     group: <%= entity.strings.baseClass %>[],
     lock: AsyncLock,
   ) {
-    super(group, lock);
+    super(context, group, lock);
 
 <% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
     this.<%= field.name %> = <%= field.strings.fieldInitializer %>;
 <% }); -%>
 
-    this.initialize(model);
+    this.initialize(model, context);
   }
 <% if (utils.isPresentableEntity(entity)) { -%>
 
@@ -99,7 +101,7 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   /** self loaders */
 
   public static async getOne<ENTITY extends <%= entity.strings.baseClass %>>(
-    this: EntityConstructor<<%= entity.model %>, ENTITY>,
+    this: EntityConstructor<<%= entity.model %>, Context, ENTITY>,
     key: LoadKey
   ): Promise<ENTITY | null> {
     return await (this as any)
@@ -108,8 +110,9 @@ export class <%= entity.strings.baseClass %> extends BaseEntity<
   }
 
   public static async getMany<ENTITY extends <%= entity.strings.baseClass %>>(
-    this: EntityConstructor<<%= entity.model %>, ENTITY>,
-    keys: LoadKey[]
+    this: EntityConstructor<<%= entity.model %>, Context, ENTITY>,
+    keys: LoadKey[],
+    context: Context
   ): Promise<ENTITY[]> {
     <%_ template.functions.getSelfLoaderLines(entity).forEach((line) => { -%>
     <%- line %>

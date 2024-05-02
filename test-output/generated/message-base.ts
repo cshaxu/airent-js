@@ -9,6 +9,7 @@ import {
   toArrayMap,
   toObjectMap,
 } from '../../src';
+import { Context } from '../../test-resources/context.js';
 
 /** generated */
 import {
@@ -26,7 +27,7 @@ import { MessageEntity } from '../message.js';
 import { UserEntity } from '../user.js';
 
 export class MessageEntityBase extends BaseEntity<
-  MessageModel, MessageFieldRequest, MessageResponse
+  MessageModel, Context, MessageFieldRequest, MessageResponse
 > {
   public id: string;
   public createdAt: Date;
@@ -46,10 +47,11 @@ export class MessageEntityBase extends BaseEntity<
 
   public constructor(
     model: MessageModel,
+    context: Context,
     group: MessageEntityBase[],
     lock: AsyncLock,
   ) {
-    super(group, lock);
+    super(context, group, lock);
 
     this.id = model.id;
     this.createdAt = model.createdAt;
@@ -59,7 +61,7 @@ export class MessageEntityBase extends BaseEntity<
     this.attachment = model.attachmentJson as Attachment | null;
     this.parentMessageId = model.parentMessageId;
 
-    this.initialize(model);
+    this.initialize(model, context);
   }
 
   public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<SelectedMessageResponse<S>> {
@@ -105,7 +107,7 @@ export class MessageEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load ChatEntity models */];
-    //   return ChatEntity.fromArray(models);
+    //   return ChatEntity.fromArray(models, this.context);
     // },
     setter: (sources: MessageEntityBase[], targets: ChatEntity[]) => {
       const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
@@ -138,7 +140,7 @@ export class MessageEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load UserEntity models */];
-    //   return UserEntity.fromArray(models);
+    //   return UserEntity.fromArray(models, this.context);
     // },
     // TODO: build your association value setter
     // setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
@@ -172,7 +174,7 @@ export class MessageEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load MessageEntity models */];
-    //   return MessageEntity.fromArray(models);
+    //   return MessageEntity.fromArray(models, this.context);
     // },
     setter: (sources: MessageEntityBase[], targets: MessageEntity[]) => {
       const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
@@ -205,7 +207,7 @@ export class MessageEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load UserEntity models */];
-    //   return UserEntity.fromArray(models);
+    //   return UserEntity.fromArray(models, this.context);
     // },
     setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
       const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);

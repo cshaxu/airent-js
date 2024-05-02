@@ -2,8 +2,13 @@ import AsyncLock from "async-lock";
 
 // https://stackoverflow.com/questions/34098023
 // type EntityConstructor<T> = new (...args: any[]) => T;
-type EntityConstructor<MODEL, ENTITY> = {
-  new (model: MODEL, group: ENTITY[], lock: AsyncLock): ENTITY;
+type EntityConstructor<MODEL, CONTEXT, ENTITY> = {
+  new (
+    model: MODEL,
+    context: CONTEXT,
+    group: ENTITY[],
+    lock: AsyncLock
+  ): ENTITY;
 };
 
 type LoadKey = Record<string, any>;
@@ -60,19 +65,27 @@ type Select<RESPONSE, FIELD_REQUEST> = FIELD_REQUEST extends Record<string, any>
   ? /* original response */ RESPONSE
   : /* invalid selection */ never;
 
-class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
-  protected _group: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[];
+class BaseEntity<
+  MODEL,
+  CONTEXT = unknown,
+  FIELD_REQUEST = unknown,
+  RESPONSE = MODEL
+> {
+  public context: CONTEXT;
+  protected _group: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>[];
   protected _lock: AsyncLock;
 
   protected constructor(
-    group: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[],
+    context: CONTEXT,
+    group: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>[],
     lock: AsyncLock
   ) {
+    this.context = context;
     this._group = group;
     this._lock = lock;
   }
 
-  protected initialize(_model: MODEL): void {}
+  protected initialize(_model: MODEL, _context: CONTEXT): void {}
 
   protected async beforePresent<S extends FIELD_REQUEST>(
     _fieldRequest: S
@@ -90,19 +103,19 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
   }
 
   protected async load<
-    ENTITY extends BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>,
+    ENTITY extends BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>,
     LOADED
   >(config: LoadConfig<ENTITY, LOADED>): Promise<void> {
     const { name, getter: getterRaw, loader, setter: setterRaw } = config;
     const filter = config.filter as (
-      one: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>
+      one: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>
     ) => boolean;
 
     if (!getterRaw) {
       throw new Error(`${name} getter not implemented`);
     }
     const getter = getterRaw as (
-      sources: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[]
+      sources: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>[]
     ) => LoadKey[];
 
     if (!loader) {
@@ -113,7 +126,7 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
       throw new Error(`${name} setter not implemented`);
     }
     const setter = setterRaw as (
-      sources: BaseEntity<MODEL, FIELD_REQUEST, RESPONSE>[],
+      sources: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>[],
       targets: LOADED[]
     ) => void;
 
@@ -130,20 +143,24 @@ class BaseEntity<MODEL, FIELD_REQUEST = undefined, RESPONSE = MODEL> {
 
   /** factories */
 
-  public static fromOne<MODEL, ENTITY>(
-    this: EntityConstructor<MODEL, ENTITY>,
-    model: MODEL
+  public static fromOne<MODEL, CONTEXT, ENTITY>(
+    this: EntityConstructor<MODEL, CONTEXT, ENTITY>,
+    model: MODEL,
+    context: CONTEXT
   ): ENTITY {
-    return (this as any).fromArray([model])[0];
+    return (this as any).fromArray([model], context)[0];
   }
 
-  public static fromArray<MODEL, ENTITY>(
-    this: EntityConstructor<MODEL, ENTITY>,
-    models: MODEL[]
+  public static fromArray<MODEL, CONTEXT, ENTITY>(
+    this: EntityConstructor<MODEL, CONTEXT, ENTITY>,
+    models: MODEL[],
+    context: CONTEXT
   ): ENTITY[] {
     const group = new Array<ENTITY>();
     const lock = new AsyncLock({ maxPending: Infinity, domainReentrant: true });
-    models.forEach((model) => group.push(new this(model, group, lock)));
+    models.forEach((model) =>
+      group.push(new this(model, context, group, lock))
+    );
     return group;
   }
 }

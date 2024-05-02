@@ -3,6 +3,7 @@
   "airentPackage": "src",
   "schemaPath": "test-schemas",
   "entityPath": "test-output",
+  "contextImportPath": "test-resources/context",
   "templates": [
     {
       "name": "test-resources/README.ejs",

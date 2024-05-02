@@ -9,6 +9,7 @@ import {
   toArrayMap,
   toObjectMap,
 } from '../../src';
+import { Context } from '../../test-resources/context.js';
 
 /** generated */
 import {
@@ -23,7 +24,7 @@ import { MessageEntity } from '../message.js';
 import { ChatUserEntity } from '../chat-user.js';
 
 export class ChatEntityBase extends BaseEntity<
-  ChatModel, ChatFieldRequest, ChatResponse
+  ChatModel, Context, ChatFieldRequest, ChatResponse
 > {
   public id: string;
   public createdAt: Date;
@@ -37,17 +38,18 @@ export class ChatEntityBase extends BaseEntity<
 
   public constructor(
     model: ChatModel,
+    context: Context,
     group: ChatEntityBase[],
     lock: AsyncLock,
   ) {
-    super(group, lock);
+    super(context, group, lock);
 
     this.id = model.id;
     this.createdAt = model.createdAt;
     this.updatedAt = model.updatedAt;
     this.deletedAt = model.deletedAt;
 
-    this.initialize(model);
+    this.initialize(model, context);
   }
 
   public async present<S extends ChatFieldRequest>(fieldRequest: S): Promise<SelectedChatResponse<S>> {
@@ -74,7 +76,7 @@ export class ChatEntityBase extends BaseEntity<
   /** self loaders */
 
   public static async getOne<ENTITY extends ChatEntityBase>(
-    this: EntityConstructor<ChatModel, ENTITY>,
+    this: EntityConstructor<ChatModel, Context, ENTITY>,
     key: LoadKey
   ): Promise<ENTITY | null> {
     return await (this as any)
@@ -83,11 +85,12 @@ export class ChatEntityBase extends BaseEntity<
   }
 
   public static async getMany<ENTITY extends ChatEntityBase>(
-    this: EntityConstructor<ChatModel, ENTITY>,
-    keys: LoadKey[]
+    this: EntityConstructor<ChatModel, Context, ENTITY>,
+    keys: LoadKey[],
+    context: Context
   ): Promise<ENTITY[]> {
     const models = [/* TODO: load models for ChatEntity */];
-    return (this as any).fromArray(models);
+    return (this as any).fromArray(models, context);
   }
 
   /** associations */
@@ -105,7 +108,7 @@ export class ChatEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load ChatUserEntity models */];
-    //   return ChatUserEntity.fromArray(models);
+    //   return ChatUserEntity.fromArray(models, this.context);
     // },
     setter: (sources: ChatEntityBase[], targets: ChatUserEntity[]) => {
       const map = toArrayMap(targets, (one) => JSON.stringify({ chatId: one.chatId }), (one) => one);
@@ -139,7 +142,7 @@ export class ChatEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load MessageEntity models */];
-    //   return MessageEntity.fromArray(models);
+    //   return MessageEntity.fromArray(models, this.context);
     // },
     setter: (sources: ChatEntityBase[], targets: MessageEntity[]) => {
       const map = toArrayMap(targets, (one) => JSON.stringify({ chatId: one.chatId }), (one) => one);

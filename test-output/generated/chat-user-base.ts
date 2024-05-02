@@ -9,6 +9,7 @@ import {
   toArrayMap,
   toObjectMap,
 } from '../../src';
+import { Context } from '../../test-resources/context.js';
 
 /** generated */
 import {
@@ -24,7 +25,7 @@ import { UserEntity } from '../user.js';
 
 /** @deprecated */
 export class ChatUserEntityBase extends BaseEntity<
-  ChatUserModel, ChatUserFieldRequest, ChatUserResponse
+  ChatUserModel, Context, ChatUserFieldRequest, ChatUserResponse
 > {
   public id: string;
   public createdAt: Date;
@@ -39,10 +40,11 @@ export class ChatUserEntityBase extends BaseEntity<
 
   public constructor(
     model: ChatUserModel,
+    context: Context,
     group: ChatUserEntityBase[],
     lock: AsyncLock,
   ) {
-    super(group, lock);
+    super(context, group, lock);
 
     this.id = model.id;
     this.createdAt = model.createdAt;
@@ -50,7 +52,7 @@ export class ChatUserEntityBase extends BaseEntity<
     this.chatId = model.chatId;
     this.userId = model.userId;
 
-    this.initialize(model);
+    this.initialize(model, context);
   }
 
   public async present<S extends ChatUserFieldRequest>(fieldRequest: S): Promise<SelectedChatUserResponse<S>> {
@@ -78,7 +80,7 @@ export class ChatUserEntityBase extends BaseEntity<
   /** self loaders */
 
   public static async getOne<ENTITY extends ChatUserEntityBase>(
-    this: EntityConstructor<ChatUserModel, ENTITY>,
+    this: EntityConstructor<ChatUserModel, Context, ENTITY>,
     key: LoadKey
   ): Promise<ENTITY | null> {
     return await (this as any)
@@ -87,11 +89,12 @@ export class ChatUserEntityBase extends BaseEntity<
   }
 
   public static async getMany<ENTITY extends ChatUserEntityBase>(
-    this: EntityConstructor<ChatUserModel, ENTITY>,
-    keys: LoadKey[]
+    this: EntityConstructor<ChatUserModel, Context, ENTITY>,
+    keys: LoadKey[],
+    context: Context
   ): Promise<ENTITY[]> {
     const models = [/* TODO: load models for ChatUserEntity */];
-    return (this as any).fromArray(models);
+    return (this as any).fromArray(models, context);
   }
 
   /** associations */
@@ -108,7 +111,7 @@ export class ChatUserEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load ChatEntity models */];
-    //   return ChatEntity.fromArray(models);
+    //   return ChatEntity.fromArray(models, this.context);
     // },
     setter: (sources: ChatUserEntityBase[], targets: ChatEntity[]) => {
       const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
@@ -140,7 +143,7 @@ export class ChatUserEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load UserEntity models */];
-    //   return UserEntity.fromArray(models);
+    //   return UserEntity.fromArray(models, this.context);
     // },
     setter: (sources: ChatUserEntityBase[], targets: UserEntity[]) => {
       const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
