@@ -9,6 +9,7 @@ import {
   toArrayMap,
   toObjectMap,
 } from '../../src';
+import { Context } from '../../test-resources/context.js';
 
 /** generated */
 import {
@@ -23,7 +24,7 @@ import { MessageEntity } from '../message.js';
 import { ChatUserEntity } from '../chat-user.js';
 
 export class UserEntityBase extends BaseEntity<
-  UserModel, UserFieldRequest, UserResponse
+  UserModel, Context, UserFieldRequest, UserResponse
 > {
   public id: string;
   public createdAt: Date;
@@ -40,10 +41,11 @@ export class UserEntityBase extends BaseEntity<
 
   public constructor(
     model: UserModel,
+    context: Context,
     group: UserEntityBase[],
     lock: AsyncLock,
   ) {
-    super(group, lock);
+    super(context, group, lock);
 
     this.id = model.id;
     this.createdAt = model.createdAt;
@@ -53,7 +55,7 @@ export class UserEntityBase extends BaseEntity<
     this.lastName = model.lastName;
     this.imageUrl = model.image;
 
-    this.initialize(model);
+    this.initialize(model, context);
   }
 
   public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<SelectedUserResponse<S>> {
@@ -84,7 +86,7 @@ export class UserEntityBase extends BaseEntity<
   /** self loaders */
 
   public static async getOne<ENTITY extends UserEntityBase>(
-    this: EntityConstructor<UserModel, ENTITY>,
+    this: EntityConstructor<UserModel, Context, ENTITY>,
     key: LoadKey
   ): Promise<ENTITY | null> {
     return await (this as any)
@@ -93,11 +95,12 @@ export class UserEntityBase extends BaseEntity<
   }
 
   public static async getMany<ENTITY extends UserEntityBase>(
-    this: EntityConstructor<UserModel, ENTITY>,
-    keys: LoadKey[]
+    this: EntityConstructor<UserModel, Context, ENTITY>,
+    keys: LoadKey[],
+    context: Context
   ): Promise<ENTITY[]> {
     const models = [/* TODO: load models for UserEntity */];
-    return (this as any).fromArray(models);
+    return (this as any).fromArray(models, context);
   }
 
   /** associations */
@@ -115,7 +118,7 @@ export class UserEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load ChatUserEntity models */];
-    //   return ChatUserEntity.fromArray(models);
+    //   return ChatUserEntity.fromArray(models, this.context);
     // },
     setter: (sources: UserEntityBase[], targets: ChatUserEntity[]) => {
       const map = toArrayMap(targets, (one) => JSON.stringify({ userId: one.userId }), (one) => one);
@@ -150,7 +153,7 @@ export class UserEntityBase extends BaseEntity<
     // TODO: build your association data loader
     // loader: async (keys: LoadKey[]) => {
     //   const models = [/* TODO: load MessageEntity models */];
-    //   return MessageEntity.fromArray(models);
+    //   return MessageEntity.fromArray(models, this.context);
     // },
     setter: (sources: UserEntityBase[], targets: MessageEntity[]) => {
       const map = toArrayMap(targets, (one) => JSON.stringify({ userId: one.userId }), (one) => one);

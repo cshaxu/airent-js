@@ -11,6 +11,7 @@ function isLoadConfigGeneratable(field) {
 <%- line %>
 <% }); -%>
 import { LoadKey, toArrayMap, toObjectMap } from '<%= airentPackage %>';
+import { Context } from '<%= contextPackage %>';
 import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
 <% if (utils.isPresentableEntity(entity) || entity.fields.some(utils.isCustomType)) { -%>
 import {
@@ -36,8 +37,8 @@ import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPack
 <% } -%>
 export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseClass %> {
 <% if (entity.fields.filter(utils.isAssociationField).some((field) => !isLoadConfigGeneratable(field))) { -%>
-  protected initialize(model: <%= entity.model %>) {
-    super.initialize(model);
+  protected initialize(model: <%= entity.model %>, context: Context) {
+    super.initialize(model, context);
 
     /** associations */
   <%_ entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>

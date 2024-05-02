@@ -1,4 +1,5 @@
 import { LoadKey, toArrayMap, toObjectMap } from '../src';
+import { Context } from '../test-resources/context.js';
 import { ChatUserEntityBase } from './generated/chat-user-base.js';
 import {
   ChatUserFieldRequest,
@@ -11,19 +12,19 @@ import { UserEntity } from './user.js';
 
 /** @deprecated */
 export class ChatUserEntity extends ChatUserEntityBase {
-  protected initialize(model: ChatUserModel) {
-    super.initialize(model);
+  protected initialize(model: ChatUserModel, context: Context) {
+    super.initialize(model, context);
 
     /** associations */
 
     this.chatLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load ChatEntity models */];
-      return ChatEntity.fromArray(models);
+      return ChatEntity.fromArray(models, this.context);
     };
 
     this.userLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load UserEntity models */];
-      return UserEntity.fromArray(models);
+      return UserEntity.fromArray(models, this.context);
     };
   }
 }

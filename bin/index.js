@@ -36,11 +36,11 @@ async function configure() {
   );
   const schemaPath = await askQuestion("Schema path", "./schemas");
   const entityPath = await askQuestion("Entity path", "./src/entities");
-  const config = {
-    type: type.length > 0 ? type : "commonjs",
-    schemaPath: schemaPath.length > 0 ? schemaPath : "schemas",
-    entityPath: entityPath.length > 0 ? entityPath : "src/entities",
-  };
+  const contextImportPath = await askQuestion(
+    "Context import path",
+    "./src/context"
+  );
+  const config = { type, schemaPath, entityPath, contextImportPath };
   const content = JSON.stringify(config, null, 2) + "\n";
   await fs.promises.writeFile(CONFIG_FILE_PATH, content);
   console.log(`[AIRENT/INFO] Configuration located at '${CONFIG_FILE_PATH}'`);
@@ -91,6 +91,7 @@ async function configure() {
  *  @property {?string} airentPackage
  *  @property {string} schemaPath
  *  @property {string} entityPath
+ *  @property {string} contextImportPath
  *  @property {?string[]} [augmentors]
  *  @property {?Template[]} [templates]
  */
@@ -188,6 +189,9 @@ async function loadConfig(isVerbose) {
   if (!config.entityPath?.length) {
     throw new Error(`[AIRENT/ERROR] config.entityPath is missing.`);
   }
+  if (!config.contextImportPath?.length) {
+    throw new Error(`[AIRENT/ERROR] config.contextImportPath is missing.`);
+  }
   const templateNameCountMap = templates
     .filter((t) => t.name?.length)
     .reduce((map, t) => {
@@ -205,7 +209,6 @@ async function loadConfig(isVerbose) {
       );
     }
   });
-
   const loadedConfig = {
     ...config,
     isModule: type === "module",
@@ -267,11 +270,24 @@ async function loadSchema(absoluteSchemaFilePath, isVerbose) {
     absoluteSchemaFilePath,
     "utf8"
   );
-  const entity = yaml.load(schemaContent);
-  const types = entity.types ?? [];
-  const fields = entity.fields ?? [];
+  const entityRaw = yaml.load(schemaContent);
+  const types = entityRaw.types ?? [];
+  const fields = entityRaw.fields ?? [];
+  const entity = {
+    ...entityRaw,
+    internal: entityRaw.internal ?? false,
+    deprecated: entityRaw.deprecated ?? false,
+    skipSelfLoader: entityRaw.skipSelfLoader ?? false,
+    types,
+    fields,
+  };
 
-  // validate entity
+  validoateSchema(entity);
+
+  return entity;
+}
+
+function validoateSchema(entity) {
   if (!entity.name?.length) {
     throw new Error("[AIRENT/ERROR] entity.name is missing.");
   }
@@ -281,13 +297,13 @@ async function loadSchema(absoluteSchemaFilePath, isVerbose) {
     );
   }
 
-  const typeNameCountMap = types
+  const typeNameCountMap = entity.types
     .filter((t) => t.name?.length)
     .reduce((map, t) => {
       map.set(t.name, (map.get(t.name) ?? 0) + 1);
       return map;
     }, new Map());
-  types.forEach((t) => {
+  entity.types.forEach((t) => {
     if (!t.name?.length) {
       throw new Error(
         `[AIRENT/ERROR] type.name on '${entity.name}' is missing.`
@@ -307,13 +323,13 @@ async function loadSchema(absoluteSchemaFilePath, isVerbose) {
     }
   });
 
-  const fieldNameCountMap = fields
+  const fieldNameCountMap = entity.fields
     .filter((f) => f.name?.length)
     .reduce((map, f) => {
       map.set(f.name, (map.get(f.name) ?? 0) + 1);
       return map;
     }, new Map());
-  fields.forEach((f) => {
+  entity.fields.forEach((f) => {
     if (!f.name?.length) {
       throw new Error(
         `[AIRENT/ERROR] field.name on '${entity.name}.' is missing.`
@@ -350,15 +366,6 @@ async function loadSchema(absoluteSchemaFilePath, isVerbose) {
       );
     }
   });
-
-  return {
-    ...entity,
-    internal: entity.internal ?? false,
-    deprecated: entity.deprecated ?? false,
-    skipSelfLoader: entity.skipSelfLoader ?? false,
-    types,
-    fields,
-  };
 }
 
 async function loadEntityMap(schemaPath, isVerbose) {
@@ -383,7 +390,12 @@ async function loadEntityMap(schemaPath, isVerbose) {
     map[entity.name] = entity;
     return map;
   }, {});
-  schemas.forEach((entity) => {
+  validateEntityMap(entityMap);
+  return entityMap;
+}
+
+function validateEntityMap(entityMap) {
+  Object.values(entityMap).forEach((entity) => {
     entity.fields.forEach((f) => {
       const primitiveType = utils.toPrimitiveTypeName(f.type);
       switch (primitiveType) {
@@ -430,7 +442,6 @@ async function loadEntityMap(schemaPath, isVerbose) {
       }
     });
   });
-  return entityMap;
 }
 
 function augment(augmentorName, entityMap, templates, config, isVerbose) {
@@ -461,7 +472,6 @@ async function generateEntity(name, entityMap, templates, config, isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Generating ${name} ...`);
   }
-  const { airentPackage: airentPackageRaw } = config;
   const entity = entityMap[name];
   for (const template of templates) {
     if (isEntityTemplate(template)) {
@@ -471,24 +481,38 @@ async function generateEntity(name, entityMap, templates, config, isVerbose) {
         config
       );
       const airentPackage =
-        airentPackageRaw === "airent"
-          ? "airent"
+        config.airentPackage === "airent" ||
+        config.airentPackage.startsWith("@")
+          ? config.airentPackage
           : path
               .relative(
                 path.dirname(absoluteFilePath),
-                path.join(PROJECT_PATH, airentPackageRaw)
+                path.join(PROJECT_PATH, config.airentPackage)
               )
               .replaceAll("\\", "/");
+      const contextImportPath = config.contextImportPath.startsWith("@")
+        ? config.contextImportPath
+        : path
+            .relative(
+              path.dirname(absoluteFilePath),
+              path.join(PROJECT_PATH, config.contextImportPath)
+            )
+            .replaceAll("\\", "/");
+      const contextPackage = `${contextImportPath}${utils.getModuleSuffix(
+        config
+      )}`;
+      const data = {
+        entity,
+        template,
+        config,
+        utils,
+        airentPackage,
+        contextPackage,
+      };
       const fileContent =
         template.skippable && fs.existsSync(absoluteFilePath)
           ? ""
-          : ejs.render(template.content, {
-              entity,
-              template,
-              config,
-              utils,
-              airentPackage,
-            });
+          : ejs.render(template.content, data);
       if (fileContent.length > 0) {
         // create the output folders if not exist
         const folderPath = path.dirname(absoluteFilePath);

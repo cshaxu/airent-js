@@ -1,4 +1,5 @@
 import { LoadKey, toArrayMap, toObjectMap } from '../src';
+import { Context } from '../test-resources/context.js';
 import { MessageEntityBase } from './generated/message-base.js';
 import {
   MessageFieldRequest,
@@ -12,8 +13,8 @@ import { ChatEntity } from './chat.js';
 import { UserEntity } from './user.js';
 
 export class MessageEntity extends MessageEntityBase {
-  protected initialize(model: MessageModel) {
-    super.initialize(model);
+  protected initialize(model: MessageModel, context: Context) {
+    super.initialize(model, context);
 
     /** associations */
 
@@ -26,12 +27,12 @@ export class MessageEntity extends MessageEntityBase {
 
     this.chatLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load ChatEntity models */];
-      return ChatEntity.fromArray(models);
+      return ChatEntity.fromArray(models, this.context);
     };
 
     this.userLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load UserEntity models */];
-      return UserEntity.fromArray(models);
+      return UserEntity.fromArray(models, this.context);
     };
 
     this.userLoadConfig.setter = ((sources: MessageEntity[], targets: UserEntity[]) => {
@@ -41,12 +42,12 @@ export class MessageEntity extends MessageEntityBase {
 
     this.parentMessageLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load MessageEntity models */];
-      return MessageEntity.fromArray(models);
+      return MessageEntity.fromArray(models, this.context);
     };
 
     this.mentorLoadConfig.loader = async (keys: LoadKey[]) => {
       const models = [/* TODO: load UserEntity models */];
-      return UserEntity.fromArray(models);
+      return UserEntity.fromArray(models, this.context);
     };
   }
 

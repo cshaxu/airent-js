@@ -9,7 +9,7 @@ function getSelfLoaderLines(entity) /* Code[] */ {
   }
   return [
     `const models = ${selfModelsLoader};`,
-    "return (this as any).fromArray(models);",
+    "return (this as any).fromArray(models, context);",
   ];
 }
 
@@ -55,7 +55,7 @@ function getLoadConfigLoaderLines(field) /* Code[] */ {
     const { fieldClass } = field.strings;
     return [
       `const models = ${targetModelsLoader};`,
-      `return ${fieldClass}.fromArray(models);`,
+      `return ${fieldClass}.fromArray(models, this.context);`,
     ];
   } else {
     return [`return ${targetModelsLoader};`];
