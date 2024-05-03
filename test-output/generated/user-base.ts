@@ -16,12 +16,14 @@ import {
   UserFieldRequest,
   UserResponse,
   SelectedUserResponse,
-  UserModel,
 } from './user-type.js';
 
 /** associations */
 import { MessageEntity } from '../message.js';
 import { ChatUserEntity } from '../chat-user.js';
+
+/** external types */
+import { UserModel } from '../../test-resources/models.js';
 
 export class UserEntityBase extends BaseEntity<
   UserModel, Context, UserFieldRequest, UserResponse

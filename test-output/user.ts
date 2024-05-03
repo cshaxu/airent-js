@@ -5,10 +5,10 @@ import {
   UserFieldRequest,
   UserResponse,
   SelectedUserResponse,
-  UserModel,
 } from './generated/user-type.js';
 import { MessageEntity } from './message.js';
 import { ChatUserEntity } from './chat-user.js';
+import { UserModel } from '../test-resources/models.js';
 
 export class UserEntity extends UserEntityBase {
   protected initialize(model: UserModel, context: Context) {

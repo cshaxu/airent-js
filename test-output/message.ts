@@ -5,12 +5,12 @@ import {
   MessageFieldRequest,
   MessageResponse,
   SelectedMessageResponse,
-  MessageModel,
   Attachment,
   SenderType,
 } from './generated/message-type.js';
 import { ChatEntity } from './chat.js';
 import { UserEntity } from './user.js';
+import { MessageModel } from '../test-resources/models.js';
 
 export class MessageEntity extends MessageEntityBase {
   protected initialize(model: MessageModel, context: Context) {

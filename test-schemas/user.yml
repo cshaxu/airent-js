@@ -2,7 +2,7 @@ name: User
 model: UserModel
 types:
   - name: UserModel
-    define: "{ [key: string]: any }"
+    import: "./test-resources/models"
 fields:
   - id: 1
     name: id

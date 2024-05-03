@@ -1,14 +1,13 @@
 import { Select } from '../../src/index.js';
 import { ChatFieldRequest, ChatResponse } from './chat-type.js';
 import { UserFieldRequest, UserResponse } from './user-type.js';
+import { MessageModel } from '../../test-resources/models.js';
 
 /** enums */
 
 export enum SenderType { USER = "USER", CHATBOT = "CHATBOT" };
 
 /** structs */
-
-export type MessageModel = { [key: string]: any };
 
 export type Attachment = { [key: string]: string };
 
