@@ -1,4 +1,4 @@
-import { LoadKey, toArrayMap, toObjectMap } from '../src';
+import { LoadKey, toArrayMap, toObjectMap } from '../src/index.js';
 import { Context } from '../test-resources/context.js';
 import { ChatEntityBase } from './generated/chat-base.js';
 import {

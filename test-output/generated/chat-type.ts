@@ -1,4 +1,4 @@
-import { Select } from '../../src';
+import { Select } from '../../src/index.js';
 import { MessageFieldRequest, MessageResponse } from './message-type.js';
 import { ChatUserFieldRequest, ChatUserResponse } from './chat-user-type.js';
 
