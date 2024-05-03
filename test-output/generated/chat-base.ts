@@ -8,7 +8,7 @@ import {
   sequential,
   toArrayMap,
   toObjectMap,
-} from '../../src';
+} from '../../src/index.js';
 import { Context } from '../../test-resources/context.js';
 
 /** generated */

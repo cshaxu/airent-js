@@ -1,17 +1,20 @@
 #!/usr/bin/env node
 
+// IMPORTS //
+
 const ejs = require("ejs");
 const fs = require("fs");
 const yaml = require("js-yaml");
 const path = require("path");
 const readline = require("readline");
-
 const utils = require("../resources/utils.js");
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
+
+// UTILITIES //
 
 async function sequential(functions) {
   const results = [];
@@ -29,22 +32,13 @@ async function askQuestion(question, defaultAnswer) {
   return a?.length ? a : defaultAnswer;
 }
 
-async function configure() {
-  const type = await askQuestion(
-    "Project type [commonjs or module]",
-    "commonjs"
-  );
-  const schemaPath = await askQuestion("Schema path", "./schemas");
-  const entityPath = await askQuestion("Entity path", "./src/entities");
-  const contextImportPath = await askQuestion(
-    "Context import path",
-    "./src/context"
-  );
-  const config = { type, schemaPath, entityPath, contextImportPath };
-  const content = JSON.stringify(config, null, 2) + "\n";
-  await fs.promises.writeFile(CONFIG_FILE_PATH, content);
-  console.log(`[AIRENT/INFO] Configuration located at '${CONFIG_FILE_PATH}'`);
+async function writeFileContent(absoluteFilePath, fileContent) {
+  const folderPath = path.dirname(absoluteFilePath);
+  await fs.promises.mkdir(folderPath, { recursive: true });
+  await fs.promises.writeFile(absoluteFilePath, fileContent);
 }
+
+// TYPES AND CONSTANTS //
 
 /** @typedef {Object} Type
  *  @property {string} name
@@ -88,7 +82,7 @@ async function configure() {
 
 /** @typedef {Object} Config
  *  @property {"commonjs" | "module"} type
- *  @property {?string} airentPackage
+ *  @property {?string} libImportPath
  *  @property {string} schemaPath
  *  @property {string} entityPath
  *  @property {string} contextImportPath
@@ -151,6 +145,27 @@ const DEFAULT_TEMPLATE_CONFIGS = [
   ENTITY_TEMPLATE_CONFIG,
 ];
 
+// CONFIGURE //
+
+async function configure() {
+  const type = await askQuestion(
+    "Project type [commonjs or module]",
+    "commonjs"
+  );
+  const schemaPath = await askQuestion("Schema path", "./schemas");
+  const entityPath = await askQuestion("Entity path", "./src/entities");
+  const contextImportPath = await askQuestion(
+    "Context import path",
+    "./src/context"
+  );
+  const config = { type, schemaPath, entityPath, contextImportPath };
+  const content = JSON.stringify(config, null, 2) + "\n";
+  await fs.promises.writeFile(CONFIG_FILE_PATH, content);
+  console.log(`[AIRENT/INFO] Configuration located at '${CONFIG_FILE_PATH}'`);
+}
+
+// GENERATE //
+
 async function loadConfig(isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Loading config ${CONFIG_FILE_PATH} ...`);
@@ -160,7 +175,7 @@ async function loadConfig(isVerbose) {
 
   const {
     type,
-    airentPackage: airentPackageRaw,
+    libImportPath,
     augmentors: extAugmentorNames,
     templates: extTemplateConfigs,
   } = config;
@@ -209,13 +224,8 @@ async function loadConfig(isVerbose) {
       );
     }
   });
-  const loadedConfig = {
-    ...config,
-    isModule: type === "module",
-    airentPackage: airentPackageRaw ?? "airent",
-    augmentors,
-    templates,
-  };
+  const isModule = type === "module";
+  const loadedConfig = { ...config, isModule, augmentors, templates };
   if (isVerbose) {
     console.log(loadedConfig);
   }
@@ -468,6 +478,30 @@ function buildAbsoluteOutputPath(entity, template, config) {
   return path.join(PROJECT_PATH, augmentedOutputPath ?? configOutputPath);
 }
 
+function buildImportPackage(absoluteFilePath, importPath, config) {
+  if (importPath.startsWith("@")) {
+    return importPath;
+  }
+  const relativePath = path
+    .relative(
+      path.dirname(absoluteFilePath),
+      path.join(PROJECT_PATH, importPath)
+    )
+    .replaceAll("\\", "/");
+  return `${relativePath}${utils.getModuleSuffix(config)}`;
+}
+
+function buildAirentPackage(absoluteFilePath, config) {
+  const { libImportPath } = config;
+  return libImportPath
+    ? buildImportPackage(absoluteFilePath, libImportPath, config)
+    : "airent";
+}
+
+function buildContextPackage(absoluteFilePath, config) {
+  return buildImportPackage(absoluteFilePath, config.contextImportPath, config);
+}
+
 async function generateEntity(name, entityMap, templates, config, isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Generating ${name} ...`);
@@ -480,27 +514,8 @@ async function generateEntity(name, entityMap, templates, config, isVerbose) {
         template,
         config
       );
-      const airentPackage =
-        config.airentPackage === "airent" ||
-        config.airentPackage.startsWith("@")
-          ? config.airentPackage
-          : path
-              .relative(
-                path.dirname(absoluteFilePath),
-                path.join(PROJECT_PATH, config.airentPackage)
-              )
-              .replaceAll("\\", "/");
-      const contextImportPath = config.contextImportPath.startsWith("@")
-        ? config.contextImportPath
-        : path
-            .relative(
-              path.dirname(absoluteFilePath),
-              path.join(PROJECT_PATH, config.contextImportPath)
-            )
-            .replaceAll("\\", "/");
-      const contextPackage = `${contextImportPath}${utils.getModuleSuffix(
-        config
-      )}`;
+      const airentPackage = buildAirentPackage(absoluteFilePath, config);
+      const contextPackage = buildContextPackage(absoluteFilePath, config);
       const data = {
         entity,
         template,
@@ -514,10 +529,7 @@ async function generateEntity(name, entityMap, templates, config, isVerbose) {
           ? ""
           : ejs.render(template.content, data);
       if (fileContent.length > 0) {
-        // create the output folders if not exist
-        const folderPath = path.dirname(absoluteFilePath);
-        await fs.promises.mkdir(folderPath, { recursive: true });
-        await fs.promises.writeFile(absoluteFilePath, fileContent);
+        await writeFileContent(absoluteFilePath, fileContent);
         if (isVerbose) {
           console.log(`[AIRENT/INFO] - Generated '${absoluteFilePath}'`);
         }
@@ -532,32 +544,23 @@ async function generateNonEntity(entityMap, template, config, isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Generating ${template.name} ...`);
   }
-  const { airentPackage: airentPackageRaw } = config;
   const absoluteFilePath = buildAbsoluteOutputPath(null, template, config);
-  const airentPackage =
-    airentPackageRaw === "airent"
-      ? "airent"
-      : path
-          .relative(
-            path.dirname(absoluteFilePath),
-            path.join(PROJECT_PATH, airentPackageRaw)
-          )
-          .replaceAll("\\", "/");
+  const airentPackage = buildAirentPackage(absoluteFilePath, config);
+  const contextPackage = buildContextPackage(absoluteFilePath, config);
+  const data = {
+    entityMap,
+    template,
+    config,
+    utils,
+    airentPackage,
+    contextPackage,
+  };
   const fileContent =
     template.skippable && fs.existsSync(absoluteFilePath)
       ? ""
-      : ejs.render(template.content, {
-          entityMap,
-          template,
-          config,
-          utils,
-          airentPackage,
-        });
+      : ejs.render(template.content, data);
   if (fileContent.length > 0) {
-    // create the output folders if not exist
-    const folderPath = path.dirname(absoluteFilePath);
-    await fs.promises.mkdir(folderPath, { recursive: true });
-    await fs.promises.writeFile(absoluteFilePath, fileContent);
+    await writeFileContent(absoluteFilePath, fileContent);
     if (isVerbose) {
       console.log(`[AIRENT/INFO] - Generated '${absoluteFilePath}'`);
     }

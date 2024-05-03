@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "airentPackage": "src",
+  "libImportPath": "src/index",
   "schemaPath": "test-schemas",
   "entityPath": "test-output",
   "contextImportPath": "test-resources/context",
