@@ -1,12 +1,19 @@
 const path = require("path");
 const utils = require("./utils.js");
 
+function enforceRelativePath(relativePath) /* string */ {
+  return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
+}
+
 function buildRelativePackage(sourcePath, targetPath, config) /* string */ {
-  return targetPath.startsWith(".")
-    ? `${path
-        .relative(sourcePath, targetPath)
-        .replaceAll("\\", "/")}${utils.getModuleSuffix(config)}`
-    : targetPath;
+  if (!targetPath.startsWith(".")) {
+    return targetPath;
+  }
+  const suffix = utils.getModuleSuffix(config);
+  const relativePath = enforceRelativePath(
+    path.relative(sourcePath, targetPath).replaceAll("\\", "/")
+  );
+  return `${relativePath}${suffix}`;
 }
 
 // build config

@@ -76,7 +76,7 @@ async function writeFileContent(absoluteFilePath, fileContent) {
 
 /** @typedef {Object} Template
  *  @property {string} name
- *  @property {?string} outputPath
+ *  @property {string} outputPath
  *  @property {?boolean} skippable
  */
 
@@ -252,7 +252,8 @@ async function loadTemplates(config, isVerbose) {
 
 function isEntityTemplate(template) {
   return (
-    !template.outputPath || template.outputPath.includes("{kababEntityName}")
+    template.outputPath.includes("{kababEntityName}") ||
+    template.outputPath.includes("{kababEntitiesName}")
   );
 }
 
@@ -469,11 +470,12 @@ function augment(augmentorName, entityMap, templates, config, isVerbose) {
 function buildAbsoluteOutputPath(entity, template, config) {
   const { entityPath } = config;
   const kababEntityName = utils.toKababCase(entity?.name ?? "");
-  const augmentedOutputPath = (entity?.outputs ?? {})[template.name];
-  const configOutputPath = (template.outputPath ?? "")
+  const kababEntitiesName = utils.pluralize(kababEntityName);
+  const configOutputPath = template.outputPath
     .replaceAll("{entityPath}", entityPath)
-    .replaceAll("{kababEntityName}", kababEntityName);
-  return path.join(PROJECT_PATH, augmentedOutputPath ?? configOutputPath);
+    .replaceAll("{kababEntityName}", kababEntityName)
+    .replaceAll("{kababEntitiesName}", kababEntitiesName);
+  return path.join(PROJECT_PATH, configOutputPath);
 }
 
 async function generateEntity(
