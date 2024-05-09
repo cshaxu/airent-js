@@ -16,7 +16,6 @@ import {
   MessageFieldRequest,
   MessageResponse,
   SelectedMessageResponse,
-  MessageModel,
   Attachment,
   SenderType,
 } from './message-type.js';
@@ -25,6 +24,9 @@ import {
 import { ChatEntity } from '../chat.js';
 import { MessageEntity } from '../message.js';
 import { UserEntity } from '../user.js';
+
+/** external types */
+import { MessageModel } from '../../test-resources/models.js';
 
 export class MessageEntityBase extends BaseEntity<
   MessageModel, Context, MessageFieldRequest, MessageResponse

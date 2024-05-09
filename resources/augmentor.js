@@ -1,4 +1,46 @@
+const path = require("path");
 const utils = require("./utils.js");
+
+function enforceRelativePath(relativePath) /* string */ {
+  return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
+}
+
+function buildRelativePackage(sourcePath, targetPath, config) /* string */ {
+  if (!targetPath.startsWith(".")) {
+    return targetPath;
+  }
+  const suffix = utils.getModuleSuffix(config);
+  const relativePath = enforceRelativePath(
+    path.relative(sourcePath, targetPath).replaceAll("\\", "/")
+  );
+  return `${relativePath}${suffix}`;
+}
+
+// build config
+
+function augmentConfig(config) /* void */ {
+  const { libImportPath, contextImportPath } = config;
+  config.baseLibPackage = libImportPath
+    ? buildRelativePackage(
+        path.join(config.entityPath, "generated"),
+        libImportPath,
+        config
+      )
+    : "airent";
+  config.entityLibPackage = libImportPath
+    ? buildRelativePackage(config.entityPath, libImportPath, config)
+    : "airent";
+  config.baseContextPackage = buildRelativePackage(
+    path.join(config.entityPath, "generated"),
+    contextImportPath,
+    config
+  );
+  config.entityContextPackage = buildRelativePackage(
+    config.entityPath,
+    contextImportPath,
+    config
+  );
+}
 
 // build templates
 
@@ -160,7 +202,23 @@ function buildTypeStrings(type, config) /* Object */ {
   } else if (utils.isImportType(type)) {
     const aliasSuffix = type.aliasOf ? ` as ${type.name}` : "";
     const externalClass = `${type.aliasOf ?? type.name}${aliasSuffix}`;
-    return { externalClass, externalPackage: type.import };
+    const externalPackage = type.import;
+    const baseExternalPackage = buildRelativePackage(
+      path.join(config.entityPath, "generated"),
+      externalPackage,
+      config
+    );
+    const entityExternalPackage = buildRelativePackage(
+      config.entityPath,
+      externalPackage,
+      config
+    );
+    return {
+      externalClass,
+      externalPackage,
+      baseExternalPackage,
+      entityExternalPackage,
+    };
   } else if (utils.isDefineType(type)) {
     return { typeDefinition: type.define };
   } else if (utils.isEnumType(type)) {
@@ -343,6 +401,8 @@ function augmentEntities(entityMap, config) /* void */ {
 
 function augment(data) /* void */ {
   const { config, templates, entityMap } = data;
+
+  augmentConfig(config);
 
   augmentTemplates(templates);
 

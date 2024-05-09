@@ -76,7 +76,7 @@ async function writeFileContent(absoluteFilePath, fileContent) {
 
 /** @typedef {Object} Template
  *  @property {string} name
- *  @property {?string} outputPath
+ *  @property {string} outputPath
  *  @property {?boolean} skippable
  */
 
@@ -147,18 +147,23 @@ const DEFAULT_TEMPLATE_CONFIGS = [
 
 // CONFIGURE //
 
-async function configure() {
-  const type = await askQuestion(
+async function configure(config) {
+  config.type = await askQuestion(
     "Project type [commonjs or module]",
-    "commonjs"
+    config.type ?? "commonjs"
   );
-  const schemaPath = await askQuestion("Schema path", "./schemas");
-  const entityPath = await askQuestion("Entity path", "./src/entities");
-  const contextImportPath = await askQuestion(
+  config.schemaPath = await askQuestion(
+    "Schema path",
+    config.schemaPath ?? "./schemas"
+  );
+  config.entityPath = await askQuestion(
+    "Entity path",
+    config.entityPath ?? "./src/entities"
+  );
+  config.contextImportPath = await askQuestion(
     "Context import path",
-    "./src/context"
+    config.contextImportPath ?? "./src/context"
   );
-  const config = { type, schemaPath, entityPath, contextImportPath };
   const content = JSON.stringify(config, null, 2) + "\n";
   await fs.promises.writeFile(CONFIG_FILE_PATH, content);
   console.log(`[AIRENT/INFO] Configuration located at '${CONFIG_FILE_PATH}'`);
@@ -166,16 +171,9 @@ async function configure() {
 
 // GENERATE //
 
-async function loadConfig(isVerbose) {
-  if (isVerbose) {
-    console.log(`[AIRENT/INFO] Loading config ${CONFIG_FILE_PATH} ...`);
-  }
-  const configContent = await fs.promises.readFile(CONFIG_FILE_PATH, "utf8");
-  const config = JSON.parse(configContent);
-
+function validateConfig(config, isVerbose) {
   const {
     type,
-    libImportPath,
     augmentors: extAugmentorNames,
     templates: extTemplateConfigs,
   } = config;
@@ -225,12 +223,12 @@ async function loadConfig(isVerbose) {
     }
   });
   const isModule = type === "module";
-  const loadedConfig = { ...config, isModule, augmentors, templates };
+  const validated = { ...config, isModule, augmentors, templates };
   if (isVerbose) {
-    console.log(loadedConfig);
+    console.log(validated);
   }
 
-  return loadedConfig;
+  return validated;
 }
 
 async function loadTemplates(config, isVerbose) {
@@ -254,7 +252,8 @@ async function loadTemplates(config, isVerbose) {
 
 function isEntityTemplate(template) {
   return (
-    !template.outputPath || template.outputPath.includes("{kababEntityName}")
+    template.outputPath.includes("{kababEntityName}") ||
+    template.outputPath.includes("{kababEntitiesName}")
   );
 }
 
@@ -471,59 +470,29 @@ function augment(augmentorName, entityMap, templates, config, isVerbose) {
 function buildAbsoluteOutputPath(entity, template, config) {
   const { entityPath } = config;
   const kababEntityName = utils.toKababCase(entity?.name ?? "");
-  const augmentedOutputPath = (entity?.outputs ?? {})[template.name];
-  const configOutputPath = (template.outputPath ?? "")
+  const kababEntitiesName = utils.pluralize(kababEntityName);
+  const configOutputPath = template.outputPath
     .replaceAll("{entityPath}", entityPath)
-    .replaceAll("{kababEntityName}", kababEntityName);
-  return path.join(PROJECT_PATH, augmentedOutputPath ?? configOutputPath);
+    .replaceAll("{kababEntityName}", kababEntityName)
+    .replaceAll("{kababEntitiesName}", kababEntitiesName);
+  return path.join(PROJECT_PATH, configOutputPath);
 }
 
-function buildImportPackage(absoluteFilePath, importPath, config) {
-  if (importPath.startsWith("@")) {
-    return importPath;
-  }
-  const relativePath = path
-    .relative(
-      path.dirname(absoluteFilePath),
-      path.join(PROJECT_PATH, importPath)
-    )
-    .replaceAll("\\", "/");
-  return `${relativePath}${utils.getModuleSuffix(config)}`;
-}
-
-function buildAirentPackage(absoluteFilePath, config) {
-  const { libImportPath } = config;
-  return libImportPath
-    ? buildImportPackage(absoluteFilePath, libImportPath, config)
-    : "airent";
-}
-
-function buildContextPackage(absoluteFilePath, config) {
-  return buildImportPackage(absoluteFilePath, config.contextImportPath, config);
-}
-
-async function generateEntity(name, entityMap, templates, config, isVerbose) {
+async function generateEntity(
+  name,
+  entityMap,
+  entityTemplates,
+  config,
+  isVerbose
+) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Generating ${name} ...`);
   }
   const entity = entityMap[name];
-  for (const template of templates) {
-    if (isEntityTemplate(template)) {
-      const absoluteFilePath = buildAbsoluteOutputPath(
-        entity,
-        template,
-        config
-      );
-      const airentPackage = buildAirentPackage(absoluteFilePath, config);
-      const contextPackage = buildContextPackage(absoluteFilePath, config);
-      const data = {
-        entity,
-        template,
-        config,
-        utils,
-        airentPackage,
-        contextPackage,
-      };
+  for (const template of entityTemplates) {
+    const absoluteFilePath = buildAbsoluteOutputPath(entity, template, config);
+    const data = { entity, template, config, utils };
+    try {
       const fileContent =
         template.skippable && fs.existsSync(absoluteFilePath)
           ? ""
@@ -536,6 +505,11 @@ async function generateEntity(name, entityMap, templates, config, isVerbose) {
       } else if (isVerbose) {
         console.log(`[AIRENT/INFO] - Skipped '${absoluteFilePath}'`);
       }
+    } catch (error) {
+      console.error(
+        `[AIRENT/ERROR] - Failed '${absoluteFilePath}' on '${template.name}'`
+      );
+      throw error;
     }
   }
 }
@@ -545,33 +519,30 @@ async function generateNonEntity(entityMap, template, config, isVerbose) {
     console.log(`[AIRENT/INFO] Generating ${template.name} ...`);
   }
   const absoluteFilePath = buildAbsoluteOutputPath(null, template, config);
-  const airentPackage = buildAirentPackage(absoluteFilePath, config);
-  const contextPackage = buildContextPackage(absoluteFilePath, config);
-  const data = {
-    entityMap,
-    template,
-    config,
-    utils,
-    airentPackage,
-    contextPackage,
-  };
-  const fileContent =
-    template.skippable && fs.existsSync(absoluteFilePath)
-      ? ""
-      : ejs.render(template.content, data);
-  if (fileContent.length > 0) {
-    await writeFileContent(absoluteFilePath, fileContent);
-    if (isVerbose) {
-      console.log(`[AIRENT/INFO] - Generated '${absoluteFilePath}'`);
+  const data = { entityMap, template, config, utils };
+  try {
+    const fileContent =
+      template.skippable && fs.existsSync(absoluteFilePath)
+        ? ""
+        : ejs.render(template.content, data);
+    if (fileContent.length > 0) {
+      await writeFileContent(absoluteFilePath, fileContent);
+      if (isVerbose) {
+        console.log(`[AIRENT/INFO] - Generated '${absoluteFilePath}'`);
+      }
+    } else if (isVerbose) {
+      console.log(`[AIRENT/INFO] - Skipped '${absoluteFilePath}'`);
     }
-  } else if (isVerbose) {
-    console.log(`[AIRENT/INFO] - Skipped '${absoluteFilePath}'`);
+  } catch (error) {
+    console.error(
+      `[AIRENT/ERROR] - Failed '${absoluteFilePath}' on '${template.name}'`
+    );
+    throw error;
   }
 }
 
-async function generate(isVerbose) {
-  // load config
-  const config = await loadConfig(isVerbose);
+async function generate(config, isVerbose) {
+  config = validateConfig(config, isVerbose);
 
   // load templates
   const templates = await loadTemplates(config, isVerbose);
@@ -585,29 +556,42 @@ async function generate(isVerbose) {
   );
 
   // loop through each YAML file and generate code
+  const entityTemplates = templates.filter(isEntityTemplate);
   const entityFunctions = Object.keys(entityMap).map(
     (name) => () =>
-      generateEntity(name, entityMap, templates, config, isVerbose)
+      generateEntity(name, entityMap, entityTemplates, config, isVerbose)
   );
   await sequential(entityFunctions);
 
   // generate non entity files
-  const nonEntityFunctions = templates
-    .filter((template) => !isEntityTemplate(template))
-    .map(
-      (template) => () =>
-        generateNonEntity(entityMap, template, config, isVerbose)
-    );
+  const nonEntityTemplates = templates.filter(
+    (template) => !isEntityTemplate(template)
+  );
+  const nonEntityFunctions = nonEntityTemplates.map(
+    (template) => () =>
+      generateNonEntity(entityMap, template, config, isVerbose)
+  );
   await sequential(nonEntityFunctions);
   console.log("[AIRENT/INFO] Task completed.");
 }
 
+async function loadConfig(isVerbose) {
+  if (isVerbose) {
+    console.log(`[AIRENT/INFO] Loading config ${CONFIG_FILE_PATH} ...`);
+  }
+  const configContent = await fs.promises.readFile(CONFIG_FILE_PATH, "utf8");
+  return JSON.parse(configContent);
+}
+
 async function main(args) {
   const isVerbose = args.includes("--verbose") || args.includes("-v");
-  if (fs.existsSync(CONFIG_FILE_PATH)) {
-    await generate(isVerbose);
+  const isConfigured = fs.existsSync(CONFIG_FILE_PATH);
+  const config = isConfigured ? await loadConfig(isVerbose) : {};
+
+  if (args.includes("configure") || !isConfigured) {
+    await configure(config);
   } else {
-    await configure();
+    await generate(config, isVerbose);
   }
 }
 

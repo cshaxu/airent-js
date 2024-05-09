@@ -10,8 +10,8 @@ function isLoadConfigGeneratable(field) {
 <% entity.code.beforeEntity.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
-import { LoadKey, toArrayMap, toObjectMap } from '<%= airentPackage %>';
-import { Context } from '<%= contextPackage %>';
+import { LoadKey, toArrayMap, toObjectMap } from '<%- config.entityLibPackage %>';
+import { Context } from '<%- config.entityContextPackage %>';
 import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
 <% if (utils.isPresentableEntity(entity) || entity.fields.some(utils.isCustomType)) { -%>
 import {
@@ -29,7 +29,7 @@ import {
 import { <%= type.strings.entityClass %> } from './<%= type.strings.entityPackage %>';
 <% }); -%>
 <% entity.types.filter(utils.isImportType).forEach((type) => { -%>
-import { <%= type.strings.externalClass %> } from '<%= type.strings.externalPackage %>';
+import { <%= type.strings.externalClass %> } from '<%- type.strings.entityExternalPackage %>';
 <% }); -%>
 
 <% if (entity.deprecated) { -%>

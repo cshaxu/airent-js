@@ -1,10 +1,7 @@
 import { Select } from '../../src/index.js';
 import { MessageFieldRequest, MessageResponse } from './message-type.js';
 import { ChatUserFieldRequest, ChatUserResponse } from './chat-user-type.js';
-
-/** structs */
-
-export type UserModel = { [key: string]: any };
+import { UserModel } from '../../test-resources/models.js';
 
 export type UserFieldRequest = {
   id?: boolean;
