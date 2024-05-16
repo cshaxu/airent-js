@@ -1,6 +1,6 @@
 {
   "name": "airent",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Airent Framework for JavaScript Backend - a lightweight data entity and presentation framework",
   "main": "./lib/index.js",
   "bin": {
@@ -34,16 +34,16 @@
   "homepage": "https://github.com/cshaxu/airent-js#readme",
   "dependencies": {
     "async-lock": "^1.4.1",
-    "ejs": "^3.1.9",
+    "ejs": "^3.1.10",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
     "@types/async-lock": "^1.4.2",
     "@types/ejs": "^3.1.5",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.11.5",
+    "@types/node": "^20.12.12",
     "crlf": "^1.1.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.4.5"
   },
   "files": [
     "bin",

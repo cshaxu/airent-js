@@ -471,11 +471,59 @@ function buildAbsoluteOutputPath(entity, template, config) {
   const { entityPath } = config;
   const kababEntityName = utils.toKababCase(entity?.name ?? "");
   const kababEntitiesName = utils.pluralize(kababEntityName);
-  const configOutputPath = template.outputPath
-    .replaceAll("{entityPath}", entityPath)
-    .replaceAll("{kababEntityName}", kababEntityName)
-    .replaceAll("{kababEntitiesName}", kababEntitiesName);
-  return path.join(PROJECT_PATH, configOutputPath);
+  const { outputPath: outputPathRaw } = template;
+  let outputPath = "";
+  let variableStart = -1;
+  for (let i = 0; i < outputPathRaw.length; i++) {
+    switch (outputPathRaw[i]) {
+      case "{":
+        if (variableStart > -1) {
+          const previous = outputPathRaw.substring(variableStart, i);
+          outputPath += previous;
+        }
+        variableStart = i;
+        break;
+      case "}":
+        if (variableStart === -1) {
+          outputPath += outputPathRaw[i];
+        } else {
+          const variableName = outputPathRaw.substring(variableStart + 1, i);
+          switch (variableName) {
+            case "entityPath":
+              outputPath += entityPath;
+              break;
+            case "kababEntityName":
+              outputPath += kababEntityName;
+              break;
+            case "kababEntitiesName":
+              outputPath += kababEntitiesName;
+              break;
+            default:
+              const variablePathParts = variableName.split(".");
+              let variableValue = config;
+              do {
+                variableValue = variableValue[variablePathParts.shift()];
+              } while (variablePathParts.length > 0 && variableValue);
+              if (typeof variableValue === "string") {
+                outputPath += variableValue;
+              } else {
+                outputPath += variableName;
+              }
+          }
+          variableStart = -1;
+        }
+        break;
+      default:
+        if (variableStart === -1) {
+          outputPath += outputPathRaw[i];
+        } else if (i === outputPathRaw.length - 1) {
+          const previous = outputPathRaw.substring(variableStart, i + 1);
+          outputPath += previous;
+        }
+        break;
+    }
+  }
+  return path.join(PROJECT_PATH, outputPath);
 }
 
 async function generateEntity(

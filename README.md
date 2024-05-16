@@ -47,7 +47,8 @@ name: User
 # internal: true # set internal to true if you do not want to generate API response for this entity
 model: PrismaUser
 types:
-  - name: User as PrismaUser
+  - name: PrismaUser
+    aliasOf: User
     import: "@prisma/client"
 fields:
   - id: 1
