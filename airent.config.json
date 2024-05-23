@@ -1,17 +1,17 @@
 {
   "type": "module",
-  "schemaPath": "./test-schemas",
-  "entityPath": "./test-output",
+  "schemaPath": "test-schemas",
+  "entityPath": "test-output",
   "libImportPath": "./src/index",
   "contextImportPath": "./test-resources/context",
   "templates": [
     {
-      "name": "./test-resources/README.ejs",
+      "name": "test-resources/README.ejs",
       "outputPath": "{test.outputPath}/README",
       "skippable": false
     }
   ],
   "test": {
-    "outputPath": "./test-output"
+    "outputPath": "test-output"
   }
 }
