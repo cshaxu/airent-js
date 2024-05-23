@@ -7,8 +7,11 @@
   "templates": [
     {
       "name": "./test-resources/README.ejs",
-      "outputPath": "./test-output/README",
+      "outputPath": "{test.outputPath}/README",
       "skippable": false
     }
-  ]
+  ],
+  "test": {
+    "outputPath": "./test-output"
+  }
 }
