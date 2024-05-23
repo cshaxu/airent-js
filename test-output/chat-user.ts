@@ -6,6 +6,7 @@ import {
   ChatUserResponse,
   SelectedChatUserResponse,
   ChatUserModel,
+  ChatUserRole,
 } from './generated/chat-user-type.js';
 import { ChatEntity } from './chat.js';
 import { UserEntity } from './user.js';

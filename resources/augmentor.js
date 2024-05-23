@@ -222,7 +222,16 @@ function buildTypeStrings(type, config) /* Object */ {
   } else if (utils.isDefineType(type)) {
     return { typeDefinition: type.define };
   } else if (utils.isEnumType(type)) {
-    return { typeDefinition: type.enum };
+    if (typeof type.enum === "string") {
+      return { typeDefinition: type.enum };
+    } else if (Array.isArray(type.enum)) {
+      const enumBody = type.enum.map((s) => `${s} = '${s}'`).join(", ");
+      return {
+        typeDefinition: `{${enumBody.length === 0 ? "" : ` ${enumBody} `}}`,
+      };
+    } else {
+      return { typeDefinition: type.enum.toString() };
+    }
   }
 }
 

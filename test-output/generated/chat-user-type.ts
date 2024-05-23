@@ -2,6 +2,10 @@ import { Select } from '../../src/index.js';
 import { ChatFieldRequest, ChatResponse } from './chat-type.js';
 import { UserFieldRequest, UserResponse } from './user-type.js';
 
+/** enums */
+
+export enum ChatUserRole { USER = 'USER', ASSISTANT = 'ASSISTANT' };
+
 /** structs */
 
 /** @deprecated */

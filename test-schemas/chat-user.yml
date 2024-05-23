@@ -5,6 +5,10 @@ types:
   - name: ChatUserModel
     define: "{ [key: string]: any }"
     deprecated: true
+  - name: ChatUserRole
+    enum:
+      - USER
+      - ASSISTANT
 keyFields:
   - chatId
   - userId
