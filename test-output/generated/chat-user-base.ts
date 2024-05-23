@@ -17,6 +17,7 @@ import {
   ChatUserResponse,
   SelectedChatUserResponse,
   ChatUserModel,
+  ChatUserRole,
 } from './chat-user-type.js';
 
 /** associations */
