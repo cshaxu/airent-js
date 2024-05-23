@@ -507,7 +507,7 @@ function buildAbsoluteOutputPath(entity, template, config) {
               if (typeof variableValue === "string") {
                 outputPath += variableValue;
               } else {
-                outputPath += variableName;
+                outputPath += `{${variableName}}`;
               }
           }
           variableStart = -1;
