@@ -1,3 +1,4 @@
+// airent imports
 import {
   AsyncLock,
   BaseEntity,
@@ -9,19 +10,19 @@ import {
   toArrayMap,
   toObjectMap,
 } from '../../src/index.js';
+
+// config imports
 import { Context } from '../../test-resources/context.js';
 
-/** generated */
+// entity imports
+import { MessageEntity } from '../message.js';
+import { ChatUserEntity } from '../chat-user.js';
 import {
   ChatFieldRequest,
   ChatResponse,
   SelectedChatResponse,
   ChatModel,
 } from './chat-type.js';
-
-/** associations */
-import { MessageEntity } from '../message.js';
-import { ChatUserEntity } from '../chat-user.js';
 
 export class ChatEntityBase extends BaseEntity<
   ChatModel, Context, ChatFieldRequest, ChatResponse

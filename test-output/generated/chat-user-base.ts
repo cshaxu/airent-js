@@ -1,3 +1,4 @@
+// airent imports
 import {
   AsyncLock,
   BaseEntity,
@@ -9,9 +10,13 @@ import {
   toArrayMap,
   toObjectMap,
 } from '../../src/index.js';
+
+// config imports
 import { Context } from '../../test-resources/context.js';
 
-/** generated */
+// entity imports
+import { ChatEntity } from '../chat.js';
+import { UserEntity } from '../user.js';
 import {
   ChatUserFieldRequest,
   ChatUserResponse,
@@ -19,10 +24,6 @@ import {
   ChatUserModel,
   ChatUserRole,
 } from './chat-user-type.js';
-
-/** associations */
-import { ChatEntity } from '../chat.js';
-import { UserEntity } from '../user.js';
 
 /** @deprecated */
 export class ChatUserEntityBase extends BaseEntity<

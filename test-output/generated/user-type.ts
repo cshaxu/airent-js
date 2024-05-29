@@ -1,7 +1,10 @@
+// airent imports
 import { Select } from '../../src/index.js';
+
+// entity imports
+import { UserModel } from '../../test-resources/models.js';
 import { MessageFieldRequest, MessageResponse } from './message-type.js';
 import { ChatUserFieldRequest, ChatUserResponse } from './chat-user-type.js';
-import { UserModel } from '../../test-resources/models.js';
 
 export type UserFieldRequest = {
   id?: boolean;

@@ -1,6 +1,7 @@
 <% entity.code.beforeBase.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
+// airent imports
 import {
   AsyncLock,
   BaseEntity,
@@ -12,10 +13,22 @@ import {
   toArrayMap,
   toObjectMap,
 } from '<%- config.baseLibPackage %>';
+
+// config imports
 import { Context } from '<%- config.baseContextPackage %>';
 <% if (utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
 
-/** generated */
+// entity imports
+<% if (entity.types.some(utils.isImportType)) { -%>
+  <%_ entity.types.filter(utils.isImportType).forEach((type) => { -%>
+import { <%= type.strings.externalClass %> } from '<%- type.strings.baseExternalPackage %>';
+  <%_ }); -%>
+<% } -%>
+<% if (entity.types.some(utils.isEntityType)) { -%>
+  <%_ entity.types.filter(utils.isEntityType).forEach((type) => { -%>
+import { <%= type.strings.entityClass %> } from '../<%= type.strings.entityPackage %>';
+  <%_ }); -%>
+<% } -%>
 import {
   <%_ if (utils.isPresentableEntity(entity)) { -%>
   <%= entity.strings.fieldRequestClass %>,
@@ -26,20 +39,6 @@ import {
   <%= type.name %>,
   <%_ }); -%>
 } from './<%= entity.strings.typePackage %>';
-<% } -%>
-<% if (entity.types.some(utils.isEntityType)) { -%>
-
-/** associations */
-  <%_ entity.types.filter(utils.isEntityType).forEach((type) => { -%>
-import { <%= type.strings.entityClass %> } from '../<%= type.strings.entityPackage %>';
-  <%_ }); -%>
-<% } -%>
-<% if (entity.types.some(utils.isImportType)) { -%>
-
-/** external types */
-  <%_ entity.types.filter(utils.isImportType).forEach((type) => { -%>
-import { <%= type.strings.externalClass %> } from '<%- type.strings.baseExternalPackage %>';
-  <%_ }); -%>
 <% } -%>
 
 <% if (entity.deprecated) { -%>

@@ -2,12 +2,15 @@
 <%- line %>
 <% }); -%>
 <% if (utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
+// airent imports
 import { Select } from '<%- config.baseLibPackage %>';
-  <%_ entity.types.filter(utils.isPresentableEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
-import { <%= type.strings.fieldRequestClass %>, <%= type.strings.responseClass %> } from './<%= type.strings.typePackage %>';
-  <%_ }); -%>
+
+// entity imports
   <%_ entity.types.filter(utils.isImportType).forEach((type) => { -%>
 import { <%= type.strings.externalClass %> } from '<%- type.strings.baseExternalPackage %>';
+  <%_ }); -%>
+  <%_ entity.types.filter(utils.isPresentableEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
+import { <%= type.strings.fieldRequestClass %>, <%= type.strings.responseClass %> } from './<%= type.strings.typePackage %>';
   <%_ }); -%>
 <% } -%>
 <% if (entity.types.some(utils.isEnumType)) { -%>

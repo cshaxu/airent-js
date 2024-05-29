@@ -1,14 +1,19 @@
+// airent imports
 import { LoadKey, toArrayMap, toObjectMap } from '../src/index.js';
+
+// config imports
 import { Context } from '../test-resources/context.js';
-import { ChatEntityBase } from './generated/chat-base.js';
+
+// entity imports
+import { MessageEntity } from './message.js';
+import { ChatUserEntity } from './chat-user.js';
 import {
   ChatFieldRequest,
   ChatResponse,
   SelectedChatResponse,
   ChatModel,
 } from './generated/chat-type.js';
-import { MessageEntity } from './message.js';
-import { ChatUserEntity } from './chat-user.js';
+import { ChatEntityBase } from './generated/chat-base.js';
 
 export class ChatEntity extends ChatEntityBase {
   protected initialize(model: ChatModel, context: Context) {
