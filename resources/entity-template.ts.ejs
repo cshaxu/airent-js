@@ -10,9 +10,19 @@ function isLoadConfigGeneratable(field) {
 <% entity.code.beforeEntity.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
+// airent imports
 import { LoadKey, toArrayMap, toObjectMap } from '<%- config.entityLibPackage %>';
+
+// config imports
 import { Context } from '<%- config.entityContextPackage %>';
-import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
+
+// entity imports
+<% entity.types.filter(utils.isImportType).forEach((type) => { -%>
+import { <%= type.strings.externalClass %> } from '<%- type.strings.entityExternalPackage %>';
+<% }); -%>
+<% entity.types.filter(utils.isEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
+import { <%= type.strings.entityClass %> } from './<%= type.strings.entityPackage %>';
+<% }); -%>
 <% if (utils.isPresentableEntity(entity) || entity.fields.some(utils.isCustomType)) { -%>
 import {
   <%_ if (utils.isPresentableEntity(entity)) { -%>
@@ -25,12 +35,7 @@ import {
   <%_ }); -%>
 } from './generated/<%= entity.strings.typePackage %>';
 <% } -%>
-<% entity.types.filter(utils.isEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
-import { <%= type.strings.entityClass %> } from './<%= type.strings.entityPackage %>';
-<% }); -%>
-<% entity.types.filter(utils.isImportType).forEach((type) => { -%>
-import { <%= type.strings.externalClass %> } from '<%- type.strings.entityExternalPackage %>';
-<% }); -%>
+import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
 
 <% if (entity.deprecated) { -%>
 /** @deprecated */

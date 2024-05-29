@@ -1,14 +1,19 @@
+// airent imports
 import { LoadKey, toArrayMap, toObjectMap } from '../src/index.js';
+
+// config imports
 import { Context } from '../test-resources/context.js';
-import { UserEntityBase } from './generated/user-base.js';
+
+// entity imports
+import { UserModel } from '../test-resources/models.js';
+import { MessageEntity } from './message.js';
+import { ChatUserEntity } from './chat-user.js';
 import {
   UserFieldRequest,
   UserResponse,
   SelectedUserResponse,
 } from './generated/user-type.js';
-import { MessageEntity } from './message.js';
-import { ChatUserEntity } from './chat-user.js';
-import { UserModel } from '../test-resources/models.js';
+import { UserEntityBase } from './generated/user-base.js';
 
 export class UserEntity extends UserEntityBase {
   protected initialize(model: UserModel, context: Context) {

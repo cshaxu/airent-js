@@ -1,3 +1,4 @@
+// airent imports
 import {
   AsyncLock,
   BaseEntity,
@@ -9,9 +10,15 @@ import {
   toArrayMap,
   toObjectMap,
 } from '../../src/index.js';
+
+// config imports
 import { Context } from '../../test-resources/context.js';
 
-/** generated */
+// entity imports
+import { MessageModel } from '../../test-resources/models.js';
+import { ChatEntity } from '../chat.js';
+import { MessageEntity } from '../message.js';
+import { UserEntity } from '../user.js';
 import {
   MessageFieldRequest,
   MessageResponse,
@@ -19,14 +26,6 @@ import {
   Attachment,
   SenderType,
 } from './message-type.js';
-
-/** associations */
-import { ChatEntity } from '../chat.js';
-import { MessageEntity } from '../message.js';
-import { UserEntity } from '../user.js';
-
-/** external types */
-import { MessageModel } from '../../test-resources/models.js';
 
 export class MessageEntityBase extends BaseEntity<
   MessageModel, Context, MessageFieldRequest, MessageResponse

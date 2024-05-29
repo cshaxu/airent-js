@@ -1,4 +1,7 @@
+// airent imports
 import { Select } from '../../src/index.js';
+
+// entity imports
 import { ChatFieldRequest, ChatResponse } from './chat-type.js';
 import { UserFieldRequest, UserResponse } from './user-type.js';
 
