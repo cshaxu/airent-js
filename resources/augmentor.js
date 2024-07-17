@@ -256,7 +256,7 @@ function buildFieldStrings(field) /* Object */ {
     };
   } else {
     const fieldModelName = field.aliasOf ?? field.name;
-    const fieldAliasSuffix = field.cast ? ` as ${field.type}` : "";
+    const fieldAliasSuffix = field.cast ? ` as unknown as ${field.type}` : "";
     const fieldInitializer = utils.isPrimitiveField(field)
       ? `model.${fieldModelName}${fieldAliasSuffix}`
       : undefined;
