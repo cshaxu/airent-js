@@ -59,7 +59,7 @@ export class MessageEntityBase extends BaseEntity<
     this.chatId = model.chatId;
     this.userId = model.userId;
     this.content = model.content;
-    this.attachment = model.attachmentJson as Attachment | null;
+    this.attachment = model.attachmentJson as unknown as Attachment | null;
     this.parentMessageId = model.parentMessageId;
 
     this.initialize(model, context);
