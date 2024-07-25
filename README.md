@@ -1,6 +1,6 @@
 # airent-js
 
-Airent Framework for TypeScript Backend - a lightweight data entity and presentation framework
+Airent Framework - data entity management and presentation for JavaScript backend
 
 ## Why Airent?
 
