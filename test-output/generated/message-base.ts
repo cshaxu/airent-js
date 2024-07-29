@@ -12,10 +12,10 @@ import {
 } from '../../src/index.js';
 
 // config imports
-import { Context } from '../../test-resources/context.js';
+import { Context } from '../../test-sources/context.js';
 
 // entity imports
-import { MessageModel } from '../../test-resources/models.js';
+import { MessageModel } from '../../test-sources/models.js';
 import { ChatEntity } from '../chat.js';
 import { MessageEntity } from '../message.js';
 import { UserEntity } from '../user.js';

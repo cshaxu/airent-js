@@ -12,7 +12,7 @@ import {
 } from '../../src/index.js';
 
 // config imports
-import { Context } from '../../test-resources/context.js';
+import { Context } from '../../test-sources/context.js';
 
 // entity imports
 import { ChatEntity } from '../chat.js';

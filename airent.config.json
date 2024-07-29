@@ -3,10 +3,10 @@
   "schemaPath": "test-schemas",
   "entityPath": "test-output",
   "libImportPath": "./src/index",
-  "contextImportPath": "./test-resources/context",
+  "contextImportPath": "./test-sources/context",
   "templates": [
     {
-      "name": "test-resources/README.ejs",
+      "name": "test-plugins/README.ejs",
       "outputPath": "{test.outputPath}/README",
       "skippable": false
     }
