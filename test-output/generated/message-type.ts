@@ -2,7 +2,7 @@
 import { Select } from '../../src/index.js';
 
 // entity imports
-import { MessageModel } from '../../test-resources/models.js';
+import { MessageModel } from '../../test-sources/models.js';
 import { ChatFieldRequest, ChatResponse } from './chat-type.js';
 import { UserFieldRequest, UserResponse } from './user-type.js';
 

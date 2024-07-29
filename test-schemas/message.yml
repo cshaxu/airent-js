@@ -3,7 +3,7 @@ model: MessageModel
 skipSelfLoader: true
 types:
   - name: MessageModel
-    import: "./test-resources/models"
+    import: "./test-sources/models"
   - name: Attachment
     define: "{ [key: string]: string }"
   - name: SenderType

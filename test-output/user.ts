@@ -2,10 +2,10 @@
 import { LoadKey, toArrayMap, toObjectMap } from '../src/index.js';
 
 // config imports
-import { Context } from '../test-resources/context.js';
+import { Context } from '../test-sources/context.js';
 
 // entity imports
-import { UserModel } from '../test-resources/models.js';
+import { UserModel } from '../test-sources/models.js';
 import { MessageEntity } from './message.js';
 import { ChatUserEntity } from './chat-user.js';
 import {
