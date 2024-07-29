@@ -21,32 +21,26 @@ type LoadConfig<ENTITY, LOADED> = {
   setter?: (sources: ENTITY[], targets: LOADED[]) => void;
 };
 
-interface FieldRequestInterface {
-  [key: string]: boolean | FieldRequestInterface;
-}
-
-type FieldRequest = FieldRequestInterface;
-
 // Note: it selects field when you set the field key to either true or false.
-type Select<RESPONSE, FIELD_REQUEST> = FIELD_REQUEST extends FieldRequest
+type Select<RESPONSE, FIELD_REQUEST> = FIELD_REQUEST extends Record<string, any>
   ? /* select fields */ {
       [KEY in keyof FIELD_REQUEST as FIELD_REQUEST[KEY] extends
         | boolean
-        | FieldRequest
+        | Record<string, any>
         ? KEY
         : never]: KEY extends keyof RESPONSE
-        ? /* valid type key */ FIELD_REQUEST[KEY] extends FieldRequest
+        ? /* valid type key */ FIELD_REQUEST[KEY] extends Record<string, any>
           ? /* nest-select inner type */ RESPONSE[KEY] extends
               | Array<infer INNER>
               | undefined
-            ? /* type is array */ INNER extends FieldRequest
+            ? /* type is array */ INNER extends Record<string, any>
               ? /* inner type is object */ Array<
                   Select<INNER, FIELD_REQUEST[KEY]>
                 >
               : /* inner type is primitive */ never
             : /* type is single */ null extends RESPONSE[KEY]
             ? /* type is nullable */ RESPONSE[KEY] extends
-                | FieldRequest
+                | Record<string, any>
                 | null
                 | undefined
               ? /* type is object */ Select<
@@ -55,7 +49,7 @@ type Select<RESPONSE, FIELD_REQUEST> = FIELD_REQUEST extends FieldRequest
                 > | null
               : /* type is primitive */ never
             : /* type is non-nullable */ RESPONSE[KEY] extends
-                | FieldRequest
+                | Record<string, any>
                 | undefined
             ? /* type is object */ Select<
                 NonNullable<RESPONSE[KEY]>,
@@ -71,12 +65,4 @@ type Select<RESPONSE, FIELD_REQUEST> = FIELD_REQUEST extends FieldRequest
   ? /* original response */ RESPONSE
   : /* invalid selection */ never;
 
-export {
-  AsyncLock,
-  EntityConstructor,
-  FieldRequest,
-  FieldRequestInterface,
-  LoadConfig,
-  LoadKey,
-  Select,
-};
+export { AsyncLock, EntityConstructor, LoadConfig, LoadKey, Select };
