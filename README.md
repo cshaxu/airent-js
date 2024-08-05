@@ -4,10 +4,35 @@ Airent Framework - data entity management and presentation for JavaScript backen
 
 ## Why Airent?
 
-- Airent effortlessly translates your database schema into the desired data types for your code, eliminating the need for manual configurations. For instance, if your database has a string field, Airent will automatically convert it into an enum or structure. Say goodbye to the hassle of handling type conversions!
-- Dealing with data retrieval and business logic can become challenging when you load data in various ways. Remembering and managing the presence of specific fields with Plain Old Java Objects (POJO) can be cumbersome. Airent's intelligent framework detects the necessary fields and loads them automatically, sparing you from concerns about undefined fields.
-- Airent empowers you to create customized data computation logic for both internal use and API presentations. These tailored fields are automatically loaded and computed according to the logic you define, all in a unified manner. You'll never have to worry about data computation again!
-- Streamline data presentation on your API endpoints with Airent. Simply specify the desired fields you want to select, and let Airent handle the rest. No more worries about inadvertently exposing sensitive data!
+### Avoid Backend Boilerplate
+
+One pain point in backend development is to write boilerplate code for wiring up the data entities and fields. These boilerplate code exists in all of your database layer, your business logic, and your API presentation layer today.
+
+Airent is designed to help you reduce the boilerplate code and focus on the business logic. Once you define your entity schema in YAML with Airent, it will automatically generate all the data entity classes and corresponding presentational types for you in TypeScript. You can then use these generated classes to load data from your database, compute fields, and present the data in your API endpoints. No more boilerplate code to write!
+
+### Eliminate N+1 Queries
+
+When you load data from your database, you may encounter the N+1 query problem, where you load a list of entities and then need to load additional data for each entity in the list. This can lead to a large number of queries being executed, which can be slow and inefficient.
+
+Airent provides a way to define the data loading strategy for each field in your entity schema. You can specify whether a field should be loaded directly from the database, computed from other fields, or loaded by foreign keys. Airent will then automatically generate the data loading logic for you, ensuring that you load the data in the most efficient way possible.
+
+### Reduce Error Prone Code
+
+With most plain ORMs today, what you get is usually POJOs (Plain Old Java Objects), and in your downstream code you have to remember and manage the presence of specific fields which could lead to bugs and errors (like `null` or `undefined` fields).
+
+Airent's intelligent framework will greatly improve your development experience and your backend service performance by automatically loading the necessary data and computing the fields for you only when they are used in the logic. You can then access the fields with confidence, knowing that they are always there and up-to-date.
+
+### Unify Data Computation
+
+A lot of times, you may want to compute some fields based on the existing data in your database and reuse the logic in your business logic layer and API fields. For example, you may want to compute the age of a user based on their birthdate and reuse this logic all over the place.
+
+Airent provides a simple way to define these computed fields in your schema, and empowers you to create customized data computation logic for both business logic layer and API presentation. These tailored fields are automatically loaded and computed according to the logic you define, all in a unified manner. You'll never have to worry about data computation again!
+
+### Streamline Data Presentation
+
+When you expose your data through API endpoints, you may want to present only the necessary fields to the client to reduce the payload size and protect sensitive data.
+
+Now, you can streamline data presentation on your API endpoints with Airent. Simply specify the desired fields you want to select, and let Airent handle the rest. No more worries about inadvertently exposing sensitive data!
 
 ## Getting Started
 
