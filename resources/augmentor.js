@@ -299,19 +299,30 @@ function buildFieldPresenter(field) /* Code */ {
   const { name, strings } = field;
   const { fieldGetter } = strings;
   const childFieldRequest = `fieldRequest.${name}!`;
-  let presenter = utils.isSyncField(field)
-    ? `this.${fieldGetter}`
-    : `await this.${fieldGetter}`;
   if (utils.isEntityTypeField(field)) {
-    if (utils.isArrayField(field)) {
-      presenter += `.then((a) => Promise.all(a.map((one) => one.present(${childFieldRequest}))))`;
-    } else if (utils.isNullableField(field)) {
-      presenter += `.then((one) => one === null ? Promise.resolve(null) : one.present(${childFieldRequest}))`;
+    if (utils.isComputedSyncField(field)) {
+      if (utils.isArrayField(field)) {
+        return `await Promise.all(this.${fieldGetter}.map((one) => one.present(${childFieldRequest})))`;
+      } else if (utils.isNullableField(field)) {
+        return `this.${fieldGetter} === null ? null : await this.${fieldGetter}.present(${childFieldRequest})`;
+      } else {
+        return `await this.${fieldGetter}.present(${childFieldRequest})`;
+      }
     } else {
-      presenter += `.then((one) => one.present(${childFieldRequest}))`;
+      const prefix = `await this.${fieldGetter}.then`;
+      if (utils.isArrayField(field)) {
+        return `${prefix}((a) => Promise.all(a.map((one) => one.present(${childFieldRequest}))))`;
+      } else if (utils.isNullableField(field)) {
+        return `${prefix}((one) => one === null ? Promise.resolve(null) : one.present(${childFieldRequest}))`;
+      } else {
+        return `${prefix}((one) => one.present(${childFieldRequest}))`;
+      }
     }
+  } else {
+    return utils.isSyncField(field)
+      ? `this.${fieldGetter}`
+      : `await this.${fieldGetter}`;
   }
-  return presenter;
 }
 
 function buildFieldAssociationKeyString(sourceFields, targetFields) /* Code */ {
