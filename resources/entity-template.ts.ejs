@@ -1,61 +1,61 @@
 <%
 function isLoadConfigGeneratable(field) {
-  const { loadConfig } = field.code;
+  const { loadConfig } = field._code;
   return utils.isAssociationField(field) &&
     loadConfig.isGetterGeneratable &&
     loadConfig.isLoaderGeneratable &&
     loadConfig.isSetterGeneratable;
 }
 -%>
-<% entity.code.beforeEntity.forEach((line) => { -%>
+<% entity._code.beforeEntity.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
 // airent imports
-import { LoadKey, toArrayMap, toObjectMap } from '<%- config.entityLibPackage %>';
+import { LoadKey, toArrayMap, toObjectMap } from '<%- config._packages.entityToLibFull %>';
 
 // config imports
-import { Context } from '<%- config.entityContextPackage %>';
+import { Context } from '<%- config._packages.entityToContextFull %>';
 
 // entity imports
 <% entity.types.filter(utils.isImportType).forEach((type) => { -%>
-import { <%= type.strings.externalClass %> } from '<%- type.strings.entityExternalPackage %>';
+import { <%= type._strings.externalClass %> } from '<%- type._packages.entityToExternalFull %>';
 <% }); -%>
 <% entity.types.filter(utils.isEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
-import { <%= type.strings.entityClass %> } from './<%= type.strings.entityPackage %>';
+import { <%= type._strings.entityClass %> } from './<%= type._entity._strings.moduleName %>';
 <% }); -%>
 <% if (utils.isPresentableEntity(entity) || entity.fields.some(utils.isCustomType)) { -%>
 import {
   <%_ if (utils.isPresentableEntity(entity)) { -%>
-  <%= entity.strings.fieldRequestClass %>,
-  <%= entity.strings.responseClass %>,
-  <%= entity.strings.selectedResponseClass %>,
+  <%= entity._strings.fieldRequestClass %>,
+  <%= entity._strings.responseClass %>,
+  <%= entity._strings.selectedResponseClass %>,
   <%_ } -%>
   <%_ entity.types.filter(utils.isCustomType).forEach((type) => { -%>
   <%= type.name %>,
   <%_ }); -%>
-} from './generated/<%= entity.strings.typePackage %>';
+} from '<%- config._packages.entityToTypePath %>/<%= entity._strings.moduleName %>';
 <% } -%>
-import { <%= entity.strings.baseClass %> } from './generated/<%= entity.strings.basePackage %>';
+import { <%= entity._strings.baseClass %> } from '<%- config._packages.entityToBasePath %>/<%= entity._strings.moduleName %>';
 
 <% if (entity.deprecated) { -%>
 /** @deprecated */
 <% } -%>
-export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseClass %> {
+export class <%= entity._strings.entityClass %> extends <%= entity._strings.baseClass %> {
 <% if (entity.fields.filter(utils.isAssociationField).some((field) => !isLoadConfigGeneratable(field))) { -%>
   protected initialize(model: <%= entity.model %>, context: Context) {
     super.initialize(model, context);
 
     /** associations */
   <%_ entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
-    <%_ if (!field.code.loadConfig.isGetterGeneratable) { -%>
+    <%_ if (!field._code.loadConfig.isGetterGeneratable) { -%>
 
-    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= entity.strings.baseClass %>[]) => {
+    this.<%= `${field.name}LoadConfig` %>.getter = (sources: <%= entity._strings.baseClass %>[]) => {
       <%_ template.functions.getLoadConfigGetterLines(field).forEach((line) => { -%>
       <%- line %>
       <%_ }); -%>
     };
     <%_ } -%>
-    <%_ if (!field.code.loadConfig.isLoaderGeneratable) { -%>
+    <%_ if (!field._code.loadConfig.isLoaderGeneratable) { -%>
 
     this.<%= `${field.name}LoadConfig` %>.loader = async (keys: LoadKey[]) => {
       <%_ template.functions.getLoadConfigLoaderLines(field).forEach((line) => { -%>
@@ -63,13 +63,13 @@ export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseCl
       <%_ }); -%>
     };
     <%_ } -%>
-    <%_ if (!field.code.loadConfig.isSetterGeneratable) { -%>
+    <%_ if (!field._code.loadConfig.isSetterGeneratable) { -%>
 
-    this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= entity.strings.entityClass %>[], targets: <%= field.strings.fieldClass %>[]) => {
+    this.<%= `${field.name}LoadConfig` %>.setter = ((sources: <%= entity._strings.entityClass %>[], targets: <%= field._strings.fieldClass %>[]) => {
       <%_ template.functions.getLoadConfigSetterLines(field).forEach((line) => { -%>
       <%- line %>
       <%_ }); -%>
-    }) as (sources: <%= entity.strings.baseClass %>[], targets: <%= field.strings.fieldClass %>[]) => Promise<void>;
+    }) as (sources: <%= entity._strings.baseClass %>[], targets: <%= field._strings.fieldClass %>[]) => Promise<void>;
     <%_ } -%>
   <%_ }); -%>
   }
@@ -83,7 +83,7 @@ export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseCl
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= field.strings.fieldGetter %>: <%= field.strings.fieldType %> {
+  public <%= field._strings.fieldGetter %>: <%= field._strings.fieldType %> {
     throw new Error('not implemented');
   }
 <% }); -%>
@@ -96,14 +96,14 @@ export class <%= entity.strings.entityClass %> extends <%= entity.strings.baseCl
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public async <%= field.strings.fieldGetter %>: Promise<<%= field.strings.fieldType %>> {
+  public async <%= field._strings.fieldGetter %>: Promise<<%= field._strings.fieldType %>> {
     throw new Error('not implemented');
   }
 <% }); -%>
-<% entity.code.insideEntity.forEach((line) => { -%>
+<% entity._code.insideEntity.forEach((line) => { -%>
 <%= line.length > 0 ? '  ' : '' %><%- line %>
 <% }); -%>
 }
-<% entity.code.afterEntity.forEach((line) => { -%>
+<% entity._code.afterEntity.forEach((line) => { -%>
 <%- line %>
 <% }); -%>

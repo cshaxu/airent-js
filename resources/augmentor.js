@@ -1,18 +1,21 @@
 const path = require("path");
 const utils = require("./utils.js");
 
-function enforceRelativePath(relativePath) /* string */ {
-  return relativePath.startsWith(".") ? relativePath : `./${relativePath}`;
+function buildRelativePath(sourcePath, targetPath) /* string */ {
+  const rawRelativePath = path
+    .relative(sourcePath, targetPath)
+    .replaceAll("\\", "/");
+  return rawRelativePath.startsWith(".")
+    ? rawRelativePath
+    : `./${rawRelativePath}`;
 }
 
-function buildRelativePackage(sourcePath, targetPath, config) /* string */ {
+function buildRelativeFull(sourcePath, targetPath, config) /* string */ {
   if (!targetPath.startsWith(".")) {
     return targetPath;
   }
   const suffix = utils.getModuleSuffix(config);
-  const relativePath = enforceRelativePath(
-    path.relative(sourcePath, targetPath).replaceAll("\\", "/")
-  );
+  const relativePath = buildRelativePath(sourcePath, targetPath);
   return `${relativePath}${suffix}`;
 }
 
@@ -20,32 +23,72 @@ function buildRelativePackage(sourcePath, targetPath, config) /* string */ {
 
 function augmentConfig(config) /* void */ {
   const { libImportPath, contextImportPath } = config;
-  config.baseLibPackage = libImportPath
-    ? buildRelativePackage(
-        path.join(config.entityPath, "generated"),
+
+  packages = {};
+
+  packages.baseToTypePath = buildRelativePath(
+    path.join(config.generatedPath, "entities"),
+    path.join(config.generatedPath, "types")
+  );
+  packages.typeToBasePath = buildRelativePath(
+    path.join(config.generatedPath, "types"),
+    path.join(config.generatedPath, "entities")
+  );
+  packages.entityToBasePath = buildRelativePath(
+    config.entityPath,
+    path.join(config.generatedPath, "entities")
+  );
+  packages.baseToEntityPath = buildRelativePath(
+    path.join(config.generatedPath, "entities"),
+    path.join(config.entityPath)
+  );
+  packages.entityToTypePath = buildRelativePath(
+    config.entityPath,
+    path.join(config.generatedPath, "types")
+  );
+  packages.typeToEntityPath = buildRelativePath(
+    path.join(config.generatedPath, "types"),
+    path.join(config.entityPath),
+    config,
+    false
+  );
+
+  packages.baseToLibFull = libImportPath
+    ? buildRelativeFull(
+        path.join(config.generatedPath, "entities"),
         libImportPath,
         config
       )
     : "airent";
-  config.entityLibPackage = libImportPath
-    ? buildRelativePackage(config.entityPath, libImportPath, config)
+  packages.typeToLibFull = libImportPath
+    ? buildRelativeFull(
+        path.join(config.generatedPath, "types"),
+        libImportPath,
+        config
+      )
     : "airent";
-  config.baseContextPackage = buildRelativePackage(
-    path.join(config.entityPath, "generated"),
+  packages.entityToLibFull = libImportPath
+    ? buildRelativeFull(config.entityPath, libImportPath, config)
+    : "airent";
+
+  packages.baseToContextFull = buildRelativeFull(
+    path.join(config.generatedPath, "entities"),
     contextImportPath,
     config
   );
-  config.entityContextPackage = buildRelativePackage(
+  packages.entityToContextFull = buildRelativeFull(
     config.entityPath,
     contextImportPath,
     config
   );
+
+  config._packages = packages;
 }
 
 // build templates
 
 function getSelfLoaderLines(entity) /* Code[] */ {
-  const { selfModelsLoader, selfLoaderLines } = entity.code;
+  const { selfModelsLoader, selfLoaderLines } = entity._code;
   if (selfLoaderLines !== undefined) {
     return selfLoaderLines;
   }
@@ -56,7 +99,7 @@ function getSelfLoaderLines(entity) /* Code[] */ {
 }
 
 function getLoadConfigGetterLines(field) /* Code[] */ {
-  const { getterLines } = field.code.loadConfig;
+  const { getterLines } = field._code.loadConfig;
   if (getterLines !== undefined) {
     return getterLines;
   }
@@ -69,10 +112,10 @@ function getLoadConfigGetterLines(field) /* Code[] */ {
       (sf, i) =>
         utils.isNullableField(sf) && !utils.isNullableField(targetFields[i])
     )
-    .map((sf) => `  .filter((one) => one.${sf.strings.fieldGetter} !== null)`);
+    .map((sf) => `  .filter((one) => one.${sf._strings.fieldGetter} !== null)`);
   const mappedFields = sourceFields.map((sf, i) => {
     const rawTargetFieldName = targetFields[i].aliasOf ?? targetFields[i].name;
-    return `    ${rawTargetFieldName}: one.${sf.strings.fieldGetter},`;
+    return `    ${rawTargetFieldName}: one.${sf._strings.fieldGetter},`;
   });
   const filterFields = targetFilters.map((tf) => {
     const rawTargetFieldName = tf.aliasOf ?? tf.name;
@@ -89,12 +132,12 @@ function getLoadConfigGetterLines(field) /* Code[] */ {
 }
 
 function getLoadConfigLoaderLines(field) /* Code[] */ {
-  const { targetModelsLoader, loaderLines } = field.code.loadConfig;
+  const { targetModelsLoader, loaderLines } = field._code.loadConfig;
   if (loaderLines !== undefined) {
     return loaderLines;
   }
   if (utils.isEntityTypeField(field)) {
-    const { fieldClass } = field.strings;
+    const { fieldClass } = field._strings;
     return [
       `const models = ${targetModelsLoader};`,
       `return ${fieldClass}.fromArray(models, this.context);`,
@@ -105,7 +148,7 @@ function getLoadConfigLoaderLines(field) /* Code[] */ {
 }
 
 function getLoadConfigSetterLines(field) /* Code[] */ {
-  const { targetMapper, sourceSetter, setterLines } = field.code.loadConfig;
+  const { targetMapper, sourceSetter, setterLines } = field._code.loadConfig;
   if (setterLines !== undefined) {
     return setterLines;
   }
@@ -175,50 +218,27 @@ function buildEntityStrings(entity, config) /* Object */ {
   const prefix = utils.toKababCase(name);
   const suffix = utils.getModuleSuffix(config);
   return {
-    loaderName: `${utils.toCamelCase(entName)}Loader`,
+    moduleName: `${prefix}${suffix}`,
     baseClass: `${entName}EntityBase`,
     entityClass: `${entName}Entity`,
     fieldRequestClass: `${entName}FieldRequest`,
     responseClass: `${entName}Response`,
     selectedResponseClass: `Selected${entName}Response`,
-    basePackage: `${prefix}-base${suffix}`,
-    entityPackage: `${prefix}${suffix}`,
-    typePackage: `${prefix}-type${suffix}`,
   };
 }
 
-function buildTypeStrings(type, config) /* Object */ {
+function buildTypeStrings(type) /* Object */ {
   if (type._entity !== undefined) {
     const entName = utils.toTitleCase(type.name);
-    const prefix = `${utils.toKababCase(entName)}`;
-    const suffix = utils.getModuleSuffix(config);
     return {
       entityClass: `${entName}Entity`,
-      entityPackage: `${prefix}${suffix}`,
       fieldRequestClass: `${entName}FieldRequest`,
       responseClass: `${entName}Response`,
-      typePackage: `${prefix}-type${suffix}`,
     };
   } else if (utils.isImportType(type)) {
     const aliasSuffix = type.aliasOf ? ` as ${type.name}` : "";
     const externalClass = `${type.aliasOf ?? type.name}${aliasSuffix}`;
-    const externalPackage = type.import;
-    const baseExternalPackage = buildRelativePackage(
-      path.join(config.entityPath, "generated"),
-      externalPackage,
-      config
-    );
-    const entityExternalPackage = buildRelativePackage(
-      config.entityPath,
-      externalPackage,
-      config
-    );
-    return {
-      externalClass,
-      externalPackage,
-      baseExternalPackage,
-      entityExternalPackage,
-    };
+    return { externalClass };
   } else if (utils.isDefineType(type)) {
     return { typeDefinition: type.define };
   } else if (utils.isEnumType(type)) {
@@ -273,9 +293,42 @@ function buildFieldStrings(field) /* Object */ {
 }
 
 function addStrings(entity, config) /* void */ {
-  entity.strings = buildEntityStrings(entity, config);
-  entity.types.forEach((t) => (t.strings = buildTypeStrings(t, config)));
-  entity.fields.forEach((f) => (f.strings = buildFieldStrings(f)));
+  entity._strings = buildEntityStrings(entity, config);
+  entity.types.forEach((t) => (t._strings = buildTypeStrings(t)));
+  entity.fields.forEach((f) => (f._strings = buildFieldStrings(f)));
+}
+
+// augment entity - add packages
+
+function buildTypePackages(type, config) /* Object */ {
+  if (type._entity !== undefined) {
+    return {};
+  } else if (utils.isImportType(type)) {
+    const baseToExternalFull = buildRelativeFull(
+      path.join(config.generatedPath, "entities"),
+      type.import,
+      config
+    );
+    const typeToExternalFull = buildRelativeFull(
+      path.join(config.generatedPath, "types"),
+      type.import,
+      config
+    );
+    const entityToExternalFull = buildRelativeFull(
+      config.entityPath,
+      type.import,
+      config
+    );
+    return { baseToExternalFull, typeToExternalFull, entityToExternalFull };
+  } else if (utils.isDefineType(type)) {
+    return {};
+  } else if (utils.isEnumType(type)) {
+    return {};
+  }
+}
+
+function addPackages(entity, config) /* void */ {
+  entity.types.forEach((t) => (t._packages = buildTypePackages(t, config)));
 }
 
 // augment entity - add code
@@ -290,14 +343,14 @@ function buildEntityCode(entity) /* Object */ {
     afterEntity: [],
     beforeType: [],
     afterType: [],
-    selfModelsLoader: `[/* TODO: load models for ${entity.strings.entityClass} */]`,
+    selfModelsLoader: `[/* TODO: load models for ${entity._strings.entityClass} */]`,
     selfLoaderLines: undefined,
   };
 }
 
 function buildFieldPresenter(field) /* Code */ {
-  const { name, strings } = field;
-  const { fieldGetter } = strings;
+  const { name, _strings } = field;
+  const { fieldGetter } = _strings;
   const childFieldRequest = `fieldRequest.${name}!`;
   if (utils.isEntityTypeField(field)) {
     if (utils.isComputedSyncField(field)) {
@@ -327,7 +380,7 @@ function buildFieldPresenter(field) /* Code */ {
 
 function buildFieldAssociationKeyString(sourceFields, targetFields) /* Code */ {
   return `JSON.stringify({ ${targetFields
-    .map((tf, i) => `${tf.name}: one.${sourceFields[i].strings.fieldGetter}`)
+    .map((tf, i) => `${tf.name}: one.${sourceFields[i]._strings.fieldGetter}`)
     .join(", ")} })`;
 }
 
@@ -349,7 +402,7 @@ function buildFieldLoadConfigSourceSetter(field) /* Code */ {
       (sf, i) =>
         utils.isNullableField(sf) && !utils.isNullableField(targetFields[i])
     )
-    .map((sf) => `one.${sf.strings.fieldGetter} === null`)
+    .map((sf) => `one.${sf._strings.fieldGetter} === null`)
     .join(" || ");
   const nullSetter =
     nullConditions.length === 0
@@ -372,12 +425,12 @@ function buildFieldLoadConfig(field) /* Object */ {
   loadConfig.isGetterGeneratable = field.skipGetter !== true;
   loadConfig.isLoaderGeneratable = false;
   loadConfig.isSetterGeneratable = field.skipSetter !== true;
-  loadConfig.name = `${field._parent.strings.entityClass}.${field.name}`;
+  loadConfig.name = `${field._parent._strings.entityClass}.${field.name}`;
   // for loadConfig.getter
   loadConfig.getterLines = undefined;
   // for loadConfig.loader
   loadConfig.targetModelsLoader = `[/* TODO: load ${
-    field._type?._entity?.strings.entityClass ?? "associated"
+    field._type?._entity?._strings.entityClass ?? "associated"
   } models */]`;
   loadConfig.loaderLines = undefined;
   // for loadConfg.setter
@@ -401,8 +454,8 @@ function buildFieldCode(field) /* Object */ {
 }
 
 function addCode(entity) /* void */ {
-  entity.code = buildEntityCode(entity);
-  entity.fields.forEach((f) => (f.code = buildFieldCode(f)));
+  entity._code = buildEntityCode(entity);
+  entity.fields.forEach((f) => (f._code = buildFieldCode(f)));
 }
 
 function augmentEntities(entityMap, config) /* void */ {
@@ -414,6 +467,9 @@ function augmentEntities(entityMap, config) /* void */ {
 
   // augment entities - add strings
   entities.forEach((e) => addStrings(e, config));
+
+  // augment entities - add packages
+  entities.forEach((e) => addPackages(e, config));
 
   // augment entities - add code
   entities.forEach((e) => addCode(e, config));

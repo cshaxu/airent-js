@@ -9,21 +9,21 @@ import {
   sequential,
   toArrayMap,
   toObjectMap,
-} from '../../src/index.js';
+} from '../../../src/index.js';
 
 // config imports
-import { Context } from '../../test-sources/context.js';
+import { Context } from '../../../test-sources/context.js';
 
 // entity imports
-import { ChatEntity } from '../chat.js';
-import { UserEntity } from '../user.js';
+import { ChatEntity } from '../../entities/chat.js';
+import { UserEntity } from '../../entities/user.js';
 import {
   ChatUserFieldRequest,
   ChatUserResponse,
   SelectedChatUserResponse,
   ChatUserModel,
   ChatUserRole,
-} from './chat-user-type.js';
+} from '../types/chat-user.js';
 
 /** @deprecated */
 export class ChatUserEntityBase extends BaseEntity<

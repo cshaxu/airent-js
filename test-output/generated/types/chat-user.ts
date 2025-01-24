@@ -1,9 +1,9 @@
 // airent imports
-import { Select } from '../../src/index.js';
+import { Select } from '../../../src/index.js';
 
 // entity imports
-import { ChatFieldRequest, ChatResponse } from './chat-type.js';
-import { UserFieldRequest, UserResponse } from './user-type.js';
+import { ChatFieldRequest, ChatResponse } from './chat.js';
+import { UserFieldRequest, UserResponse } from './user.js';
 
 /** enums */
 
