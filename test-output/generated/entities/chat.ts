@@ -9,20 +9,20 @@ import {
   sequential,
   toArrayMap,
   toObjectMap,
-} from '../../src/index.js';
+} from '../../../src/index.js';
 
 // config imports
-import { Context } from '../../test-sources/context.js';
+import { Context } from '../../../test-sources/context.js';
 
 // entity imports
-import { MessageEntity } from '../message.js';
-import { ChatUserEntity } from '../chat-user.js';
+import { MessageEntity } from '../../entities/message.js';
+import { ChatUserEntity } from '../../entities/chat-user.js';
 import {
   ChatFieldRequest,
   ChatResponse,
   SelectedChatResponse,
   ChatModel,
-} from './chat-type.js';
+} from '../types/chat.js';
 
 export class ChatEntityBase extends BaseEntity<
   ChatModel, Context, ChatFieldRequest, ChatResponse

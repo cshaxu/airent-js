@@ -1,7 +1,8 @@
 {
   "type": "module",
   "schemaPath": "test-schemas",
-  "entityPath": "test-output",
+  "entityPath": "test-output/entities",
+  "generatedPath": "test-output/generated",
   "libImportPath": "./src/index",
   "contextImportPath": "./test-sources/context",
   "templates": [

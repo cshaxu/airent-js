@@ -85,6 +85,7 @@ async function writeFileContent(absoluteFilePath, fileContent) {
  *  @property {?string} libImportPath
  *  @property {string} schemaPath
  *  @property {string} entityPath
+ *  @property {string} generatedPath
  *  @property {string} contextImportPath
  *  @property {?string[]} [augmentors]
  *  @property {?Template[]} [templates]
@@ -119,20 +120,12 @@ const DEFAULT_TEMPLATE_NAMES = [
 const BASE_TEMPLATE_CONFIG = {
   name: BASE_TEMPLATE_NAME,
   skippable: false,
-  outputPath: path.join(
-    "{entityPath}",
-    "generated",
-    "{kababEntityName}-base.ts"
-  ),
+  outputPath: path.join("{generatedPath}", "entities", "{kababEntityName}.ts"),
 };
 const TYPE_TEMPLATE_CONFIG = {
   name: TYPE_TEMPLATE_NAME,
   skippable: false,
-  outputPath: path.join(
-    "{entityPath}",
-    "generated",
-    "{kababEntityName}-type.ts"
-  ),
+  outputPath: path.join("{generatedPath}", "types", "{kababEntityName}.ts"),
 };
 const ENTITY_TEMPLATE_CONFIG = {
   name: ENTITY_TEMPLATE_NAME,
@@ -159,6 +152,10 @@ async function configure(config) {
   config.entityPath = await askQuestion(
     "Entity path",
     config.entityPath ?? "./src/entities"
+  );
+  config.generatedPath = await askQuestion(
+    "Generated code path",
+    config.generatedPath ?? "./src/generated"
   );
   config.contextImportPath = await askQuestion(
     "Context import path",
@@ -201,6 +198,9 @@ function validateConfig(config, isVerbose) {
   }
   if (!config.entityPath?.length) {
     throw new Error(`[AIRENT/ERROR] config.entityPath is missing.`);
+  }
+  if (!config.generatedPath?.length) {
+    throw new Error(`[AIRENT/ERROR] config.generatedPath is missing.`);
   }
   if (!config.contextImportPath?.length) {
     throw new Error(`[AIRENT/ERROR] config.contextImportPath is missing.`);

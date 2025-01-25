@@ -1,11 +1,11 @@
 // airent imports
-import { LoadKey, toArrayMap, toObjectMap } from '../src/index.js';
+import { LoadKey, toArrayMap, toObjectMap } from '../../src/index.js';
 
 // config imports
-import { Context } from '../test-sources/context.js';
+import { Context } from '../../test-sources/context.js';
 
 // entity imports
-import { MessageModel } from '../test-sources/models.js';
+import { MessageModel } from '../../test-sources/models.js';
 import { ChatEntity } from './chat.js';
 import { UserEntity } from './user.js';
 import {
@@ -14,8 +14,8 @@ import {
   SelectedMessageResponse,
   Attachment,
   SenderType,
-} from './generated/message-type.js';
-import { MessageEntityBase } from './generated/message-base.js';
+} from '../generated/types/message.js';
+import { MessageEntityBase } from '../generated/entities/message.js';
 
 export class MessageEntity extends MessageEntityBase {
   protected initialize(model: MessageModel, context: Context) {

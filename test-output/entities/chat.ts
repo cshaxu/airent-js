@@ -1,8 +1,8 @@
 // airent imports
-import { LoadKey, toArrayMap, toObjectMap } from '../src/index.js';
+import { LoadKey, toArrayMap, toObjectMap } from '../../src/index.js';
 
 // config imports
-import { Context } from '../test-sources/context.js';
+import { Context } from '../../test-sources/context.js';
 
 // entity imports
 import { MessageEntity } from './message.js';
@@ -12,8 +12,8 @@ import {
   ChatResponse,
   SelectedChatResponse,
   ChatModel,
-} from './generated/chat-type.js';
-import { ChatEntityBase } from './generated/chat-base.js';
+} from '../generated/types/chat.js';
+import { ChatEntityBase } from '../generated/entities/chat.js';
 
 export class ChatEntity extends ChatEntityBase {
   protected initialize(model: ChatModel, context: Context) {

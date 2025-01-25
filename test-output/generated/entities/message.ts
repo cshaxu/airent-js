@@ -9,23 +9,23 @@ import {
   sequential,
   toArrayMap,
   toObjectMap,
-} from '../../src/index.js';
+} from '../../../src/index.js';
 
 // config imports
-import { Context } from '../../test-sources/context.js';
+import { Context } from '../../../test-sources/context.js';
 
 // entity imports
-import { MessageModel } from '../../test-sources/models.js';
-import { ChatEntity } from '../chat.js';
-import { MessageEntity } from '../message.js';
-import { UserEntity } from '../user.js';
+import { MessageModel } from '../../../test-sources/models.js';
+import { ChatEntity } from '../../entities/chat.js';
+import { MessageEntity } from '../../entities/message.js';
+import { UserEntity } from '../../entities/user.js';
 import {
   MessageFieldRequest,
   MessageResponse,
   SelectedMessageResponse,
   Attachment,
   SenderType,
-} from './message-type.js';
+} from '../types/message.js';
 
 export class MessageEntityBase extends BaseEntity<
   MessageModel, Context, MessageFieldRequest, MessageResponse
