@@ -86,3 +86,8 @@ fields:
       - mentorId
     targetKeys:
       - id
+  - id: 14
+    name: senderType
+    type: SenderType
+    strategy: primitive
+    cast: enum

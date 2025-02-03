@@ -12,7 +12,7 @@ Entity name: Chat
   ComputedAsync fields: 0
 
 Entity name: Message
-  Primitive fields: 7
+  Primitive fields: 8
   Association fields: 4
   ComputedSync fields: 3
   ComputedAsync fields: 0

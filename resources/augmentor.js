@@ -256,34 +256,48 @@ function buildTypeStrings(type) /* Object */ {
 }
 
 function buildFieldStrings(field) /* Object */ {
-  const typeName = utils.toPrimitiveTypeName(field.type);
+  const primitiveTypeName = utils.toPrimitiveTypeName(field.type);
   const isEntityTypeField = field._type?._entity !== undefined;
   const fieldGetter = utils.isPrimitiveField(field)
     ? field.name
     : `get${utils.toTitleCase(field.name)}()`;
 
   if (isEntityTypeField) {
-    const entName = utils.toTitleCase(typeName);
+    const entName = utils.toTitleCase(primitiveTypeName);
     const entityClass = `${entName}Entity`;
     const responseClass = `${entName}Response`;
 
     return {
       fieldClass: entityClass,
-      fieldType: field.type.replace(typeName, entityClass),
+      fieldType: field.type.replace(primitiveTypeName, entityClass),
       fieldRequestType: `${entName}FieldRequest`,
-      fieldResponseType: field.type.replace(typeName, responseClass),
+      fieldResponseType: field.type.replace(primitiveTypeName, responseClass),
       fieldGetter,
     };
   } else {
-    const fieldModelName = field.aliasOf ?? field.name;
-    const fieldAliasSuffix = field.cast ? ` as unknown as ${field.type}` : "";
+    const fieldModelName = `model.${field.aliasOf ?? field.name}`;
+    const primitiveTypeName = utils.toPrimitiveTypeName(field.type);
+    const regularEnumCastFieldInitializer = `${primitiveTypeName}[${fieldModelName} as keyof typeof ${primitiveTypeName}]`;
+    const nullableEnumCastFieldInitializer = `${fieldModelName} === null ? null : ${regularEnumCastFieldInitializer}`;
+    const arrayEnumCastFieldInitializer = `${fieldModelName}.map((one) => ${primitiveTypeName}[one as keyof typeof ${primitiveTypeName}])`;
+    const enumCastFieldInitializer = utils.isArrayField(field)
+      ? arrayEnumCastFieldInitializer
+      : utils.isNullableField(field)
+      ? nullableEnumCastFieldInitializer
+      : regularEnumCastFieldInitializer;
+    const forceCastFieldInitializer = `${fieldModelName} as unknown as ${field.type}`;
+
     const fieldInitializer = utils.isPrimitiveField(field)
-      ? `model.${fieldModelName}${fieldAliasSuffix}`
+      ? field.cast === "enum"
+        ? enumCastFieldInitializer
+        : !!field.cast
+        ? forceCastFieldInitializer
+        : fieldModelName
       : undefined;
 
     return {
       fieldInitializer,
-      fieldClass: typeName,
+      fieldClass: primitiveTypeName,
       fieldType: field.type,
       fieldRequestType: "boolean",
       fieldResponseType: field.type,
