@@ -28,6 +28,7 @@ export type MessageFieldRequest = {
   parentMessage?: MessageFieldRequest;
   mentorId?: boolean;
   mentor?: UserFieldRequest;
+  senderType?: boolean;
 };
 
 export type MessageResponse = {
@@ -44,6 +45,7 @@ export type MessageResponse = {
   parentMessage?: MessageResponse | null;
   mentorId?: string | null;
   mentor?: UserResponse | null;
+  senderType?: SenderType;
 };
 
 export type SelectedMessageResponse<S extends MessageFieldRequest> = Select<MessageResponse, S>;

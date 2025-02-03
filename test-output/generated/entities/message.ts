@@ -37,6 +37,7 @@ export class MessageEntityBase extends BaseEntity<
   public content: string | null;
   public attachment: Attachment | null;
   public parentMessageId: string | null;
+  public senderType: SenderType;
 
   protected chat?: ChatEntity;
 
@@ -61,6 +62,7 @@ export class MessageEntityBase extends BaseEntity<
     this.content = model.content;
     this.attachment = model.attachmentJson as unknown as Attachment | null;
     this.parentMessageId = model.parentMessageId;
+    this.senderType = SenderType[model.senderType as keyof typeof SenderType];
 
     this.initialize(model, context);
   }
@@ -81,6 +83,7 @@ export class MessageEntityBase extends BaseEntity<
       ...(fieldRequest.parentMessage !== undefined && { parentMessage: await this.getParentMessage().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.parentMessage!)) }),
       ...(fieldRequest.mentorId !== undefined && { mentorId: this.getMentorId() }),
       ...(fieldRequest.mentor !== undefined && { mentor: await this.getMentor().then((one) => one === null ? Promise.resolve(null) : one.present(fieldRequest.mentor!)) }),
+      ...(fieldRequest.senderType !== undefined && { senderType: this.senderType }),
     };
     await this.afterPresent(fieldRequest, response as Select<MessageResponse, S>);
     return response as SelectedMessageResponse<S>;
