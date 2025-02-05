@@ -39,27 +39,49 @@ function pluralize(word) /** string */ {
   return word + "s"; // If no rule matched, add 's' as a default pluralization
 }
 
-// example: "ChatUser" => "chatUser"
-function toCamelCase(string) /** string */ {
-  return string.charAt(0).toLowerCase() + string.slice(1);
+// example: "chat-user" => "chatUser"
+function toCamelCase(string) {
+  return string
+    .trim()
+    .replace(/[_\s-]+([a-zA-Z])/g, (_, letter) => letter.toUpperCase()) // Convert _word or -word or spaceWord
+    .replace(/^(.)/, (match) => match.toLowerCase()); // Ensure first letter is lowercase
 }
 
 // example: "ChatUser" => "chat-user"
 function toKababCase(string) /** string */ {
   return string
-    .replace(/_/g, "-")
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .toLowerCase();
+    .trim()
+    .replace(/([a-z])([A-Z])/g, "$1-$2") // Convert camelCase to kebab-case
+    .replace(/[_\s]+/g, "-") // Convert spaces and underscores to hyphens
+    .toLowerCase(); // Convert everything to lowercase
 }
 
 // example: "ChatUser" => "chat_user"
 function toSnakeCase(string) {
-  return string.replace(/([A-Z])/g, (match) => `_${match.toLowerCase()}`);
+  return string
+    .trim()
+    .replace(/([a-z])([A-Z])/g, "$1_$2") // Convert camelCase to snake_case
+    .replace(/[-\s]+/g, "_") // Convert spaces and hyphens to underscores
+    .toLowerCase(); // Convert everything to lowercase
 }
 
 // example: "chatUser" => "ChatUser"
 function toTitleCase(string) /** string */ {
-  return string.charAt(0).toUpperCase() + string.slice(1);
+  return string
+    .trim()
+    .replace(/[_\s-]+/g, " ") // Replace underscores and hyphens with spaces
+    .replace(/([a-z])([A-Z])/g, "$1 $2") // Add space between camelCase words
+    .replace(/\b\w/g, (match) => match.toUpperCase()); // Capitalize each word
+}
+
+function toPascalCase(string) {
+  return string
+    .trim()
+    .replace(/[_\s-]+/g, " ") // Replace underscores and hyphens with spaces
+    .replace(/([a-z])([A-Z])/g, "$1 $2") // Add space between camelCase words
+    .split(" ") // Split into words
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
+    .join(""); // Join words without spaces
 }
 
 // example: "string[] | null" => "string"
@@ -203,6 +225,7 @@ module.exports = {
   pluralize,
   toCamelCase,
   toKababCase,
+  toPascalCase,
   toSnakeCase,
   toTitleCase,
   toPrimitiveTypeName,
