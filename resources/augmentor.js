@@ -214,7 +214,7 @@ function addMetadata(entity, entityMap) /* void */ {
 
 function buildEntityStrings(entity, config) /* Object */ {
   const { name } = entity;
-  const entName = utils.toTitleCase(name);
+  const entName = utils.toPascalCase(name);
   const prefix = utils.toKababCase(name);
   const suffix = utils.getModuleSuffix(config);
   return {
@@ -229,7 +229,7 @@ function buildEntityStrings(entity, config) /* Object */ {
 
 function buildTypeStrings(type) /* Object */ {
   if (type._entity !== undefined) {
-    const entName = utils.toTitleCase(type.name);
+    const entName = utils.toPascalCase(type.name);
     return {
       entityClass: `${entName}Entity`,
       fieldRequestClass: `${entName}FieldRequest`,
@@ -260,10 +260,10 @@ function buildFieldStrings(field) /* Object */ {
   const isEntityTypeField = field._type?._entity !== undefined;
   const fieldGetter = utils.isPrimitiveField(field)
     ? field.name
-    : `get${utils.toTitleCase(field.name)}()`;
+    : `get${utils.toPascalCase(field.name)}()`;
 
   if (isEntityTypeField) {
-    const entName = utils.toTitleCase(primitiveTypeName);
+    const entName = utils.toPascalCase(primitiveTypeName);
     const entityClass = `${entName}Entity`;
     const responseClass = `${entName}Response`;
 

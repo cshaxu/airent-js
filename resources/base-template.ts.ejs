@@ -170,7 +170,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= `set${utils.toTitleCase(field.name)}` %>(<%= field.name %>?: <%= field._strings.fieldType %>): void {
+  public <%= `set${utils.toPascalCase(field.name)}` %>(<%= field.name %>?: <%= field._strings.fieldType %>): void {
     this.<%= field.name %> = <%= field.name %>;
   }
 <% }); -%>
