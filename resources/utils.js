@@ -90,7 +90,7 @@ function toPrimitiveTypeName(string) /** string */ {
 }
 
 function getModuleSuffix(config) /* string */ {
-  return config.isModule ? ".js" : "";
+  return config.type === "module" ? ".js" : "";
 }
 
 /**********/

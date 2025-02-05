@@ -222,8 +222,7 @@ function validateConfig(config, isVerbose) {
       );
     }
   });
-  const isModule = type === "module";
-  const validated = { ...config, isModule, augmentors, templates };
+  const validated = { ...config, augmentors, templates };
   if (isVerbose) {
     console.log(validated);
   }
