@@ -114,7 +114,7 @@ export class MessageEntityBase extends BaseEntity<
     //   return ChatEntity.fromArray(models, this.context);
     // },
     setter: (sources: MessageEntityBase[], targets: ChatEntity[]) => {
-      const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
+      const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }));
       sources.forEach((one) => (one.chat = map.get(JSON.stringify({ id: one.getDerivedChatId() }))!));
     },
   };
@@ -148,7 +148,7 @@ export class MessageEntityBase extends BaseEntity<
     // },
     // TODO: build your association value setter
     // setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
-    //   const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
+    //   const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }));
     //   sources.forEach((one) => (one.user = (one.userId === null) ? null : map.get(JSON.stringify({ id: one.userId })) ?? null));
     // },
   };
@@ -181,7 +181,7 @@ export class MessageEntityBase extends BaseEntity<
     //   return MessageEntity.fromArray(models, this.context);
     // },
     setter: (sources: MessageEntityBase[], targets: MessageEntity[]) => {
-      const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
+      const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }));
       sources.forEach((one) => (one.parentMessage = (one.parentMessageId === null) ? null : map.get(JSON.stringify({ id: one.parentMessageId })) ?? null));
     },
   };
@@ -214,7 +214,7 @@ export class MessageEntityBase extends BaseEntity<
     //   return UserEntity.fromArray(models, this.context);
     // },
     setter: (sources: MessageEntityBase[], targets: UserEntity[]) => {
-      const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }), (one) => one);
+      const map = toObjectMap(targets, (one) => JSON.stringify({ id: one.id }));
       sources.forEach((one) => (one.mentor = (one.getMentorId() === null) ? null : map.get(JSON.stringify({ id: one.getMentorId() })) ?? null));
     },
   };
