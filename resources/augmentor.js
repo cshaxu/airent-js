@@ -405,7 +405,7 @@ function buildFieldLoadConfigTargetMapper(field) /* Code */ {
     targetFields,
     targetFields
   );
-  return `${mapBuilder}(targets, (one) => ${targetKeyString}, (one) => one)`;
+  return `${mapBuilder}(targets, (one) => ${targetKeyString})`;
 }
 
 function buildFieldLoadConfigSourceSetter(field) /* Code */ {
