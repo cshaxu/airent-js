@@ -13,6 +13,7 @@ class BaseEntity<
   RESPONSE = MODEL
 > {
   public context: CONTEXT;
+  protected _id: string;
   protected _group: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>[];
   protected _lock: AsyncLock;
 
@@ -22,6 +23,7 @@ class BaseEntity<
     lock: AsyncLock
   ) {
     this.context = context;
+    this._id = crypto.randomUUID();
     this._group = group;
     this._lock = lock;
   }
@@ -102,7 +104,7 @@ class BaseEntity<
     models.forEach((model) =>
       group.push(new this(model, context, group, lock))
     );
-    return group;
+    return [...group];
   }
 }
 
