@@ -2,6 +2,7 @@
 import { AsyncLock, EntityConstructor, LoadConfig, Select } from "./types";
 declare class BaseEntity<MODEL, CONTEXT = unknown, FIELD_REQUEST = unknown, RESPONSE = MODEL> {
     context: CONTEXT;
+    protected _id: string;
     protected _group: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>[];
     protected _lock: AsyncLock;
     protected constructor(context: CONTEXT, group: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>[], lock: AsyncLock);
