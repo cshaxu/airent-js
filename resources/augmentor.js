@@ -87,6 +87,42 @@ function augmentConfig(config) /* void */ {
 
 // build templates
 
+function getReloaderLines(entity) /* Code[] */ {
+  const { modelReloader, reloaderLines } = entity._code;
+  if (reloaderLines !== undefined) {
+    return reloaderLines;
+  }
+  return [
+    `const model = ${modelReloader};`,
+    "this.fromModel(model);",
+    "return this;",
+  ];
+}
+
+function getSaverLines(entity) /* Code[] */ {
+  const { modelSaver, saverLines } = entity._code;
+  if (saverLines !== undefined) {
+    return saverLines;
+  }
+  return [
+    `const model = ${modelSaver};`,
+    "this.fromModel(model);",
+    "return this;",
+  ];
+}
+
+function getDeleterLines(entity) /* Code[] */ {
+  const { modelDeleter, deleterLines } = entity._code;
+  if (deleterLines !== undefined) {
+    return deleterLines;
+  }
+  return [
+    `const model = ${modelDeleter};`,
+    "this.fromModel(model);",
+    "return this;",
+  ];
+}
+
 function getSelfLoaderLines(entity) /* Code[] */ {
   const { selfModelsLoader, selfLoaderLines } = entity._code;
   if (selfLoaderLines !== undefined) {
@@ -171,6 +207,9 @@ function augmentTemplates(templates) /* void */ {
     t.name.includes("base-template.ts.ejs")
   );
   baseTemplate.functions = {
+    getReloaderLines,
+    getSaverLines,
+    getDeleterLines,
     getSelfLoaderLines,
     ...entityTemplate.functions,
   };
@@ -359,6 +398,12 @@ function buildEntityCode(entity) /* Object */ {
     afterType: [],
     selfModelsLoader: `[/* TODO: load models for ${entity._strings.entityClass} */]`,
     selfLoaderLines: undefined,
+    modelReloader: `{/* TODO: reload model for ${entity._strings.entityClass} */}`,
+    reloaderLines: undefined,
+    modelSaver: `{/* TODO: save model for ${entity._strings.entityClass} */}`,
+    saverLines: undefined,
+    modelDeleter: `{/* TODO: delete models for ${entity._strings.entityClass} */}`,
+    deleterLines: undefined,
   };
 }
 

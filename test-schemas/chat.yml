@@ -3,6 +3,8 @@ model: ChatModel
 types:
   - name: ChatModel
     define: "{ [key: string]: any }"
+keys:
+  - id
 fields:
   - id: 1
     name: id

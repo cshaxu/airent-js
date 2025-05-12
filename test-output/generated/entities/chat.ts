@@ -27,10 +27,10 @@ import {
 export class ChatEntityBase extends BaseEntity<
   ChatModel, Context, ChatFieldRequest, ChatResponse
 > {
-  public id: string;
-  public createdAt: Date;
-  public updatedAt: Date;
-  public deletedAt: Date | null;
+  public id!: string;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+  public deletedAt!: Date | null;
 
   /** @deprecated */
   protected chatUsers?: ChatUserEntity[];
@@ -44,13 +44,54 @@ export class ChatEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-
-    this.id = model.id;
-    this.createdAt = model.createdAt;
-    this.updatedAt = model.updatedAt;
-    this.deletedAt = model.deletedAt;
-
+    this.fromModel(model);
     this.initialize(model, context);
+  }
+
+  public fromModel(model: Partial<ChatModel>): void {
+    if ('id' in model && model['id'] !== undefined) {
+      this.id = model.id;
+    }
+    if ('createdAt' in model && model['createdAt'] !== undefined) {
+      this.createdAt = model.createdAt;
+    }
+    if ('updatedAt' in model && model['updatedAt'] !== undefined) {
+      this.updatedAt = model.updatedAt;
+    }
+    if ('deletedAt' in model && model['deletedAt'] !== undefined) {
+      this.deletedAt = model.deletedAt;
+    }
+    this.chatUsers = undefined;
+    this.messages = undefined;
+  }
+
+  public toModel(): Partial<ChatModel> {
+    return {
+      id: this.id,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      deletedAt: this.deletedAt,
+    };
+  }
+
+  /** mutators */
+
+  public async reload(): Promise<this> {
+    const model = {/* TODO: reload model for ChatEntity */};
+    this.fromModel(model);
+    return this;
+  }
+
+  public async save(): Promise<this> {
+    const model = {/* TODO: save model for ChatEntity */};
+    this.fromModel(model);
+    return this;
+  }
+
+  public async delete(): Promise<this> {
+    const model = {/* TODO: delete models for ChatEntity */};
+    this.fromModel(model);
+    return this;
   }
 
   public async present<S extends ChatFieldRequest>(fieldRequest: S): Promise<SelectedChatResponse<S>> {

@@ -9,7 +9,7 @@ types:
     enum:
       - USER
       - ASSISTANT
-keyFields:
+keys:
   - chatId
   - userId
 fields:

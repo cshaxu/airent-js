@@ -27,13 +27,13 @@ import {
 export class UserEntityBase extends BaseEntity<
   UserModel, Context, UserFieldRequest, UserResponse
 > {
-  public id: string;
-  public createdAt: Date;
-  public updatedAt: Date;
-  public email: string;
-  public firstName: string | null;
-  public lastName: string | null;
-  public imageUrl: string | null;
+  public id!: string;
+  public createdAt!: Date;
+  public updatedAt!: Date;
+  public email!: string;
+  public firstName!: string | null;
+  public lastName!: string | null;
+  public imageUrl!: string | null;
 
   /** @deprecated */
   protected chatUsers?: ChatUserEntity[];
@@ -47,16 +47,46 @@ export class UserEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-
-    this.id = model.id;
-    this.createdAt = model.createdAt;
-    this.updatedAt = model.updatedAt;
-    this.email = model.email;
-    this.firstName = model.firstName;
-    this.lastName = model.lastName;
-    this.imageUrl = model.image;
-
+    this.fromModel(model);
     this.initialize(model, context);
+  }
+
+  public fromModel(model: Partial<UserModel>): void {
+    if ('id' in model && model['id'] !== undefined) {
+      this.id = model.id;
+    }
+    if ('createdAt' in model && model['createdAt'] !== undefined) {
+      this.createdAt = model.createdAt;
+    }
+    if ('updatedAt' in model && model['updatedAt'] !== undefined) {
+      this.updatedAt = model.updatedAt;
+    }
+    if ('email' in model && model['email'] !== undefined) {
+      this.email = model.email;
+    }
+    if ('firstName' in model && model['firstName'] !== undefined) {
+      this.firstName = model.firstName;
+    }
+    if ('lastName' in model && model['lastName'] !== undefined) {
+      this.lastName = model.lastName;
+    }
+    if ('image' in model && model['image'] !== undefined) {
+      this.imageUrl = model.image;
+    }
+    this.chatUsers = undefined;
+    this.messages = undefined;
+  }
+
+  public toModel(): Partial<UserModel> {
+    return {
+      id: this.id,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      email: this.email,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      image: this.imageUrl,
+    };
   }
 
   public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<SelectedUserResponse<S>> {
