@@ -55,7 +55,7 @@ async function writeFileContent(absoluteFilePath, fileContent) {
  *  @property {"primitive" | "association" | "computed" | "computedAsync"} strategy
  *  @property {string} name
  *  @property {?string} aliasOf
- *  @property {?boolean} cast
+ *  @property {?boolean | "enum"} cast
  *  @property {?boolean} deprecated
  *  @property {?string[]} [sourceKeys]
  *  @property {?string[]} [targetKeys]

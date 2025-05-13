@@ -29,12 +29,12 @@ import {
 export class ChatUserEntityBase extends BaseEntity<
   ChatUserModel, Context, ChatUserFieldRequest, ChatUserResponse
 > {
-  public id: string;
-  public createdAt: Date;
+  public id!: string;
+  public createdAt!: Date;
   /** @deprecated */
-  public updatedAt: Date;
-  public chatId: string;
-  public userId: string;
+  public updatedAt!: Date;
+  public chatId!: string;
+  public userId!: string;
 
   protected chat?: ChatEntity;
 
@@ -47,14 +47,58 @@ export class ChatUserEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-
-    this.id = model.id;
-    this.createdAt = model.createdAt;
-    this.updatedAt = model.updatedAt;
-    this.chatId = model.chatId;
-    this.userId = model.userId;
-
+    this.fromModel(model);
     this.initialize(model, context);
+  }
+
+  public fromModel(model: Partial<ChatUserModel>): void {
+    if ('id' in model && model['id'] !== undefined) {
+      this.id = model.id;
+    }
+    if ('createdAt' in model && model['createdAt'] !== undefined) {
+      this.createdAt = model.createdAt;
+    }
+    if ('updatedAt' in model && model['updatedAt'] !== undefined) {
+      this.updatedAt = model.updatedAt;
+    }
+    if ('chatId' in model && model['chatId'] !== undefined) {
+      this.chatId = model.chatId;
+    }
+    if ('userId' in model && model['userId'] !== undefined) {
+      this.userId = model.userId;
+    }
+    this.chat = undefined;
+    this.user = undefined;
+  }
+
+  public toModel(): Partial<ChatUserModel> {
+    return {
+      id: this.id,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      chatId: this.chatId,
+      userId: this.userId,
+    };
+  }
+
+  /** mutators */
+
+  public async reload(): Promise<this> {
+    const model = {/* TODO: reload model for ChatUserEntity */};
+    this.fromModel(model);
+    return this;
+  }
+
+  public async save(): Promise<this> {
+    const model = {/* TODO: save model for ChatUserEntity */};
+    this.fromModel(model);
+    return this;
+  }
+
+  public async delete(): Promise<this> {
+    const model = {/* TODO: delete models for ChatUserEntity */};
+    this.fromModel(model);
+    return this;
   }
 
   public async present<S extends ChatUserFieldRequest>(fieldRequest: S): Promise<SelectedChatUserResponse<S>> {

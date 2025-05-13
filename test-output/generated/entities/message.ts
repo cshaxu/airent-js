@@ -30,14 +30,14 @@ import {
 export class MessageEntityBase extends BaseEntity<
   MessageModel, Context, MessageFieldRequest, MessageResponse
 > {
-  public id: string;
-  public createdAt: Date;
-  public chatId: string;
-  public userId: string | null;
-  public content: string | null;
-  public attachment: Attachment | null;
-  public parentMessageId: string | null;
-  public senderType: SenderType;
+  public id!: string;
+  public createdAt!: Date;
+  public chatId!: string;
+  public userId!: string | null;
+  public content!: string | null;
+  public attachment!: Attachment | null;
+  public parentMessageId!: string | null;
+  public senderType!: SenderType;
 
   protected chat?: ChatEntity;
 
@@ -54,17 +54,52 @@ export class MessageEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-
-    this.id = model.id;
-    this.createdAt = model.createdAt;
-    this.chatId = model.chatId;
-    this.userId = model.userId;
-    this.content = model.content;
-    this.attachment = model.attachmentJson as unknown as Attachment | null;
-    this.parentMessageId = model.parentMessageId;
-    this.senderType = SenderType[model.senderType as keyof typeof SenderType];
-
+    this.fromModel(model);
     this.initialize(model, context);
+  }
+
+  public fromModel(model: Partial<MessageModel>): void {
+    if ('id' in model && model['id'] !== undefined) {
+      this.id = model.id;
+    }
+    if ('createdAt' in model && model['createdAt'] !== undefined) {
+      this.createdAt = model.createdAt;
+    }
+    if ('chatId' in model && model['chatId'] !== undefined) {
+      this.chatId = model.chatId;
+    }
+    if ('userId' in model && model['userId'] !== undefined) {
+      this.userId = model.userId;
+    }
+    if ('content' in model && model['content'] !== undefined) {
+      this.content = model.content;
+    }
+    if ('attachmentJson' in model && model['attachmentJson'] !== undefined) {
+      this.attachment = model.attachmentJson as unknown as Attachment | null;
+    }
+    if ('parentMessageId' in model && model['parentMessageId'] !== undefined) {
+      this.parentMessageId = model.parentMessageId;
+    }
+    if ('senderType' in model && model['senderType'] !== undefined) {
+      this.senderType = SenderType[model.senderType as keyof typeof SenderType];
+    }
+    this.chat = undefined;
+    this.user = undefined;
+    this.parentMessage = undefined;
+    this.mentor = undefined;
+  }
+
+  public toModel(): Partial<MessageModel> {
+    return {
+      id: this.id,
+      createdAt: this.createdAt,
+      chatId: this.chatId,
+      userId: this.userId,
+      content: this.content,
+      attachmentJson: this.attachment as any,
+      parentMessageId: this.parentMessageId,
+      senderType: this.senderType,
+    };
   }
 
   public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<SelectedMessageResponse<S>> {

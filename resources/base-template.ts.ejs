@@ -51,7 +51,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
   <%_ } -%>
-  public <%= field.name %>: <%= field._strings.fieldType %>;
+  public <%= field.name %>!: <%= field._strings.fieldType %>;
 <% }); -%>
 <% entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
 
@@ -68,13 +68,56 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-
-<% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
-    this.<%= field.name %> = <%= field._strings.fieldInitializer %>;
-<% }); -%>
-
+    this.fromModel(model);
     this.initialize(model, context);
   }
+
+  public fromModel(model: Partial<<%= entity.model %>>): void {
+<% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
+    if ('<%= field.aliasOf ?? field.name %>' in model && model['<%= field.aliasOf ?? field.name %>'] !== undefined) {
+      this.<%= field.name %> = <%= field._strings.fieldInitializer %>;
+    }
+<% }); -%>
+<% entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
+    this.<%= field.name %> = undefined;
+<% }); -%>
+  }
+
+  public toModel(): Partial<<%= entity.model %>> {
+    return {
+<% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
+      <%= field.aliasOf ?? field.name %>: this.<%= field.name %><%= field.cast === true ? ' as any' : '' %>,
+<% }); -%>
+    };
+  }
+<% if (entity.keys?.length && !(entity.skipRefresher || entity.skipUpdater || entity.skipDeleter)) { -%>
+
+  /** mutators */
+<% } -%>
+<% if (entity.keys?.length && !entity.skipRefresher) { -%>
+
+  public async reload(): Promise<this> {
+    <%_ template.functions.getReloaderLines(entity).forEach((line) => { -%>
+    <%- line %>
+    <%_ }); -%>
+  }
+<% } -%>
+<% if (entity.keys?.length && !entity.skipUpdater) { -%>
+
+  public async save(): Promise<this> {
+    <%_ template.functions.getSaverLines(entity).forEach((line) => { -%>
+    <%- line %>
+    <%_ }); -%>
+  }
+<% } -%>
+<% if (entity.keys?.length && !entity.skipDeleter) { -%>
+
+  public async delete(): Promise<this> {
+    <%_ template.functions.getDeleterLines(entity).forEach((line) => { -%>
+    <%- line %>
+    <%_ }); -%>
+  }
+<% } -%>
 <% if (utils.isPresentableEntity(entity)) { -%>
 
   public async present<S extends <%= entity._strings.fieldRequestClass %>>(fieldRequest: S): Promise<<%= entity._strings.selectedResponseClass %><S>> {
