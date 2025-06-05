@@ -1,3 +1,10 @@
+<%
+function getDeduplicatedPrimitiveFields(entity) {
+  return entity.fields.filter(utils.isPrimitiveField).filter((field, index, self) =>
+    self.findIndex((t) => (t.aliasOf ?? t.name) === (field.aliasOf ?? field.name)) === index
+  );
+}
+-%>
 <% entity._code.beforeBase.forEach((line) => { -%>
 <%- line %>
 <% }); -%>
@@ -85,7 +92,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
 
   public toModel(): Partial<<%= entity.model %>> {
     return {
-<% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
+<% getDeduplicatedPrimitiveFields(entity).forEach((field) => { -%>
       <%= field.aliasOf ?? field.name %>: this.<%= field.name %><%= field.cast === true ? ' as any' : '' %>,
 <% }); -%>
     };
