@@ -27,6 +27,8 @@ import {
 export class UserEntityBase extends BaseEntity<
   UserModel, Context, UserFieldRequest, UserResponse
 > {
+  private originalModel: UserModel;
+
   public id!: string;
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -47,6 +49,7 @@ export class UserEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
+    this.originalModel = { ...model };
     this.fromModel(model);
     this.initialize(model, context);
   }
@@ -87,6 +90,55 @@ export class UserEntityBase extends BaseEntity<
       lastName: this.lastName,
       image: this.imageUrl,
     };
+  }
+
+  public toDirtyModel(): Partial<UserModel> {
+    const dirtyModel: Partial<UserModel> = {};
+    if ('id' in this.originalModel && this.originalModel['id'] !== this.id) {
+      dirtyModel['id'] = this.id;
+    }
+    if ('createdAt' in this.originalModel && this.originalModel['createdAt'] !== this.createdAt) {
+      dirtyModel['createdAt'] = this.createdAt;
+    }
+    if ('updatedAt' in this.originalModel && this.originalModel['updatedAt'] !== this.updatedAt) {
+      dirtyModel['updatedAt'] = this.updatedAt;
+    }
+    if ('email' in this.originalModel && this.originalModel['email'] !== this.email) {
+      dirtyModel['email'] = this.email;
+    }
+    if ('firstName' in this.originalModel && this.originalModel['firstName'] !== this.firstName) {
+      dirtyModel['firstName'] = this.firstName;
+    }
+    if ('lastName' in this.originalModel && this.originalModel['lastName'] !== this.lastName) {
+      dirtyModel['lastName'] = this.lastName;
+    }
+    if ('image' in this.originalModel && this.originalModel['image'] !== this.imageUrl) {
+      dirtyModel['image'] = this.imageUrl;
+    }
+    return dirtyModel;
+  }
+
+  /** mutators */
+
+  public async reload(): Promise<this> {
+    const model = {/* TODO: reload model for UserEntity */};
+    this.originalModel = { ...model };
+    this.fromModel(model);
+    return this;
+  }
+
+  public async save(): Promise<this> {
+    const model = {/* TODO: save model for UserEntity */};
+    this.originalModel = { ...model };
+    this.fromModel(model);
+    return this;
+  }
+
+  public async delete(): Promise<this> {
+    const model = {/* TODO: delete models for UserEntity */};
+    this.originalModel = { ...model };
+    this.fromModel(model);
+    return this;
   }
 
   public async present<S extends UserFieldRequest>(fieldRequest: S): Promise<SelectedUserResponse<S>> {

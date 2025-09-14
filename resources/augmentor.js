@@ -87,16 +87,18 @@ function augmentConfig(config) /* void */ {
 
 // build templates
 
+const SHARED_LOADER_LINES = [
+  "this.originalModel = { ...model };",
+  "this.fromModel(model);",
+  "return this;",
+];
+
 function getReloaderLines(entity) /* Code[] */ {
   const { modelReloader, reloaderLines } = entity._code;
   if (reloaderLines !== undefined) {
     return reloaderLines;
   }
-  return [
-    `const model = ${modelReloader};`,
-    "this.fromModel(model);",
-    "return this;",
-  ];
+  return [`const model = ${modelReloader};`, ...SHARED_LOADER_LINES];
 }
 
 function getSaverLines(entity) /* Code[] */ {
@@ -104,11 +106,7 @@ function getSaverLines(entity) /* Code[] */ {
   if (saverLines !== undefined) {
     return saverLines;
   }
-  return [
-    `const model = ${modelSaver};`,
-    "this.fromModel(model);",
-    "return this;",
-  ];
+  return [`const model = ${modelSaver};`, ...SHARED_LOADER_LINES];
 }
 
 function getDeleterLines(entity) /* Code[] */ {
@@ -116,11 +114,7 @@ function getDeleterLines(entity) /* Code[] */ {
   if (deleterLines !== undefined) {
     return deleterLines;
   }
-  return [
-    `const model = ${modelDeleter};`,
-    "this.fromModel(model);",
-    "return this;",
-  ];
+  return [`const model = ${modelDeleter};`, ...SHARED_LOADER_LINES];
 }
 
 function getSelfLoaderLines(entity) /* Code[] */ {

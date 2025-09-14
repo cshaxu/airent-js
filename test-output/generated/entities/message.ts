@@ -30,6 +30,8 @@ import {
 export class MessageEntityBase extends BaseEntity<
   MessageModel, Context, MessageFieldRequest, MessageResponse
 > {
+  private originalModel: MessageModel;
+
   public id!: string;
   public createdAt!: Date;
   public chatId!: string;
@@ -54,6 +56,7 @@ export class MessageEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
+    this.originalModel = { ...model };
     this.fromModel(model);
     this.initialize(model, context);
   }
@@ -100,6 +103,35 @@ export class MessageEntityBase extends BaseEntity<
       parentMessageId: this.parentMessageId,
       senderType: this.senderType,
     };
+  }
+
+  public toDirtyModel(): Partial<MessageModel> {
+    const dirtyModel: Partial<MessageModel> = {};
+    if ('id' in this.originalModel && this.originalModel['id'] !== this.id) {
+      dirtyModel['id'] = this.id;
+    }
+    if ('createdAt' in this.originalModel && this.originalModel['createdAt'] !== this.createdAt) {
+      dirtyModel['createdAt'] = this.createdAt;
+    }
+    if ('chatId' in this.originalModel && this.originalModel['chatId'] !== this.chatId) {
+      dirtyModel['chatId'] = this.chatId;
+    }
+    if ('userId' in this.originalModel && this.originalModel['userId'] !== this.userId) {
+      dirtyModel['userId'] = this.userId;
+    }
+    if ('content' in this.originalModel && this.originalModel['content'] !== this.content) {
+      dirtyModel['content'] = this.content;
+    }
+    if ('attachmentJson' in this.originalModel && this.originalModel['attachmentJson'] !== this.attachment) {
+      dirtyModel['attachmentJson'] = this.attachment;
+    }
+    if ('parentMessageId' in this.originalModel && this.originalModel['parentMessageId'] !== this.parentMessageId) {
+      dirtyModel['parentMessageId'] = this.parentMessageId;
+    }
+    if ('senderType' in this.originalModel && this.originalModel['senderType'] !== this.senderType) {
+      dirtyModel['senderType'] = this.senderType;
+    }
+    return dirtyModel;
   }
 
   public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<SelectedMessageResponse<S>> {

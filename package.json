@@ -1,6 +1,6 @@
 {
   "name": "airent",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Airent Framework for JavaScript Backend - a lightweight data entity and presentation framework",
   "main": "./lib/index.js",
   "bin": {
@@ -41,9 +41,9 @@
     "@types/async-lock": "^1.4.2",
     "@types/ejs": "^3.1.5",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.12.12",
+    "@types/node": "^20.19.14",
     "crlf": "^1.1.1",
-    "typescript": "^5.4.5"
+    "typescript": "^5.9.2"
   },
   "files": [
     "bin",

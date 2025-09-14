@@ -29,6 +29,8 @@ import {
 export class ChatUserEntityBase extends BaseEntity<
   ChatUserModel, Context, ChatUserFieldRequest, ChatUserResponse
 > {
+  private originalModel: ChatUserModel;
+
   public id!: string;
   public createdAt!: Date;
   /** @deprecated */
@@ -47,6 +49,7 @@ export class ChatUserEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
+    this.originalModel = { ...model };
     this.fromModel(model);
     this.initialize(model, context);
   }
@@ -81,22 +84,45 @@ export class ChatUserEntityBase extends BaseEntity<
     };
   }
 
+  public toDirtyModel(): Partial<ChatUserModel> {
+    const dirtyModel: Partial<ChatUserModel> = {};
+    if ('id' in this.originalModel && this.originalModel['id'] !== this.id) {
+      dirtyModel['id'] = this.id;
+    }
+    if ('createdAt' in this.originalModel && this.originalModel['createdAt'] !== this.createdAt) {
+      dirtyModel['createdAt'] = this.createdAt;
+    }
+    if ('updatedAt' in this.originalModel && this.originalModel['updatedAt'] !== this.updatedAt) {
+      dirtyModel['updatedAt'] = this.updatedAt;
+    }
+    if ('chatId' in this.originalModel && this.originalModel['chatId'] !== this.chatId) {
+      dirtyModel['chatId'] = this.chatId;
+    }
+    if ('userId' in this.originalModel && this.originalModel['userId'] !== this.userId) {
+      dirtyModel['userId'] = this.userId;
+    }
+    return dirtyModel;
+  }
+
   /** mutators */
 
   public async reload(): Promise<this> {
     const model = {/* TODO: reload model for ChatUserEntity */};
+    this.originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
 
   public async save(): Promise<this> {
     const model = {/* TODO: save model for ChatUserEntity */};
+    this.originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
 
   public async delete(): Promise<this> {
     const model = {/* TODO: delete models for ChatUserEntity */};
+    this.originalModel = { ...model };
     this.fromModel(model);
     return this;
   }

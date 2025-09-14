@@ -1,4 +1,3 @@
-/// <reference types="async-lock" />
 import { AsyncLock, EntityConstructor, LoadConfig, Select } from "./types";
 declare class BaseEntity<MODEL, CONTEXT = unknown, FIELD_REQUEST = unknown, RESPONSE = MODEL> {
     context: CONTEXT;
