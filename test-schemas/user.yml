@@ -3,6 +3,8 @@ model: UserModel
 types:
   - name: UserModel
     import: "./test-sources/models"
+keys:
+  - id
 fields:
   - id: 1
     name: id
