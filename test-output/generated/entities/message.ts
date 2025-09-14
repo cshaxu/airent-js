@@ -123,7 +123,7 @@ export class MessageEntityBase extends BaseEntity<
       dirtyModel['content'] = this.content;
     }
     if ('attachmentJson' in this.originalModel && this.originalModel['attachmentJson'] !== this.attachment) {
-      dirtyModel['attachmentJson'] = this.attachment;
+      dirtyModel['attachmentJson'] = this.attachment as any;
     }
     if ('parentMessageId' in this.originalModel && this.originalModel['parentMessageId'] !== this.parentMessageId) {
       dirtyModel['parentMessageId'] = this.parentMessageId;

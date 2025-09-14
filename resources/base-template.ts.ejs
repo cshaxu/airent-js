@@ -105,7 +105,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
     const dirtyModel: Partial<<%= entity.model %>> = {};
   <%_ entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
     if ('<%= field.aliasOf ?? field.name %>' in this.originalModel && this.originalModel['<%= field.aliasOf ?? field.name %>'] !== this.<%= field.name %>) {
-      dirtyModel['<%= field.aliasOf ?? field.name %>'] = this.<%= field.name %>;
+      dirtyModel['<%= field.aliasOf ?? field.name %>'] = this.<%= field.name %><%= field.cast === true ? ' as any' : '' %>;
     }
   <%_ }); -%>
     return dirtyModel;
