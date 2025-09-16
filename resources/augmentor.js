@@ -88,7 +88,7 @@ function augmentConfig(config) /* void */ {
 // build templates
 
 const SHARED_LOADER_LINES = [
-  "this.originalModel = { ...model };",
+  "this._originalModel = { ...model };",
   "this.fromModel(model);",
   "return this;",
 ];
@@ -310,21 +310,23 @@ function buildFieldStrings(field) /* Object */ {
   } else {
     const fieldModelName = `model.${field.aliasOf ?? field.name}`;
     const primitiveTypeName = utils.toPrimitiveTypeName(field.type);
-    const regularEnumCastFieldInitializer = `${primitiveTypeName}[${fieldModelName} as keyof typeof ${primitiveTypeName}]`;
+
+    const regularEnumCastFieldInitializer = `${fieldModelName} as ${primitiveTypeName}`;
     const nullableEnumCastFieldInitializer = `${fieldModelName} === null ? null : ${regularEnumCastFieldInitializer}`;
-    const arrayEnumCastFieldInitializer = `${fieldModelName}.map((one) => ${primitiveTypeName}[one as keyof typeof ${primitiveTypeName}])`;
+    const arrayEnumCastFieldInitializer = `${fieldModelName} as ${primitiveTypeName}[]`;
     const enumCastFieldInitializer = utils.isArrayField(field)
       ? arrayEnumCastFieldInitializer
       : utils.isNullableField(field)
       ? nullableEnumCastFieldInitializer
       : regularEnumCastFieldInitializer;
-    const forceCastFieldInitializer = `${fieldModelName} as unknown as ${field.type}`;
+
+    const trueCastFieldInitializer = `${fieldModelName} as unknown as ${field.type}`;
 
     const fieldInitializer = utils.isPrimitiveField(field)
       ? field.cast === "enum"
         ? enumCastFieldInitializer
-        : !!field.cast
-        ? forceCastFieldInitializer
+        : field.cast === true
+        ? trueCastFieldInitializer
         : fieldModelName
       : undefined;
 
