@@ -50,3 +50,8 @@ fields:
       - userId
     targetKeys:
       - id
+  - id: 8
+    name: roles
+    type: ChatUserRole[]
+    strategy: primitive
+    cast: enum

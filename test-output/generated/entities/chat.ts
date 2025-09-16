@@ -33,6 +33,7 @@ export class ChatEntityBase extends BaseEntity<
   public createdAt!: Date;
   public updatedAt!: Date;
   public deletedAt!: Date | null;
+  public flags!: string[];
 
   /** @deprecated */
   protected chatUsers?: ChatUserEntity[];
@@ -64,6 +65,9 @@ export class ChatEntityBase extends BaseEntity<
     if ('deletedAt' in model && model['deletedAt'] !== undefined) {
       this.deletedAt = model.deletedAt;
     }
+    if ('flags' in model && model['flags'] !== undefined) {
+      this.flags = model.flags;
+    }
     this.chatUsers = undefined;
     this.messages = undefined;
   }
@@ -74,6 +78,7 @@ export class ChatEntityBase extends BaseEntity<
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       deletedAt: this.deletedAt,
+      flags: this.flags,
     };
   }
 
@@ -90,6 +95,9 @@ export class ChatEntityBase extends BaseEntity<
     }
     if ('deletedAt' in this._originalModel && this._originalModel['deletedAt'] !== this.deletedAt) {
       dirtyModel['deletedAt'] = this.deletedAt;
+    }
+    if ('flags' in this._originalModel && JSON.stringify(this._originalModel['flags']) !== JSON.stringify(this.flags)) {
+      dirtyModel['flags'] = this.flags;
     }
     return dirtyModel;
   }
@@ -126,6 +134,7 @@ export class ChatEntityBase extends BaseEntity<
       ...(fieldRequest.deletedAt !== undefined && { deletedAt: this.deletedAt }),
       ...(fieldRequest.chatUsers !== undefined && { chatUsers: await this.getChatUsers().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.chatUsers!)))) }),
       ...(fieldRequest.messages !== undefined && { messages: await this.getMessages().then((a) => Promise.all(a.map((one) => one.present(fieldRequest.messages!)))) }),
+      ...(fieldRequest.flags !== undefined && { flags: this.flags }),
     };
     await this.afterPresent(fieldRequest, response as Select<ChatResponse, S>);
     return response as SelectedChatResponse<S>;
