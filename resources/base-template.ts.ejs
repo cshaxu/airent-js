@@ -96,7 +96,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
   public toModel(): Partial<<%= entity.model %>> {
     return {
 <% getDeduplicatedPrimitiveFields(entity).forEach((field) => { -%>
-      <%= field.aliasOf ?? field.name %>: this.<%= field.name %><%= field.cast === true ? ' as any' : '' %>,
+      <%= field.aliasOf ?? field.name %>: <%= utils.isClonedField(field) ? `structuredClone(this.${field.name})` : `this.${field.name}` %><%= field.cast === true ? ' as any' : '' %>,
 <% }); -%>
     };
   }
@@ -104,8 +104,8 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
   public toDirtyModel(): Partial<<%= entity.model %>> {
     const dirtyModel: Partial<<%= entity.model %>> = {};
   <%_ entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
-    if ('<%= field.aliasOf ?? field.name %>' in this._originalModel && <%- (utils.isArrayField(field) || field.cast === true) ? `JSON.stringify(this._originalModel['${field.aliasOf ?? field.name}']) !== JSON.stringify(this.${field.name})` : `this._originalModel['${field.aliasOf ?? field.name}'] !== this.${field.name}` %>) {
-      dirtyModel['<%= field.aliasOf ?? field.name %>'] = this.<%= field.name %><%= field.cast === true ? ' as any' : '' %>;
+    if ('<%= field.aliasOf ?? field.name %>' in this._originalModel && <%- utils.isClonedField(field) ? `JSON.stringify(this._originalModel['${field.aliasOf ?? field.name}']) !== JSON.stringify(this.${field.name})` : `this._originalModel['${field.aliasOf ?? field.name}'] !== this.${field.name}` %>) {
+      dirtyModel['<%= field.aliasOf ?? field.name %>'] = <%= utils.isClonedField(field) ? `structuredClone(this.${field.name})` : `this.${field.name}` %><%= field.cast === true ? ' as any' : '' %>;
     }
   <%_ }); -%>
     return dirtyModel;

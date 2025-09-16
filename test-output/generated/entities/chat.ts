@@ -66,7 +66,7 @@ export class ChatEntityBase extends BaseEntity<
       this.deletedAt = model.deletedAt;
     }
     if ('flags' in model && model['flags'] !== undefined) {
-      this.flags = model.flags;
+      this.flags = structuredClone(model.flags);
     }
     this.chatUsers = undefined;
     this.messages = undefined;
@@ -78,7 +78,7 @@ export class ChatEntityBase extends BaseEntity<
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       deletedAt: this.deletedAt,
-      flags: this.flags,
+      flags: structuredClone(this.flags),
     };
   }
 
@@ -97,7 +97,7 @@ export class ChatEntityBase extends BaseEntity<
       dirtyModel['deletedAt'] = this.deletedAt;
     }
     if ('flags' in this._originalModel && JSON.stringify(this._originalModel['flags']) !== JSON.stringify(this.flags)) {
-      dirtyModel['flags'] = this.flags;
+      dirtyModel['flags'] = structuredClone(this.flags);
     }
     return dirtyModel;
   }

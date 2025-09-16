@@ -85,7 +85,7 @@ export class ChatUserEntityBase extends BaseEntity<
       updatedAt: this.updatedAt,
       chatId: this.chatId,
       userId: this.userId,
-      roles: this.roles,
+      roles: structuredClone(this.roles),
     };
   }
 
@@ -107,7 +107,7 @@ export class ChatUserEntityBase extends BaseEntity<
       dirtyModel['userId'] = this.userId;
     }
     if ('roles' in this._originalModel && JSON.stringify(this._originalModel['roles']) !== JSON.stringify(this.roles)) {
-      dirtyModel['roles'] = this.roles;
+      dirtyModel['roles'] = structuredClone(this.roles);
     }
     return dirtyModel;
   }
