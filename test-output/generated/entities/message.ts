@@ -30,7 +30,7 @@ import {
 export class MessageEntityBase extends BaseEntity<
   MessageModel, Context, MessageFieldRequest, MessageResponse
 > {
-  private originalModel: MessageModel;
+  private _originalModel: MessageModel;
 
   public id!: string;
   public createdAt!: Date;
@@ -56,7 +56,7 @@ export class MessageEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     this.initialize(model, context);
   }
@@ -84,7 +84,7 @@ export class MessageEntityBase extends BaseEntity<
       this.parentMessageId = model.parentMessageId;
     }
     if ('senderType' in model && model['senderType'] !== undefined) {
-      this.senderType = SenderType[model.senderType as keyof typeof SenderType];
+      this.senderType = model.senderType as SenderType;
     }
     this.chat = undefined;
     this.user = undefined;
@@ -107,28 +107,28 @@ export class MessageEntityBase extends BaseEntity<
 
   public toDirtyModel(): Partial<MessageModel> {
     const dirtyModel: Partial<MessageModel> = {};
-    if ('id' in this.originalModel && this.originalModel['id'] !== this.id) {
+    if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
       dirtyModel['id'] = this.id;
     }
-    if ('createdAt' in this.originalModel && this.originalModel['createdAt'] !== this.createdAt) {
+    if ('createdAt' in this._originalModel && this._originalModel['createdAt'] !== this.createdAt) {
       dirtyModel['createdAt'] = this.createdAt;
     }
-    if ('chatId' in this.originalModel && this.originalModel['chatId'] !== this.chatId) {
+    if ('chatId' in this._originalModel && this._originalModel['chatId'] !== this.chatId) {
       dirtyModel['chatId'] = this.chatId;
     }
-    if ('userId' in this.originalModel && this.originalModel['userId'] !== this.userId) {
+    if ('userId' in this._originalModel && this._originalModel['userId'] !== this.userId) {
       dirtyModel['userId'] = this.userId;
     }
-    if ('content' in this.originalModel && this.originalModel['content'] !== this.content) {
+    if ('content' in this._originalModel && this._originalModel['content'] !== this.content) {
       dirtyModel['content'] = this.content;
     }
-    if ('attachmentJson' in this.originalModel && JSON.stringify(this.originalModel['attachmentJson']) !== JSON.stringify(this.attachment)) {
+    if ('attachmentJson' in this._originalModel && JSON.stringify(this._originalModel['attachmentJson']) !== JSON.stringify(this.attachment)) {
       dirtyModel['attachmentJson'] = this.attachment as any;
     }
-    if ('parentMessageId' in this.originalModel && this.originalModel['parentMessageId'] !== this.parentMessageId) {
+    if ('parentMessageId' in this._originalModel && this._originalModel['parentMessageId'] !== this.parentMessageId) {
       dirtyModel['parentMessageId'] = this.parentMessageId;
     }
-    if ('senderType' in this.originalModel && this.originalModel['senderType'] !== this.senderType) {
+    if ('senderType' in this._originalModel && this._originalModel['senderType'] !== this.senderType) {
       dirtyModel['senderType'] = this.senderType;
     }
     return dirtyModel;

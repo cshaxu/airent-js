@@ -54,7 +54,7 @@ import {
 export class <%= entity._strings.baseClass %> extends BaseEntity<
   <%= entity.model %>, Context<%= utils.isPresentableEntity(entity) ? `, ${entity._strings.fieldRequestClass}, ${entity._strings.responseClass}`: '' %>
 > {
-  private originalModel: <%= entity.model %>;
+  private _originalModel: <%= entity.model %>;
 
 <% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
@@ -77,7 +77,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     this.initialize(model, context);
   }
@@ -104,7 +104,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
   public toDirtyModel(): Partial<<%= entity.model %>> {
     const dirtyModel: Partial<<%= entity.model %>> = {};
   <%_ entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
-    if ('<%= field.aliasOf ?? field.name %>' in this.originalModel && <%- field.cast === true ? `JSON.stringify(this.originalModel['${field.aliasOf ?? field.name}']) !== JSON.stringify(this.${field.name})` : `this.originalModel['${field.aliasOf ?? field.name}'] !== this.${field.name}` %>) {
+    if ('<%= field.aliasOf ?? field.name %>' in this._originalModel && <%- (utils.isArrayField(field) || field.cast === true) ? `JSON.stringify(this._originalModel['${field.aliasOf ?? field.name}']) !== JSON.stringify(this.${field.name})` : `this._originalModel['${field.aliasOf ?? field.name}'] !== this.${field.name}` %>) {
       dirtyModel['<%= field.aliasOf ?? field.name %>'] = this.<%= field.name %><%= field.cast === true ? ' as any' : '' %>;
     }
   <%_ }); -%>

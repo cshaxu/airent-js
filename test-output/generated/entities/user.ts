@@ -27,7 +27,7 @@ import {
 export class UserEntityBase extends BaseEntity<
   UserModel, Context, UserFieldRequest, UserResponse
 > {
-  private originalModel: UserModel;
+  private _originalModel: UserModel;
 
   public id!: string;
   public createdAt!: Date;
@@ -49,7 +49,7 @@ export class UserEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     this.initialize(model, context);
   }
@@ -94,25 +94,25 @@ export class UserEntityBase extends BaseEntity<
 
   public toDirtyModel(): Partial<UserModel> {
     const dirtyModel: Partial<UserModel> = {};
-    if ('id' in this.originalModel && this.originalModel['id'] !== this.id) {
+    if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
       dirtyModel['id'] = this.id;
     }
-    if ('createdAt' in this.originalModel && this.originalModel['createdAt'] !== this.createdAt) {
+    if ('createdAt' in this._originalModel && this._originalModel['createdAt'] !== this.createdAt) {
       dirtyModel['createdAt'] = this.createdAt;
     }
-    if ('updatedAt' in this.originalModel && this.originalModel['updatedAt'] !== this.updatedAt) {
+    if ('updatedAt' in this._originalModel && this._originalModel['updatedAt'] !== this.updatedAt) {
       dirtyModel['updatedAt'] = this.updatedAt;
     }
-    if ('email' in this.originalModel && this.originalModel['email'] !== this.email) {
+    if ('email' in this._originalModel && this._originalModel['email'] !== this.email) {
       dirtyModel['email'] = this.email;
     }
-    if ('firstName' in this.originalModel && this.originalModel['firstName'] !== this.firstName) {
+    if ('firstName' in this._originalModel && this._originalModel['firstName'] !== this.firstName) {
       dirtyModel['firstName'] = this.firstName;
     }
-    if ('lastName' in this.originalModel && this.originalModel['lastName'] !== this.lastName) {
+    if ('lastName' in this._originalModel && this._originalModel['lastName'] !== this.lastName) {
       dirtyModel['lastName'] = this.lastName;
     }
-    if ('image' in this.originalModel && this.originalModel['image'] !== this.imageUrl) {
+    if ('image' in this._originalModel && this._originalModel['image'] !== this.imageUrl) {
       dirtyModel['image'] = this.imageUrl;
     }
     return dirtyModel;
@@ -122,21 +122,21 @@ export class UserEntityBase extends BaseEntity<
 
   public async reload(): Promise<this> {
     const model = {/* TODO: reload model for UserEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
 
   public async save(): Promise<this> {
     const model = {/* TODO: save model for UserEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
 
   public async delete(): Promise<this> {
     const model = {/* TODO: delete models for UserEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }

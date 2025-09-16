@@ -29,7 +29,7 @@ import {
 export class ChatUserEntityBase extends BaseEntity<
   ChatUserModel, Context, ChatUserFieldRequest, ChatUserResponse
 > {
-  private originalModel: ChatUserModel;
+  private _originalModel: ChatUserModel;
 
   public id!: string;
   public createdAt!: Date;
@@ -49,7 +49,7 @@ export class ChatUserEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     this.initialize(model, context);
   }
@@ -86,19 +86,19 @@ export class ChatUserEntityBase extends BaseEntity<
 
   public toDirtyModel(): Partial<ChatUserModel> {
     const dirtyModel: Partial<ChatUserModel> = {};
-    if ('id' in this.originalModel && this.originalModel['id'] !== this.id) {
+    if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
       dirtyModel['id'] = this.id;
     }
-    if ('createdAt' in this.originalModel && this.originalModel['createdAt'] !== this.createdAt) {
+    if ('createdAt' in this._originalModel && this._originalModel['createdAt'] !== this.createdAt) {
       dirtyModel['createdAt'] = this.createdAt;
     }
-    if ('updatedAt' in this.originalModel && this.originalModel['updatedAt'] !== this.updatedAt) {
+    if ('updatedAt' in this._originalModel && this._originalModel['updatedAt'] !== this.updatedAt) {
       dirtyModel['updatedAt'] = this.updatedAt;
     }
-    if ('chatId' in this.originalModel && this.originalModel['chatId'] !== this.chatId) {
+    if ('chatId' in this._originalModel && this._originalModel['chatId'] !== this.chatId) {
       dirtyModel['chatId'] = this.chatId;
     }
-    if ('userId' in this.originalModel && this.originalModel['userId'] !== this.userId) {
+    if ('userId' in this._originalModel && this._originalModel['userId'] !== this.userId) {
       dirtyModel['userId'] = this.userId;
     }
     return dirtyModel;
@@ -108,21 +108,21 @@ export class ChatUserEntityBase extends BaseEntity<
 
   public async reload(): Promise<this> {
     const model = {/* TODO: reload model for ChatUserEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
 
   public async save(): Promise<this> {
     const model = {/* TODO: save model for ChatUserEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
 
   public async delete(): Promise<this> {
     const model = {/* TODO: delete models for ChatUserEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }

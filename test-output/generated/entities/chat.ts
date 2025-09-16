@@ -27,7 +27,7 @@ import {
 export class ChatEntityBase extends BaseEntity<
   ChatModel, Context, ChatFieldRequest, ChatResponse
 > {
-  private originalModel: ChatModel;
+  private _originalModel: ChatModel;
 
   public id!: string;
   public createdAt!: Date;
@@ -46,7 +46,7 @@ export class ChatEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     this.initialize(model, context);
   }
@@ -79,16 +79,16 @@ export class ChatEntityBase extends BaseEntity<
 
   public toDirtyModel(): Partial<ChatModel> {
     const dirtyModel: Partial<ChatModel> = {};
-    if ('id' in this.originalModel && this.originalModel['id'] !== this.id) {
+    if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
       dirtyModel['id'] = this.id;
     }
-    if ('createdAt' in this.originalModel && this.originalModel['createdAt'] !== this.createdAt) {
+    if ('createdAt' in this._originalModel && this._originalModel['createdAt'] !== this.createdAt) {
       dirtyModel['createdAt'] = this.createdAt;
     }
-    if ('updatedAt' in this.originalModel && this.originalModel['updatedAt'] !== this.updatedAt) {
+    if ('updatedAt' in this._originalModel && this._originalModel['updatedAt'] !== this.updatedAt) {
       dirtyModel['updatedAt'] = this.updatedAt;
     }
-    if ('deletedAt' in this.originalModel && this.originalModel['deletedAt'] !== this.deletedAt) {
+    if ('deletedAt' in this._originalModel && this._originalModel['deletedAt'] !== this.deletedAt) {
       dirtyModel['deletedAt'] = this.deletedAt;
     }
     return dirtyModel;
@@ -98,21 +98,21 @@ export class ChatEntityBase extends BaseEntity<
 
   public async reload(): Promise<this> {
     const model = {/* TODO: reload model for ChatEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
 
   public async save(): Promise<this> {
     const model = {/* TODO: save model for ChatEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
 
   public async delete(): Promise<this> {
     const model = {/* TODO: delete models for ChatEntity */};
-    this.originalModel = { ...model };
+    this._originalModel = { ...model };
     this.fromModel(model);
     return this;
   }
