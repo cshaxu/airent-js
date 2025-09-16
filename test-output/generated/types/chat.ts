@@ -17,6 +17,7 @@ export type ChatFieldRequest = {
   /** @deprecated */
   chatUsers?: ChatUserFieldRequest;
   messages?: MessageFieldRequest;
+  flags?: boolean;
 };
 
 export type ChatResponse = {
@@ -27,6 +28,7 @@ export type ChatResponse = {
   /** @deprecated */
   chatUsers?: ChatUserResponse[];
   messages?: MessageResponse[];
+  flags?: string[];
 };
 
 export type SelectedChatResponse<S extends ChatFieldRequest> = Select<ChatResponse, S>;

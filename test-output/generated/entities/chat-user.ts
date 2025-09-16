@@ -37,6 +37,7 @@ export class ChatUserEntityBase extends BaseEntity<
   public updatedAt!: Date;
   public chatId!: string;
   public userId!: string;
+  public roles!: ChatUserRole[];
 
   protected chat?: ChatEntity;
 
@@ -70,6 +71,9 @@ export class ChatUserEntityBase extends BaseEntity<
     if ('userId' in model && model['userId'] !== undefined) {
       this.userId = model.userId;
     }
+    if ('roles' in model && model['roles'] !== undefined) {
+      this.roles = model.roles as ChatUserRole[];
+    }
     this.chat = undefined;
     this.user = undefined;
   }
@@ -81,6 +85,7 @@ export class ChatUserEntityBase extends BaseEntity<
       updatedAt: this.updatedAt,
       chatId: this.chatId,
       userId: this.userId,
+      roles: this.roles,
     };
   }
 
@@ -100,6 +105,9 @@ export class ChatUserEntityBase extends BaseEntity<
     }
     if ('userId' in this._originalModel && this._originalModel['userId'] !== this.userId) {
       dirtyModel['userId'] = this.userId;
+    }
+    if ('roles' in this._originalModel && JSON.stringify(this._originalModel['roles']) !== JSON.stringify(this.roles)) {
+      dirtyModel['roles'] = this.roles;
     }
     return dirtyModel;
   }
@@ -137,6 +145,7 @@ export class ChatUserEntityBase extends BaseEntity<
       ...(fieldRequest.userId !== undefined && { userId: this.userId }),
       ...(fieldRequest.chat !== undefined && { chat: await this.getChat().then((one) => one.present(fieldRequest.chat!)) }),
       ...(fieldRequest.user !== undefined && { user: await this.getUser().then((one) => one.present(fieldRequest.user!)) }),
+      ...(fieldRequest.roles !== undefined && { roles: this.roles }),
     };
     await this.afterPresent(fieldRequest, response as Select<ChatUserResponse, S>);
     return response as SelectedChatUserResponse<S>;

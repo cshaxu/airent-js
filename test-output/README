@@ -1,12 +1,12 @@
 
 Entity name: chatUser
-  Primitive fields: 5
+  Primitive fields: 6
   Association fields: 2
   ComputedSync fields: 0
   ComputedAsync fields: 0
 
 Entity name: Chat
-  Primitive fields: 4
+  Primitive fields: 5
   Association fields: 2
   ComputedSync fields: 0
   ComputedAsync fields: 0

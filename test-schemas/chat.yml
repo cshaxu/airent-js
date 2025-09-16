@@ -39,3 +39,7 @@ fields:
       - id
     targetKeys:
       - chatId
+  - id: 7
+    name: flags
+    type: string[]
+    strategy: primitive

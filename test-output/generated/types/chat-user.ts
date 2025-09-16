@@ -24,6 +24,7 @@ export type ChatUserFieldRequest = {
   userId?: boolean;
   chat?: ChatFieldRequest;
   user?: UserFieldRequest;
+  roles?: boolean;
 };
 
 /** @deprecated */
@@ -36,6 +37,7 @@ export type ChatUserResponse = {
   userId?: string;
   chat?: ChatResponse;
   user?: UserResponse;
+  roles?: ChatUserRole[];
 };
 
 /** @deprecated */
