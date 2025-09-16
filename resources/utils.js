@@ -85,7 +85,7 @@ function toPascalCase(string) {
 }
 
 // example: "string[] | null" => "string"
-function toPrimitiveTypeName(string) /** string */ {
+function toSingularTypeName(string) /** string */ {
   return string.split("|")[0].split("[]")[0].trim();
 }
 
@@ -193,6 +193,19 @@ function isSyncField(field) /* boolean */ {
   return isPrimitiveField(field) || isComputedSyncField(field);
 }
 
+function isClonedField(field) /* boolean */ {
+  if (!isPrimitiveField(field)) {
+    return false;
+  }
+  if (isArrayField(field)) {
+    return true;
+  }
+  if (field.cast === true) {
+    return true;
+  }
+  return false;
+}
+
 // UNSAFE BEFORE AUGMENTATION
 function isEntityType(type) /* boolean */ {
   return type._entity !== undefined;
@@ -228,7 +241,7 @@ module.exports = {
   toPascalCase,
   toSnakeCase,
   toTitleCase,
-  toPrimitiveTypeName,
+  toSingularTypeName,
   getModuleSuffix,
   queryField,
   getSourceFields,
@@ -247,6 +260,7 @@ module.exports = {
   isComputedSyncField,
   isComputedAsyncField,
   isSyncField,
+  isClonedField,
   isEntityTypeField,
   isPresentableField,
   isPresentableEntityType,

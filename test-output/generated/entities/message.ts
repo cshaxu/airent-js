@@ -78,7 +78,7 @@ export class MessageEntityBase extends BaseEntity<
       this.content = model.content;
     }
     if ('attachmentJson' in model && model['attachmentJson'] !== undefined) {
-      this.attachment = model.attachmentJson as unknown as Attachment | null;
+      this.attachment = structuredClone(model.attachmentJson) as unknown as Attachment | null;
     }
     if ('parentMessageId' in model && model['parentMessageId'] !== undefined) {
       this.parentMessageId = model.parentMessageId;
@@ -99,7 +99,7 @@ export class MessageEntityBase extends BaseEntity<
       chatId: this.chatId,
       userId: this.userId,
       content: this.content,
-      attachmentJson: this.attachment as any,
+      attachmentJson: structuredClone(this.attachment) as any,
       parentMessageId: this.parentMessageId,
       senderType: this.senderType,
     };
@@ -123,7 +123,7 @@ export class MessageEntityBase extends BaseEntity<
       dirtyModel['content'] = this.content;
     }
     if ('attachmentJson' in this._originalModel && JSON.stringify(this._originalModel['attachmentJson']) !== JSON.stringify(this.attachment)) {
-      dirtyModel['attachmentJson'] = this.attachment as any;
+      dirtyModel['attachmentJson'] = structuredClone(this.attachment) as any;
     }
     if ('parentMessageId' in this._originalModel && this._originalModel['parentMessageId'] !== this.parentMessageId) {
       dirtyModel['parentMessageId'] = this.parentMessageId;

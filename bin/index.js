@@ -405,8 +405,8 @@ async function loadEntityMap(schemaPath, isVerbose) {
 function validateEntityMap(entityMap) {
   Object.values(entityMap).forEach((entity) => {
     entity.fields.forEach((f) => {
-      const primitiveType = utils.toPrimitiveTypeName(f.type);
-      switch (primitiveType) {
+      const singularType = utils.toSingularTypeName(f.type);
+      switch (singularType) {
         case "bigint":
         case "boolean":
         case "number":
@@ -414,9 +414,11 @@ function validateEntityMap(entityMap) {
         case "Date":
           break;
         default:
-          const type = entity.types.find((t) => t.name === primitiveType);
-          const typeEntity = entityMap[primitiveType];
-          if (!type && !typeEntity) {
+          const typeDeclaration = entity.types.find(
+            (t) => t.name === singularType
+          );
+          const typeEntity = entityMap[singularType];
+          if (!typeDeclaration && !typeEntity) {
             throw new Error(
               `[AIRENT/ERROR] field.type '${f.type}' on '${entity.name}.${f.name}' is not supported or pre-defined.`
             );
@@ -424,7 +426,7 @@ function validateEntityMap(entityMap) {
           break;
       }
       if (f.strategy === "association") {
-        const typeEntity = entityMap[primitiveType];
+        const typeEntity = entityMap[singularType];
         f.sourceKeys.forEach((sk, index) => {
           const tk = f.targetKeys[index];
           const sf = entity.fields.find((f) => f.name === sk);
@@ -439,8 +441,8 @@ function validateEntityMap(entityMap) {
               `[AIRENT/ERROR] field.targetKey '${tk}' on '${entity.name}.${f.name}' is not found.`
             );
           }
-          const spf = utils.toPrimitiveTypeName(sf.type);
-          const tpf = utils.toPrimitiveTypeName(tf.type);
+          const spf = utils.toSingularTypeName(sf.type);
+          const tpf = utils.toSingularTypeName(tf.type);
           if (spf !== tpf) {
             throw new Error(
               `[AIRENT/ERROR] field.sourceKey '${sk}' and field.targetKey '${tk}' on '${entity.name}.${f.name}' must have the same type.`

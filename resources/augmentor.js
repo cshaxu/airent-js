@@ -216,7 +216,7 @@ function buildTypes(entity) /* void */ {
   const allEntityNameSet = new Set(Object.keys(entityMap));
   const selectedEntityNames = entity.fields
     .map((field) => field.type)
-    .map(utils.toPrimitiveTypeName)
+    .map(utils.toSingularTypeName)
     .filter((n) => allEntityNameSet.has(n));
   const entityTypes = Array.from(new Set(selectedEntityNames))
     .sort()
@@ -232,7 +232,7 @@ function buildFields(entity) /* void */ {
     ...field,
     _parent: entity,
     _type: entity.types.find(
-      (type) => type.name === utils.toPrimitiveTypeName(field.type)
+      (type) => type.name === utils.toSingularTypeName(field.type)
     ),
   }));
 }
@@ -289,50 +289,53 @@ function buildTypeStrings(type) /* Object */ {
 }
 
 function buildFieldStrings(field) /* Object */ {
-  const primitiveTypeName = utils.toPrimitiveTypeName(field.type);
+  const singularTypeName = utils.toSingularTypeName(field.type);
   const isEntityTypeField = field._type?._entity !== undefined;
   const fieldGetter = utils.isPrimitiveField(field)
     ? field.name
     : `get${utils.toPascalCase(field.name)}()`;
 
   if (isEntityTypeField) {
-    const entName = utils.toPascalCase(primitiveTypeName);
+    const entName = utils.toPascalCase(singularTypeName);
     const entityClass = `${entName}Entity`;
     const responseClass = `${entName}Response`;
 
     return {
       fieldClass: entityClass,
-      fieldType: field.type.replace(primitiveTypeName, entityClass),
+      fieldType: field.type.replace(singularTypeName, entityClass),
       fieldRequestType: `${entName}FieldRequest`,
-      fieldResponseType: field.type.replace(primitiveTypeName, responseClass),
+      fieldResponseType: field.type.replace(singularTypeName, responseClass),
       fieldGetter,
     };
   } else {
+    const singularTypeName = utils.toSingularTypeName(field.type);
     const fieldModelName = `model.${field.aliasOf ?? field.name}`;
-    const primitiveTypeName = utils.toPrimitiveTypeName(field.type);
+    const clonedFieldModelName = `structuredClone(${fieldModelName})`;
 
-    const regularEnumCastFieldInitializer = `${fieldModelName} as ${primitiveTypeName}`;
+    const regularEnumCastFieldInitializer = `${fieldModelName} as ${singularTypeName}`;
     const nullableEnumCastFieldInitializer = `${fieldModelName} === null ? null : ${regularEnumCastFieldInitializer}`;
-    const arrayEnumCastFieldInitializer = `${fieldModelName} as ${primitiveTypeName}[]`;
+    const arrayEnumCastFieldInitializer = `${fieldModelName} as ${singularTypeName}[]`;
     const enumCastFieldInitializer = utils.isArrayField(field)
       ? arrayEnumCastFieldInitializer
       : utils.isNullableField(field)
       ? nullableEnumCastFieldInitializer
       : regularEnumCastFieldInitializer;
 
-    const trueCastFieldInitializer = `${fieldModelName} as unknown as ${field.type}`;
+    const trueCastFieldInitializer = `${clonedFieldModelName} as unknown as ${field.type}`;
 
     const fieldInitializer = utils.isPrimitiveField(field)
       ? field.cast === "enum"
         ? enumCastFieldInitializer
         : field.cast === true
         ? trueCastFieldInitializer
+        : utils.isClonedField(field)
+        ? clonedFieldModelName
         : fieldModelName
       : undefined;
 
     return {
       fieldInitializer,
-      fieldClass: primitiveTypeName,
+      fieldClass: singularTypeName,
       fieldType: field.type,
       fieldRequestType: "boolean",
       fieldResponseType: field.type,
