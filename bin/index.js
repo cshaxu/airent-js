@@ -290,12 +290,12 @@ async function loadSchema(absoluteSchemaFilePath, isVerbose) {
     fields,
   };
 
-  validoateSchema(entity);
+  validateSchema(entity);
 
   return entity;
 }
 
-function validoateSchema(entity) {
+function validateSchema(entity) {
   if (!entity.name?.length) {
     throw new Error("[AIRENT/ERROR] entity.name is missing.");
   }
