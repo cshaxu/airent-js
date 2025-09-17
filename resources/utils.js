@@ -136,6 +136,18 @@ function getTargetFilters(field) /* Field[] */ {
 /* BOOLEAN */
 /***********/
 
+function isJsPrimitive(string) /** boolean */ {
+  return [
+    "bigint",
+    "boolean",
+    "number",
+    "string",
+    "symbol",
+    "undefined",
+    "null",
+  ].includes(string);
+}
+
 function isPresentableEntity(entity) /* boolean */ {
   return entity.internal !== true;
 }
@@ -203,7 +215,8 @@ function isClonedField(field) /* boolean */ {
   if (field.cast === true) {
     return true;
   }
-  return false;
+  const singularTypeName = toSingularTypeName(field.type);
+  return !isJsPrimitive(singularTypeName);
 }
 
 // UNSAFE BEFORE AUGMENTATION
@@ -247,6 +260,7 @@ module.exports = {
   getSourceFields,
   getTargetFields,
   getTargetFilters,
+  isJsPrimitive,
   isPresentableEntity,
   isEntityType,
   isImportType,

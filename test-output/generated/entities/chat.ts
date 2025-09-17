@@ -57,13 +57,13 @@ export class ChatEntityBase extends BaseEntity<
       this.id = model.id;
     }
     if ('createdAt' in model && model['createdAt'] !== undefined) {
-      this.createdAt = model.createdAt;
+      this.createdAt = structuredClone(model.createdAt);
     }
     if ('updatedAt' in model && model['updatedAt'] !== undefined) {
-      this.updatedAt = model.updatedAt;
+      this.updatedAt = structuredClone(model.updatedAt);
     }
     if ('deletedAt' in model && model['deletedAt'] !== undefined) {
-      this.deletedAt = model.deletedAt;
+      this.deletedAt = structuredClone(model.deletedAt);
     }
     if ('flags' in model && model['flags'] !== undefined) {
       this.flags = structuredClone(model.flags);
@@ -75,9 +75,9 @@ export class ChatEntityBase extends BaseEntity<
   public toModel(): Partial<ChatModel> {
     return {
       id: this.id,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-      deletedAt: this.deletedAt,
+      createdAt: structuredClone(this.createdAt),
+      updatedAt: structuredClone(this.updatedAt),
+      deletedAt: structuredClone(this.deletedAt),
       flags: structuredClone(this.flags),
     };
   }
@@ -87,14 +87,14 @@ export class ChatEntityBase extends BaseEntity<
     if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
       dirtyModel['id'] = this.id;
     }
-    if ('createdAt' in this._originalModel && this._originalModel['createdAt'] !== this.createdAt) {
-      dirtyModel['createdAt'] = this.createdAt;
+    if ('createdAt' in this._originalModel && JSON.stringify(this._originalModel['createdAt']) !== JSON.stringify(this.createdAt)) {
+      dirtyModel['createdAt'] = structuredClone(this.createdAt);
     }
-    if ('updatedAt' in this._originalModel && this._originalModel['updatedAt'] !== this.updatedAt) {
-      dirtyModel['updatedAt'] = this.updatedAt;
+    if ('updatedAt' in this._originalModel && JSON.stringify(this._originalModel['updatedAt']) !== JSON.stringify(this.updatedAt)) {
+      dirtyModel['updatedAt'] = structuredClone(this.updatedAt);
     }
-    if ('deletedAt' in this._originalModel && this._originalModel['deletedAt'] !== this.deletedAt) {
-      dirtyModel['deletedAt'] = this.deletedAt;
+    if ('deletedAt' in this._originalModel && JSON.stringify(this._originalModel['deletedAt']) !== JSON.stringify(this.deletedAt)) {
+      dirtyModel['deletedAt'] = structuredClone(this.deletedAt);
     }
     if ('flags' in this._originalModel && JSON.stringify(this._originalModel['flags']) !== JSON.stringify(this.flags)) {
       dirtyModel['flags'] = structuredClone(this.flags);

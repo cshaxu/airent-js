@@ -60,10 +60,10 @@ export class ChatUserEntityBase extends BaseEntity<
       this.id = model.id;
     }
     if ('createdAt' in model && model['createdAt'] !== undefined) {
-      this.createdAt = model.createdAt;
+      this.createdAt = structuredClone(model.createdAt);
     }
     if ('updatedAt' in model && model['updatedAt'] !== undefined) {
-      this.updatedAt = model.updatedAt;
+      this.updatedAt = structuredClone(model.updatedAt);
     }
     if ('chatId' in model && model['chatId'] !== undefined) {
       this.chatId = model.chatId;
@@ -81,8 +81,8 @@ export class ChatUserEntityBase extends BaseEntity<
   public toModel(): Partial<ChatUserModel> {
     return {
       id: this.id,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
+      createdAt: structuredClone(this.createdAt),
+      updatedAt: structuredClone(this.updatedAt),
       chatId: this.chatId,
       userId: this.userId,
       roles: structuredClone(this.roles),
@@ -94,11 +94,11 @@ export class ChatUserEntityBase extends BaseEntity<
     if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
       dirtyModel['id'] = this.id;
     }
-    if ('createdAt' in this._originalModel && this._originalModel['createdAt'] !== this.createdAt) {
-      dirtyModel['createdAt'] = this.createdAt;
+    if ('createdAt' in this._originalModel && JSON.stringify(this._originalModel['createdAt']) !== JSON.stringify(this.createdAt)) {
+      dirtyModel['createdAt'] = structuredClone(this.createdAt);
     }
-    if ('updatedAt' in this._originalModel && this._originalModel['updatedAt'] !== this.updatedAt) {
-      dirtyModel['updatedAt'] = this.updatedAt;
+    if ('updatedAt' in this._originalModel && JSON.stringify(this._originalModel['updatedAt']) !== JSON.stringify(this.updatedAt)) {
+      dirtyModel['updatedAt'] = structuredClone(this.updatedAt);
     }
     if ('chatId' in this._originalModel && this._originalModel['chatId'] !== this.chatId) {
       dirtyModel['chatId'] = this.chatId;
