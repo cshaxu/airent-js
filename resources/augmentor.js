@@ -333,8 +333,24 @@ function buildFieldStrings(field) /* Object */ {
         : fieldModelName
       : undefined;
 
+    const fieldUninitializerPrefix = utils.isClonedField(field)
+      ? `structuredClone(this.${field.name})`
+      : `this.${field.name}`;
+    const fieldUninitializerSuffix = field.cast === true ? " as any" : "";
+    const fieldUninitializer = `${fieldUninitializerPrefix}${fieldUninitializerSuffix}`;
+
+    const fieldDirtyChecker = utils.isClonedField(field)
+      ? `JSON.stringify(this._originalModel['${
+          field.aliasOf ?? field.name
+        }']) !== JSON.stringify(this.${field.name})`
+      : `this._originalModel['${field.aliasOf ?? field.name}'] !== this.${
+          field.name
+        }`;
+
     return {
       fieldInitializer,
+      fieldUninitializer,
+      fieldDirtyChecker,
       fieldClass: singularTypeName,
       fieldType: field.type,
       fieldRequestType: "boolean",
