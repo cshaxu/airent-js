@@ -89,7 +89,7 @@ function augmentConfig(config) /* void */ {
 
 const SHARED_LOADER_LINES = [
   "this._originalModel = { ...model };",
-  "this.fromModel(model);",
+  "this.fromModelInner(model, true);",
   "return this;",
 ];
 

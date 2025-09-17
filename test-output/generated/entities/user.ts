@@ -50,37 +50,55 @@ export class UserEntityBase extends BaseEntity<
   ) {
     super(context, group, lock);
     this._originalModel = { ...model };
-    this.fromModel(model);
+    this.fromModelInner(model, false);
     this.initialize(model, context);
   }
 
   public fromModel(model: Partial<UserModel>): void {
+    this.fromModelInner(model, false);
+  }
+
+  private fromModelInner(model: Partial<UserModel>, isResetOriginalModel: boolean): void {
     if ('id' in model && model['id'] !== undefined) {
-      this._originalModel['id'] = model['id'];
+      if (isResetOriginalModel) {
+        this._originalModel['id'] = model['id'];
+      }
       this.id = model.id;
     }
     if ('createdAt' in model && model['createdAt'] !== undefined) {
-      this._originalModel['createdAt'] = model['createdAt'];
+      if (isResetOriginalModel) {
+        this._originalModel['createdAt'] = model['createdAt'];
+      }
       this.createdAt = structuredClone(model.createdAt);
     }
     if ('updatedAt' in model && model['updatedAt'] !== undefined) {
-      this._originalModel['updatedAt'] = model['updatedAt'];
+      if (isResetOriginalModel) {
+        this._originalModel['updatedAt'] = model['updatedAt'];
+      }
       this.updatedAt = structuredClone(model.updatedAt);
     }
     if ('email' in model && model['email'] !== undefined) {
-      this._originalModel['email'] = model['email'];
+      if (isResetOriginalModel) {
+        this._originalModel['email'] = model['email'];
+      }
       this.email = model.email;
     }
     if ('firstName' in model && model['firstName'] !== undefined) {
-      this._originalModel['firstName'] = model['firstName'];
+      if (isResetOriginalModel) {
+        this._originalModel['firstName'] = model['firstName'];
+      }
       this.firstName = model.firstName;
     }
     if ('lastName' in model && model['lastName'] !== undefined) {
-      this._originalModel['lastName'] = model['lastName'];
+      if (isResetOriginalModel) {
+        this._originalModel['lastName'] = model['lastName'];
+      }
       this.lastName = model.lastName;
     }
     if ('image' in model && model['image'] !== undefined) {
-      this._originalModel['image'] = model['image'];
+      if (isResetOriginalModel) {
+        this._originalModel['image'] = model['image'];
+      }
       this.imageUrl = model.image;
     }
     this.chatUsers = undefined;
@@ -130,21 +148,21 @@ export class UserEntityBase extends BaseEntity<
   public async reload(): Promise<this> {
     const model = {/* TODO: reload model for UserEntity */};
     this._originalModel = { ...model };
-    this.fromModel(model);
+    this.fromModelInner(model, true);
     return this;
   }
 
   public async save(): Promise<this> {
     const model = {/* TODO: save model for UserEntity */};
     this._originalModel = { ...model };
-    this.fromModel(model);
+    this.fromModelInner(model, true);
     return this;
   }
 
   public async delete(): Promise<this> {
     const model = {/* TODO: delete models for UserEntity */};
     this._originalModel = { ...model };
-    this.fromModel(model);
+    this.fromModelInner(model, true);
     return this;
   }
 

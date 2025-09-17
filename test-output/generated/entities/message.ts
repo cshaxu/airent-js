@@ -57,41 +57,61 @@ export class MessageEntityBase extends BaseEntity<
   ) {
     super(context, group, lock);
     this._originalModel = { ...model };
-    this.fromModel(model);
+    this.fromModelInner(model, false);
     this.initialize(model, context);
   }
 
   public fromModel(model: Partial<MessageModel>): void {
+    this.fromModelInner(model, false);
+  }
+
+  private fromModelInner(model: Partial<MessageModel>, isResetOriginalModel: boolean): void {
     if ('id' in model && model['id'] !== undefined) {
-      this._originalModel['id'] = model['id'];
+      if (isResetOriginalModel) {
+        this._originalModel['id'] = model['id'];
+      }
       this.id = model.id;
     }
     if ('createdAt' in model && model['createdAt'] !== undefined) {
-      this._originalModel['createdAt'] = model['createdAt'];
+      if (isResetOriginalModel) {
+        this._originalModel['createdAt'] = model['createdAt'];
+      }
       this.createdAt = structuredClone(model.createdAt);
     }
     if ('chatId' in model && model['chatId'] !== undefined) {
-      this._originalModel['chatId'] = model['chatId'];
+      if (isResetOriginalModel) {
+        this._originalModel['chatId'] = model['chatId'];
+      }
       this.chatId = model.chatId;
     }
     if ('userId' in model && model['userId'] !== undefined) {
-      this._originalModel['userId'] = model['userId'];
+      if (isResetOriginalModel) {
+        this._originalModel['userId'] = model['userId'];
+      }
       this.userId = model.userId;
     }
     if ('content' in model && model['content'] !== undefined) {
-      this._originalModel['content'] = model['content'];
+      if (isResetOriginalModel) {
+        this._originalModel['content'] = model['content'];
+      }
       this.content = model.content;
     }
     if ('attachmentJson' in model && model['attachmentJson'] !== undefined) {
-      this._originalModel['attachmentJson'] = model['attachmentJson'];
+      if (isResetOriginalModel) {
+        this._originalModel['attachmentJson'] = model['attachmentJson'];
+      }
       this.attachment = structuredClone(model.attachmentJson) as unknown as Attachment | null;
     }
     if ('parentMessageId' in model && model['parentMessageId'] !== undefined) {
-      this._originalModel['parentMessageId'] = model['parentMessageId'];
+      if (isResetOriginalModel) {
+        this._originalModel['parentMessageId'] = model['parentMessageId'];
+      }
       this.parentMessageId = model.parentMessageId;
     }
     if ('senderType' in model && model['senderType'] !== undefined) {
-      this._originalModel['senderType'] = model['senderType'];
+      if (isResetOriginalModel) {
+        this._originalModel['senderType'] = model['senderType'];
+      }
       this.senderType = model.senderType as SenderType;
     }
     this.chat = undefined;
