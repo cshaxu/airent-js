@@ -205,6 +205,25 @@ function isSyncField(field) /* boolean */ {
   return isPrimitiveField(field) || isComputedSyncField(field);
 }
 
+// UNSAFE BEFORE AUGMENTATION
+function isEntityType(type) /* boolean */ {
+  return type._entity !== undefined;
+}
+
+// UNSAFE BEFORE AUGMENTATION
+function isEntityTypeField(field) /* boolean */ {
+  return field._type !== undefined && isEntityType(field._type);
+}
+
+// UNSAFE BEFORE AUGMENTATION
+function isEnumTypeField(field) /* boolean */ {
+  if (field.cast === "enum") {
+    return true;
+  }
+  return field._type !== undefined && isEnumType(field._type);
+}
+
+// UNSAFE BEFORE AUGMENTATION
 function isClonedField(field) /* boolean */ {
   if (!isPrimitiveField(field)) {
     return false;
@@ -215,18 +234,11 @@ function isClonedField(field) /* boolean */ {
   if (field.cast === true) {
     return true;
   }
+  if (isEnumTypeField(field)) {
+    return false;
+  }
   const singularTypeName = toSingularTypeName(field.type);
   return !isJsPrimitive(singularTypeName);
-}
-
-// UNSAFE BEFORE AUGMENTATION
-function isEntityType(type) /* boolean */ {
-  return type._entity !== undefined;
-}
-
-// UNSAFE BEFORE AUGMENTATION
-function isEntityTypeField(field) /* boolean */ {
-  return field._type !== undefined && isEntityType(field._type);
 }
 
 // UNSAFE BEFORE AUGMENTATION
@@ -274,8 +286,9 @@ module.exports = {
   isComputedSyncField,
   isComputedAsyncField,
   isSyncField,
-  isClonedField,
   isEntityTypeField,
+  isEnumTypeField,
+  isClonedField,
   isPresentableField,
   isPresentableEntityType,
   isDefaultPresentableField,

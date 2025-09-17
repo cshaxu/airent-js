@@ -101,7 +101,7 @@ export class MessageEntityBase extends BaseEntity<
       content: this.content,
       attachmentJson: structuredClone(this.attachment) as any,
       parentMessageId: this.parentMessageId,
-      senderType: structuredClone(this.senderType),
+      senderType: this.senderType,
     };
   }
 
@@ -128,8 +128,8 @@ export class MessageEntityBase extends BaseEntity<
     if ('parentMessageId' in this._originalModel && this._originalModel['parentMessageId'] !== this.parentMessageId) {
       dirtyModel['parentMessageId'] = this.parentMessageId;
     }
-    if ('senderType' in this._originalModel && JSON.stringify(this._originalModel['senderType']) !== JSON.stringify(this.senderType)) {
-      dirtyModel['senderType'] = structuredClone(this.senderType);
+    if ('senderType' in this._originalModel && this._originalModel['senderType'] !== this.senderType) {
+      dirtyModel['senderType'] = this.senderType;
     }
     return dirtyModel;
   }
