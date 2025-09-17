@@ -57,21 +57,27 @@ export class ChatUserEntityBase extends BaseEntity<
 
   public fromModel(model: Partial<ChatUserModel>): void {
     if ('id' in model && model['id'] !== undefined) {
+      this._originalModel['id'] = model['id'];
       this.id = model.id;
     }
     if ('createdAt' in model && model['createdAt'] !== undefined) {
+      this._originalModel['createdAt'] = model['createdAt'];
       this.createdAt = structuredClone(model.createdAt);
     }
     if ('updatedAt' in model && model['updatedAt'] !== undefined) {
+      this._originalModel['updatedAt'] = model['updatedAt'];
       this.updatedAt = structuredClone(model.updatedAt);
     }
     if ('chatId' in model && model['chatId'] !== undefined) {
+      this._originalModel['chatId'] = model['chatId'];
       this.chatId = model.chatId;
     }
     if ('userId' in model && model['userId'] !== undefined) {
+      this._originalModel['userId'] = model['userId'];
       this.userId = model.userId;
     }
     if ('roles' in model && model['roles'] !== undefined) {
+      this._originalModel['roles'] = model['roles'];
       this.roles = model.roles as ChatUserRole[];
     }
     this.chat = undefined;

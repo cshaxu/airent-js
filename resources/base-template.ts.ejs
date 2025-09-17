@@ -85,6 +85,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
   public fromModel(model: Partial<<%= entity.model %>>): void {
 <% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
     if ('<%= field.aliasOf ?? field.name %>' in model && model['<%= field.aliasOf ?? field.name %>'] !== undefined) {
+      this._originalModel['<%= field.aliasOf ?? field.name %>'] = model['<%= field.aliasOf ?? field.name %>'];
       this.<%= field.name %> = <%= field._strings.fieldInitializer %>;
     }
 <% }); -%>
@@ -96,7 +97,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
   public toModel(): Partial<<%= entity.model %>> {
     return {
 <% getDeduplicatedPrimitiveFields(entity).forEach((field) => { -%>
-      <%= field.aliasOf ?? field.name %>: <%= utils.isClonedField(field) ? `structuredClone(this.${field.name})` : `this.${field.name}` %><%= field.cast === true ? ' as any' : '' %>,
+      <%= field.aliasOf ?? field.name %>: <%= field._strings.fieldUninitializer %>,
 <% }); -%>
     };
   }
@@ -104,8 +105,8 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
   public toDirtyModel(): Partial<<%= entity.model %>> {
     const dirtyModel: Partial<<%= entity.model %>> = {};
   <%_ entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
-    if ('<%= field.aliasOf ?? field.name %>' in this._originalModel && <%- utils.isClonedField(field) ? `JSON.stringify(this._originalModel['${field.aliasOf ?? field.name}']) !== JSON.stringify(this.${field.name})` : `this._originalModel['${field.aliasOf ?? field.name}'] !== this.${field.name}` %>) {
-      dirtyModel['<%= field.aliasOf ?? field.name %>'] = <%= utils.isClonedField(field) ? `structuredClone(this.${field.name})` : `this.${field.name}` %><%= field.cast === true ? ' as any' : '' %>;
+    if ('<%= field.aliasOf ?? field.name %>' in this._originalModel && <%- field._strings.fieldDirtyChecker %>) {
+      dirtyModel['<%= field.aliasOf ?? field.name %>'] = <%= field._strings.fieldUninitializer %>;
     }
   <%_ }); -%>
     return dirtyModel;
