@@ -66,7 +66,7 @@ export class MessageEntityBase extends BaseEntity<
       this.id = model.id;
     }
     if ('createdAt' in model && model['createdAt'] !== undefined) {
-      this.createdAt = model.createdAt;
+      this.createdAt = structuredClone(model.createdAt);
     }
     if ('chatId' in model && model['chatId'] !== undefined) {
       this.chatId = model.chatId;
@@ -95,13 +95,13 @@ export class MessageEntityBase extends BaseEntity<
   public toModel(): Partial<MessageModel> {
     return {
       id: this.id,
-      createdAt: this.createdAt,
+      createdAt: structuredClone(this.createdAt),
       chatId: this.chatId,
       userId: this.userId,
       content: this.content,
       attachmentJson: structuredClone(this.attachment) as any,
       parentMessageId: this.parentMessageId,
-      senderType: this.senderType,
+      senderType: structuredClone(this.senderType),
     };
   }
 
@@ -110,8 +110,8 @@ export class MessageEntityBase extends BaseEntity<
     if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
       dirtyModel['id'] = this.id;
     }
-    if ('createdAt' in this._originalModel && this._originalModel['createdAt'] !== this.createdAt) {
-      dirtyModel['createdAt'] = this.createdAt;
+    if ('createdAt' in this._originalModel && JSON.stringify(this._originalModel['createdAt']) !== JSON.stringify(this.createdAt)) {
+      dirtyModel['createdAt'] = structuredClone(this.createdAt);
     }
     if ('chatId' in this._originalModel && this._originalModel['chatId'] !== this.chatId) {
       dirtyModel['chatId'] = this.chatId;
@@ -128,8 +128,8 @@ export class MessageEntityBase extends BaseEntity<
     if ('parentMessageId' in this._originalModel && this._originalModel['parentMessageId'] !== this.parentMessageId) {
       dirtyModel['parentMessageId'] = this.parentMessageId;
     }
-    if ('senderType' in this._originalModel && this._originalModel['senderType'] !== this.senderType) {
-      dirtyModel['senderType'] = this.senderType;
+    if ('senderType' in this._originalModel && JSON.stringify(this._originalModel['senderType']) !== JSON.stringify(this.senderType)) {
+      dirtyModel['senderType'] = structuredClone(this.senderType);
     }
     return dirtyModel;
   }
