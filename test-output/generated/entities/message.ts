@@ -32,8 +32,6 @@ import {
 export class MessageEntityBase extends BaseEntity<
   MessageModel, Context, MessageFieldRequest, MessageResponse
 > {
-  private _originalModel: MessageModel;
-
   public id!: string;
   public createdAt!: Date;
   public chatId!: string;
@@ -58,110 +56,24 @@ export class MessageEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this._originalModel = { ...model };
-    this.fromModelInner(model, false);
+    this._aliasMapFromModel['id'] = 'id';
+    this._aliasMapToModel['id'] = 'id';
+    this._aliasMapFromModel['createdAt'] = 'createdAt';
+    this._aliasMapToModel['createdAt'] = 'createdAt';
+    this._aliasMapFromModel['chatId'] = 'chatId';
+    this._aliasMapToModel['chatId'] = 'chatId';
+    this._aliasMapFromModel['userId'] = 'userId';
+    this._aliasMapToModel['userId'] = 'userId';
+    this._aliasMapFromModel['content'] = 'content';
+    this._aliasMapToModel['content'] = 'content';
+    this._aliasMapFromModel['attachmentJson'] = 'attachment';
+    this._aliasMapToModel['attachment'] = 'attachmentJson';
+    this._aliasMapFromModel['parentMessageId'] = 'parentMessageId';
+    this._aliasMapToModel['parentMessageId'] = 'parentMessageId';
+    this._aliasMapFromModel['senderType'] = 'senderType';
+    this._aliasMapToModel['senderType'] = 'senderType';
+    this.fromModelInner(model, true);
     this.initialize(model, context);
-  }
-
-  public fromModel(model: Partial<MessageModel>): void {
-    this.fromModelInner(model, false);
-  }
-
-  private fromModelInner(model: Partial<MessageModel>, isResetOriginalModel: boolean): void {
-    if ('id' in model && model['id'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['id'] = model['id'];
-      }
-      this.id = model.id;
-    }
-    if ('createdAt' in model && model['createdAt'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['createdAt'] = model['createdAt'];
-      }
-      this.createdAt = structuredClone(model.createdAt);
-    }
-    if ('chatId' in model && model['chatId'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['chatId'] = model['chatId'];
-      }
-      this.chatId = model.chatId;
-    }
-    if ('userId' in model && model['userId'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['userId'] = model['userId'];
-      }
-      this.userId = model.userId;
-    }
-    if ('content' in model && model['content'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['content'] = model['content'];
-      }
-      this.content = model.content;
-    }
-    if ('attachmentJson' in model && model['attachmentJson'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['attachmentJson'] = model['attachmentJson'];
-      }
-      this.attachment = structuredClone(model.attachmentJson) as unknown as Attachment | null;
-    }
-    if ('parentMessageId' in model && model['parentMessageId'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['parentMessageId'] = model['parentMessageId'];
-      }
-      this.parentMessageId = model.parentMessageId;
-    }
-    if ('senderType' in model && model['senderType'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['senderType'] = model['senderType'];
-      }
-      this.senderType = model.senderType as SenderType;
-    }
-    this.chat = undefined;
-    this.user = undefined;
-    this.parentMessage = undefined;
-    this.mentor = undefined;
-  }
-
-  public toModel(): Partial<MessageModel> {
-    return {
-      id: this.id,
-      createdAt: structuredClone(this.createdAt),
-      chatId: this.chatId,
-      userId: this.userId,
-      content: this.content,
-      attachmentJson: structuredClone(this.attachment) as any,
-      parentMessageId: this.parentMessageId,
-      senderType: this.senderType,
-    };
-  }
-
-  public toDirtyModel(): Partial<MessageModel> {
-    const dirtyModel: Partial<MessageModel> = {};
-    if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
-      dirtyModel['id'] = this.id;
-    }
-    if ('createdAt' in this._originalModel && JSON.stringify(this._originalModel['createdAt']) !== JSON.stringify(this.createdAt)) {
-      dirtyModel['createdAt'] = structuredClone(this.createdAt);
-    }
-    if ('chatId' in this._originalModel && this._originalModel['chatId'] !== this.chatId) {
-      dirtyModel['chatId'] = this.chatId;
-    }
-    if ('userId' in this._originalModel && this._originalModel['userId'] !== this.userId) {
-      dirtyModel['userId'] = this.userId;
-    }
-    if ('content' in this._originalModel && this._originalModel['content'] !== this.content) {
-      dirtyModel['content'] = this.content;
-    }
-    if ('attachmentJson' in this._originalModel && JSON.stringify(this._originalModel['attachmentJson']) !== JSON.stringify(this.attachment)) {
-      dirtyModel['attachmentJson'] = structuredClone(this.attachment) as any;
-    }
-    if ('parentMessageId' in this._originalModel && this._originalModel['parentMessageId'] !== this.parentMessageId) {
-      dirtyModel['parentMessageId'] = this.parentMessageId;
-    }
-    if ('senderType' in this._originalModel && this._originalModel['senderType'] !== this.senderType) {
-      dirtyModel['senderType'] = this.senderType;
-    }
-    return dirtyModel;
   }
 
   public async present<S extends MessageFieldRequest>(fieldRequest: S): Promise<SelectedMessageResponse<S>> {

@@ -56,8 +56,6 @@ import {
 export class <%= entity._strings.baseClass %> extends BaseEntity<
   <%= entity.model %>, Context<%= utils.isPresentableEntity(entity) ? `, ${entity._strings.fieldRequestClass}, ${entity._strings.responseClass}`: '' %>
 > {
-  private _originalModel: <%= entity.model %>;
-
 <% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
   <%_ if (field.deprecated) { -%>
   /** @deprecated */
@@ -79,45 +77,12 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this._originalModel = { ...model };
-    this.fromModelInner(model, false);
-    this.initialize(model, context);
-  }
-
-  public fromModel(model: Partial<<%= entity.model %>>): void {
-    this.fromModelInner(model, false);
-  }
-
-  private fromModelInner(model: Partial<<%= entity.model %>>, isResetOriginalModel: boolean): void {
 <% entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
-    if ('<%= field.aliasOf ?? field.name %>' in model && model['<%= field.aliasOf ?? field.name %>'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['<%= field.aliasOf ?? field.name %>'] = model['<%= field.aliasOf ?? field.name %>'];
-      }
-      this.<%= field.name %> = <%= field._strings.fieldInitializer %>;
-    }
+    this._aliasMapFromModel['<%= field.aliasOf ?? field.name %>'] = '<%= field.name %>';
+    this._aliasMapToModel['<%= field.name %>'] = '<%= field.aliasOf ?? field.name %>';
 <% }); -%>
-<% entity.fields.filter(utils.isAssociationField).forEach((field) => { -%>
-    this.<%= field.name %> = undefined;
-<% }); -%>
-  }
-
-  public toModel(): Partial<<%= entity.model %>> {
-    return {
-<% getDeduplicatedPrimitiveFields(entity).forEach((field) => { -%>
-      <%= field.aliasOf ?? field.name %>: <%= field._strings.fieldUninitializer %>,
-<% }); -%>
-    };
-  }
-
-  public toDirtyModel(): Partial<<%= entity.model %>> {
-    const dirtyModel: Partial<<%= entity.model %>> = {};
-  <%_ entity.fields.filter(utils.isPrimitiveField).forEach((field) => { -%>
-    if ('<%= field.aliasOf ?? field.name %>' in this._originalModel && <%- field._strings.fieldDirtyChecker %>) {
-      dirtyModel['<%= field.aliasOf ?? field.name %>'] = <%= field._strings.fieldUninitializer %>;
-    }
-  <%_ }); -%>
-    return dirtyModel;
+    this.fromModelInner(model, true);
+    this.initialize(model, context);
   }
 <% if (entity.keys?.length && !(entity.skipRefresher || entity.skipUpdater || entity.skipDeleter)) { -%>
 

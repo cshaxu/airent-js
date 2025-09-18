@@ -29,8 +29,6 @@ import {
 export class UserEntityBase extends BaseEntity<
   UserModel, Context, UserFieldRequest, UserResponse
 > {
-  private _originalModel: UserModel;
-
   public id!: string;
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -51,98 +49,22 @@ export class UserEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this._originalModel = { ...model };
-    this.fromModelInner(model, false);
+    this._aliasMapFromModel['id'] = 'id';
+    this._aliasMapToModel['id'] = 'id';
+    this._aliasMapFromModel['createdAt'] = 'createdAt';
+    this._aliasMapToModel['createdAt'] = 'createdAt';
+    this._aliasMapFromModel['updatedAt'] = 'updatedAt';
+    this._aliasMapToModel['updatedAt'] = 'updatedAt';
+    this._aliasMapFromModel['email'] = 'email';
+    this._aliasMapToModel['email'] = 'email';
+    this._aliasMapFromModel['firstName'] = 'firstName';
+    this._aliasMapToModel['firstName'] = 'firstName';
+    this._aliasMapFromModel['lastName'] = 'lastName';
+    this._aliasMapToModel['lastName'] = 'lastName';
+    this._aliasMapFromModel['image'] = 'imageUrl';
+    this._aliasMapToModel['imageUrl'] = 'image';
+    this.fromModelInner(model, true);
     this.initialize(model, context);
-  }
-
-  public fromModel(model: Partial<UserModel>): void {
-    this.fromModelInner(model, false);
-  }
-
-  private fromModelInner(model: Partial<UserModel>, isResetOriginalModel: boolean): void {
-    if ('id' in model && model['id'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['id'] = model['id'];
-      }
-      this.id = model.id;
-    }
-    if ('createdAt' in model && model['createdAt'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['createdAt'] = model['createdAt'];
-      }
-      this.createdAt = structuredClone(model.createdAt);
-    }
-    if ('updatedAt' in model && model['updatedAt'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['updatedAt'] = model['updatedAt'];
-      }
-      this.updatedAt = structuredClone(model.updatedAt);
-    }
-    if ('email' in model && model['email'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['email'] = model['email'];
-      }
-      this.email = model.email;
-    }
-    if ('firstName' in model && model['firstName'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['firstName'] = model['firstName'];
-      }
-      this.firstName = model.firstName;
-    }
-    if ('lastName' in model && model['lastName'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['lastName'] = model['lastName'];
-      }
-      this.lastName = model.lastName;
-    }
-    if ('image' in model && model['image'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['image'] = model['image'];
-      }
-      this.imageUrl = model.image;
-    }
-    this.chatUsers = undefined;
-    this.messages = undefined;
-  }
-
-  public toModel(): Partial<UserModel> {
-    return {
-      id: this.id,
-      createdAt: structuredClone(this.createdAt),
-      updatedAt: structuredClone(this.updatedAt),
-      email: this.email,
-      firstName: this.firstName,
-      lastName: this.lastName,
-      image: this.imageUrl,
-    };
-  }
-
-  public toDirtyModel(): Partial<UserModel> {
-    const dirtyModel: Partial<UserModel> = {};
-    if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
-      dirtyModel['id'] = this.id;
-    }
-    if ('createdAt' in this._originalModel && JSON.stringify(this._originalModel['createdAt']) !== JSON.stringify(this.createdAt)) {
-      dirtyModel['createdAt'] = structuredClone(this.createdAt);
-    }
-    if ('updatedAt' in this._originalModel && JSON.stringify(this._originalModel['updatedAt']) !== JSON.stringify(this.updatedAt)) {
-      dirtyModel['updatedAt'] = structuredClone(this.updatedAt);
-    }
-    if ('email' in this._originalModel && this._originalModel['email'] !== this.email) {
-      dirtyModel['email'] = this.email;
-    }
-    if ('firstName' in this._originalModel && this._originalModel['firstName'] !== this.firstName) {
-      dirtyModel['firstName'] = this.firstName;
-    }
-    if ('lastName' in this._originalModel && this._originalModel['lastName'] !== this.lastName) {
-      dirtyModel['lastName'] = this.lastName;
-    }
-    if ('image' in this._originalModel && this._originalModel['image'] !== this.imageUrl) {
-      dirtyModel['image'] = this.imageUrl;
-    }
-    return dirtyModel;
   }
 
   /** mutators */

@@ -1,6 +1,6 @@
 import AsyncLock from "async-lock";
 type Awaitable<T> = T | Promise<T>;
-type EntityConstructor<MODEL, CONTEXT, ENTITY> = {
+type EntityConstructor<MODEL extends Record<string, any>, CONTEXT, ENTITY> = {
     new (model: MODEL, context: CONTEXT, group: ENTITY[], lock: AsyncLock): ENTITY;
 };
 type LoadKey = Record<string, any>;

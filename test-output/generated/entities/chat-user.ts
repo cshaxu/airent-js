@@ -31,8 +31,6 @@ import {
 export class ChatUserEntityBase extends BaseEntity<
   ChatUserModel, Context, ChatUserFieldRequest, ChatUserResponse
 > {
-  private _originalModel: ChatUserModel;
-
   public id!: string;
   public createdAt!: Date;
   /** @deprecated */
@@ -52,88 +50,20 @@ export class ChatUserEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this._originalModel = { ...model };
-    this.fromModelInner(model, false);
+    this._aliasMapFromModel['id'] = 'id';
+    this._aliasMapToModel['id'] = 'id';
+    this._aliasMapFromModel['createdAt'] = 'createdAt';
+    this._aliasMapToModel['createdAt'] = 'createdAt';
+    this._aliasMapFromModel['updatedAt'] = 'updatedAt';
+    this._aliasMapToModel['updatedAt'] = 'updatedAt';
+    this._aliasMapFromModel['chatId'] = 'chatId';
+    this._aliasMapToModel['chatId'] = 'chatId';
+    this._aliasMapFromModel['userId'] = 'userId';
+    this._aliasMapToModel['userId'] = 'userId';
+    this._aliasMapFromModel['roles'] = 'roles';
+    this._aliasMapToModel['roles'] = 'roles';
+    this.fromModelInner(model, true);
     this.initialize(model, context);
-  }
-
-  public fromModel(model: Partial<ChatUserModel>): void {
-    this.fromModelInner(model, false);
-  }
-
-  private fromModelInner(model: Partial<ChatUserModel>, isResetOriginalModel: boolean): void {
-    if ('id' in model && model['id'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['id'] = model['id'];
-      }
-      this.id = model.id;
-    }
-    if ('createdAt' in model && model['createdAt'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['createdAt'] = model['createdAt'];
-      }
-      this.createdAt = structuredClone(model.createdAt);
-    }
-    if ('updatedAt' in model && model['updatedAt'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['updatedAt'] = model['updatedAt'];
-      }
-      this.updatedAt = structuredClone(model.updatedAt);
-    }
-    if ('chatId' in model && model['chatId'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['chatId'] = model['chatId'];
-      }
-      this.chatId = model.chatId;
-    }
-    if ('userId' in model && model['userId'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['userId'] = model['userId'];
-      }
-      this.userId = model.userId;
-    }
-    if ('roles' in model && model['roles'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['roles'] = model['roles'];
-      }
-      this.roles = model.roles as ChatUserRole[];
-    }
-    this.chat = undefined;
-    this.user = undefined;
-  }
-
-  public toModel(): Partial<ChatUserModel> {
-    return {
-      id: this.id,
-      createdAt: structuredClone(this.createdAt),
-      updatedAt: structuredClone(this.updatedAt),
-      chatId: this.chatId,
-      userId: this.userId,
-      roles: structuredClone(this.roles),
-    };
-  }
-
-  public toDirtyModel(): Partial<ChatUserModel> {
-    const dirtyModel: Partial<ChatUserModel> = {};
-    if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
-      dirtyModel['id'] = this.id;
-    }
-    if ('createdAt' in this._originalModel && JSON.stringify(this._originalModel['createdAt']) !== JSON.stringify(this.createdAt)) {
-      dirtyModel['createdAt'] = structuredClone(this.createdAt);
-    }
-    if ('updatedAt' in this._originalModel && JSON.stringify(this._originalModel['updatedAt']) !== JSON.stringify(this.updatedAt)) {
-      dirtyModel['updatedAt'] = structuredClone(this.updatedAt);
-    }
-    if ('chatId' in this._originalModel && this._originalModel['chatId'] !== this.chatId) {
-      dirtyModel['chatId'] = this.chatId;
-    }
-    if ('userId' in this._originalModel && this._originalModel['userId'] !== this.userId) {
-      dirtyModel['userId'] = this.userId;
-    }
-    if ('roles' in this._originalModel && JSON.stringify(this._originalModel['roles']) !== JSON.stringify(this.roles)) {
-      dirtyModel['roles'] = structuredClone(this.roles);
-    }
-    return dirtyModel;
   }
 
   /** mutators */
