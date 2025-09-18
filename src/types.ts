@@ -4,7 +4,7 @@ type Awaitable<T> = T | Promise<T>;
 
 // https://stackoverflow.com/questions/34098023
 // type EntityConstructor<T> = new (...args: any[]) => T;
-type EntityConstructor<MODEL, CONTEXT, ENTITY> = {
+type EntityConstructor<MODEL extends Record<string, any>, CONTEXT, ENTITY> = {
   new (
     model: MODEL,
     context: CONTEXT,

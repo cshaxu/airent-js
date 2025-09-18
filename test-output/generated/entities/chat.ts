@@ -29,8 +29,6 @@ import {
 export class ChatEntityBase extends BaseEntity<
   ChatModel, Context, ChatFieldRequest, ChatResponse
 > {
-  private _originalModel: ChatModel;
-
   public id!: string;
   public createdAt!: Date;
   public updatedAt!: Date;
@@ -49,78 +47,18 @@ export class ChatEntityBase extends BaseEntity<
     lock: AsyncLock,
   ) {
     super(context, group, lock);
-    this._originalModel = { ...model };
-    this.fromModelInner(model, false);
+    this._aliasMapFromModel['id'] = 'id';
+    this._aliasMapToModel['id'] = 'id';
+    this._aliasMapFromModel['createdAt'] = 'createdAt';
+    this._aliasMapToModel['createdAt'] = 'createdAt';
+    this._aliasMapFromModel['updatedAt'] = 'updatedAt';
+    this._aliasMapToModel['updatedAt'] = 'updatedAt';
+    this._aliasMapFromModel['deletedAt'] = 'deletedAt';
+    this._aliasMapToModel['deletedAt'] = 'deletedAt';
+    this._aliasMapFromModel['flags'] = 'flags';
+    this._aliasMapToModel['flags'] = 'flags';
+    this.fromModelInner(model, true);
     this.initialize(model, context);
-  }
-
-  public fromModel(model: Partial<ChatModel>): void {
-    this.fromModelInner(model, false);
-  }
-
-  private fromModelInner(model: Partial<ChatModel>, isResetOriginalModel: boolean): void {
-    if ('id' in model && model['id'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['id'] = model['id'];
-      }
-      this.id = model.id;
-    }
-    if ('createdAt' in model && model['createdAt'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['createdAt'] = model['createdAt'];
-      }
-      this.createdAt = structuredClone(model.createdAt);
-    }
-    if ('updatedAt' in model && model['updatedAt'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['updatedAt'] = model['updatedAt'];
-      }
-      this.updatedAt = structuredClone(model.updatedAt);
-    }
-    if ('deletedAt' in model && model['deletedAt'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['deletedAt'] = model['deletedAt'];
-      }
-      this.deletedAt = structuredClone(model.deletedAt);
-    }
-    if ('flags' in model && model['flags'] !== undefined) {
-      if (isResetOriginalModel) {
-        this._originalModel['flags'] = model['flags'];
-      }
-      this.flags = structuredClone(model.flags);
-    }
-    this.chatUsers = undefined;
-    this.messages = undefined;
-  }
-
-  public toModel(): Partial<ChatModel> {
-    return {
-      id: this.id,
-      createdAt: structuredClone(this.createdAt),
-      updatedAt: structuredClone(this.updatedAt),
-      deletedAt: structuredClone(this.deletedAt),
-      flags: structuredClone(this.flags),
-    };
-  }
-
-  public toDirtyModel(): Partial<ChatModel> {
-    const dirtyModel: Partial<ChatModel> = {};
-    if ('id' in this._originalModel && this._originalModel['id'] !== this.id) {
-      dirtyModel['id'] = this.id;
-    }
-    if ('createdAt' in this._originalModel && JSON.stringify(this._originalModel['createdAt']) !== JSON.stringify(this.createdAt)) {
-      dirtyModel['createdAt'] = structuredClone(this.createdAt);
-    }
-    if ('updatedAt' in this._originalModel && JSON.stringify(this._originalModel['updatedAt']) !== JSON.stringify(this.updatedAt)) {
-      dirtyModel['updatedAt'] = structuredClone(this.updatedAt);
-    }
-    if ('deletedAt' in this._originalModel && JSON.stringify(this._originalModel['deletedAt']) !== JSON.stringify(this.deletedAt)) {
-      dirtyModel['deletedAt'] = structuredClone(this.deletedAt);
-    }
-    if ('flags' in this._originalModel && JSON.stringify(this._originalModel['flags']) !== JSON.stringify(this.flags)) {
-      dirtyModel['flags'] = structuredClone(this.flags);
-    }
-    return dirtyModel;
   }
 
   /** mutators */
