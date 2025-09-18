@@ -1,3 +1,5 @@
+import { Awaitable } from "./types";
+
 function toArrayMap<OBJECT, KEY, VALUE = OBJECT>(
   objects: OBJECT[],
   keyMapper: (object: OBJECT) => KEY,
@@ -21,13 +23,21 @@ function toObjectMap<OBJECT, KEY, VALUE = OBJECT>(
   return new Map(objects.map((o) => [keyMapper(o), valueMapper(o)]));
 }
 
-async function sequential<T>(functions: (() => Promise<T>)[]): Promise<T[]> {
-  const results = new Array();
-  for (const f of functions) {
-    const result = await f();
-    results.push(result);
+async function batch<T>(
+  functions: (() => Awaitable<T>)[],
+  batchSize?: number
+): Promise<T[]> {
+  const results: T[] = [];
+  for (let i = 0; i < functions.length; i += batchSize ?? functions.length) {
+    const batch = functions.slice(i, i + (batchSize ?? functions.length));
+    const batchResult = await Promise.all(batch.map((fn) => fn()));
+    results.push(...batchResult);
   }
   return results;
 }
 
-export { sequential, toArrayMap, toObjectMap };
+async function sequential<T>(functions: (() => Promise<T>)[]): Promise<T[]> {
+  return await batch(functions, 1);
+}
+
+export { batch, sequential, toArrayMap, toObjectMap };

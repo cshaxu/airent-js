@@ -1,6 +1,7 @@
 // airent imports
 import {
   AsyncLock,
+  Awaitable,
   BaseEntity,
   EntityConstructor,
   LoadConfig,
