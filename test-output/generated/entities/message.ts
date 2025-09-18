@@ -7,6 +7,7 @@ import {
   LoadConfig,
   LoadKey,
   Select,
+  batch,
   sequential,
   toArrayMap,
   toObjectMap,

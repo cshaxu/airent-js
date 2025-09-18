@@ -11,7 +11,17 @@ function isLoadConfigGeneratable(field) {
 <%- line %>
 <% }); -%>
 // airent imports
-import { LoadKey, toArrayMap, toObjectMap } from '<%- config._packages.entityToLibFull %>';
+import {
+  AsyncLock,
+  Awaitable,
+  LoadConfig,
+  LoadKey,
+  Select,
+  batch,
+  sequential,
+  toArrayMap,
+  toObjectMap,
+} from '<%- config._packages.entityToLibFull %>';
 
 // config imports
 import { Context } from '<%- config._packages.entityToContextFull %>';
