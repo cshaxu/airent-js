@@ -40,4 +40,8 @@ async function sequential<T>(functions: (() => Promise<T>)[]): Promise<T[]> {
   return await batch(functions, 1);
 }
 
-export { batch, sequential, toArrayMap, toObjectMap };
+function clone<T>(value: T): T {
+  return typeof value === "object" ? structuredClone(value) : value;
+}
+
+export { batch, clone, sequential, toArrayMap, toObjectMap };

@@ -1,5 +1,5 @@
 // airent imports
-import { Select } from '../../../src/index.js';
+import { Awaitable, Select } from '../../../src/index.js';
 
 // entity imports
 import { MessageModel } from '../../../test-sources/models.js';

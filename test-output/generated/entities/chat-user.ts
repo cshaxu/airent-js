@@ -8,6 +8,7 @@ import {
   LoadKey,
   Select,
   batch,
+  clone,
   sequential,
   toArrayMap,
   toObjectMap,
