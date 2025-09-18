@@ -117,6 +117,17 @@ function getDeleterLines(entity) /* Code[] */ {
   return [`const model = ${modelDeleter};`, ...SHARED_LOADER_LINES];
 }
 
+function getSelfCreatorLines(entity) /* Code[] */ {
+  const { selfModelCreator, selfCreatorLines } = entity._code;
+  if (selfCreatorLines !== undefined) {
+    return selfCreatorLines;
+  }
+  return [
+    `const createdModel = ${selfModelCreator};`,
+    "return (this as any).fromOne(createdModel, context);",
+  ];
+}
+
 function getSelfLoaderLines(entity) /* Code[] */ {
   const { selfModelsLoader, selfLoaderLines } = entity._code;
   if (selfLoaderLines !== undefined) {
@@ -204,6 +215,7 @@ function augmentTemplates(templates) /* void */ {
     getReloaderLines,
     getSaverLines,
     getDeleterLines,
+    getSelfCreatorLines,
     getSelfLoaderLines,
     ...entityTemplate.functions,
   };
@@ -411,6 +423,8 @@ function buildEntityCode(entity) /* Object */ {
     afterEntity: [],
     beforeType: [],
     afterType: [],
+    selfModelCreator: `{/* TODO: create model for ${entity._strings.entityClass} */}`,
+    selfCreatorLines: undefined,
     selfModelsLoader: `[/* TODO: load models for ${entity._strings.entityClass} */]`,
     selfLoaderLines: undefined,
     modelReloader: `{/* TODO: reload model for ${entity._strings.entityClass} */}`,

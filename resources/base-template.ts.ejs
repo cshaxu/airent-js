@@ -133,16 +133,31 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
     return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 <% } -%>
+<% if (!entity.skipSelfCreator) { -%>
+
+  /** self creator */
+
+  public static async createOne<ENTITY extends <%= entity._strings.baseClass %>>(
+    this: EntityConstructor<<%= entity.model %>, Context, ENTITY>,
+    model: Partial<<%= entity.model %>>,
+    context: Context
+  ): Promise<ENTITY | null> {
+    <%_ template.functions.getSelfCreatorLines(entity).forEach((line) => { -%>
+    <%- line %>
+    <%_ }); -%>
+  }
+<% } -%>
 <% if (!entity.skipSelfLoader) { -%>
 
   /** self loaders */
 
   public static async getOne<ENTITY extends <%= entity._strings.baseClass %>>(
     this: EntityConstructor<<%= entity.model %>, Context, ENTITY>,
-    key: LoadKey
+    key: LoadKey,
+    context: Context
   ): Promise<ENTITY | null> {
     return await (this as any)
-      .getMany([key])
+      .getMany([key], context)
       .then((array: ENTITY[]) => array.length > 0 ? array[0] : null);
   }
 
