@@ -1,5 +1,7 @@
 import AsyncLock from "async-lock";
 
+type Awaitable<T> = T | Promise<T>;
+
 // https://stackoverflow.com/questions/34098023
 // type EntityConstructor<T> = new (...args: any[]) => T;
 type EntityConstructor<MODEL, CONTEXT, ENTITY> = {
@@ -65,4 +67,4 @@ type Select<RESPONSE, FIELD_REQUEST> = FIELD_REQUEST extends Record<string, any>
   ? /* original response */ RESPONSE
   : /* invalid selection */ never;
 
-export { AsyncLock, EntityConstructor, LoadConfig, LoadKey, Select };
+export { AsyncLock, Awaitable, EntityConstructor, LoadConfig, LoadKey, Select };
