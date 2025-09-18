@@ -116,14 +116,26 @@ export class UserEntityBase extends BaseEntity<
     return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 
+  /** self creator */
+
+  public static async createOne<ENTITY extends UserEntityBase>(
+    this: EntityConstructor<UserModel, Context, ENTITY>,
+    model: Partial<UserModel>,
+    context: Context
+  ): Promise<ENTITY | null> {
+    const createdModel = {/* TODO: create model for UserEntity */};
+    return (this as any).fromOne(createdModel, context);
+  }
+
   /** self loaders */
 
   public static async getOne<ENTITY extends UserEntityBase>(
     this: EntityConstructor<UserModel, Context, ENTITY>,
-    key: LoadKey
+    key: LoadKey,
+    context: Context
   ): Promise<ENTITY | null> {
     return await (this as any)
-      .getMany([key])
+      .getMany([key], context)
       .then((array: ENTITY[]) => array.length > 0 ? array[0] : null);
   }
 

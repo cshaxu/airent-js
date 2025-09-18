@@ -113,14 +113,26 @@ export class ChatUserEntityBase extends BaseEntity<
     return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 
+  /** self creator */
+
+  public static async createOne<ENTITY extends ChatUserEntityBase>(
+    this: EntityConstructor<ChatUserModel, Context, ENTITY>,
+    model: Partial<ChatUserModel>,
+    context: Context
+  ): Promise<ENTITY | null> {
+    const createdModel = {/* TODO: create model for ChatUserEntity */};
+    return (this as any).fromOne(createdModel, context);
+  }
+
   /** self loaders */
 
   public static async getOne<ENTITY extends ChatUserEntityBase>(
     this: EntityConstructor<ChatUserModel, Context, ENTITY>,
-    key: LoadKey
+    key: LoadKey,
+    context: Context
   ): Promise<ENTITY | null> {
     return await (this as any)
-      .getMany([key])
+      .getMany([key], context)
       .then((array: ENTITY[]) => array.length > 0 ? array[0] : null);
   }
 

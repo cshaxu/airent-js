@@ -106,6 +106,17 @@ export class MessageEntityBase extends BaseEntity<
     return await sequential(entities.map((one) => () => one.present(fieldRequest)));
   }
 
+  /** self creator */
+
+  public static async createOne<ENTITY extends MessageEntityBase>(
+    this: EntityConstructor<MessageModel, Context, ENTITY>,
+    model: Partial<MessageModel>,
+    context: Context
+  ): Promise<ENTITY | null> {
+    const createdModel = {/* TODO: create model for MessageEntity */};
+    return (this as any).fromOne(createdModel, context);
+  }
+
   /** associations */
 
   protected chatLoadConfig: LoadConfig<MessageEntityBase, ChatEntity> = {
