@@ -3,7 +3,7 @@
 <% }); -%>
 <% if (utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
 // airent imports
-import { Select } from '<%- config._packages.typeToLibFull %>';
+import { Awaitable, Select } from '<%- config._packages.typeToLibFull %>';
 
 // entity imports
   <%_ entity.types.filter(utils.isImportType).forEach((type) => { -%>

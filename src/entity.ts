@@ -5,6 +5,7 @@ import {
   LoadKey,
   Select,
 } from "./types";
+import { clone } from "./utils";
 
 class BaseEntity<
   MODEL extends Record<string, any>,
@@ -47,14 +48,10 @@ class BaseEntity<
       .filter(([k, v]) => k in this._aliasMapFromModel && v !== undefined)
       .forEach(([modelKey, modelValue]) => {
         const entityKey = this._aliasMapFromModel[modelKey];
-        const value =
-          typeof modelValue === "object"
-            ? structuredClone(modelValue)
-            : modelValue;
         if (isResetOriginalModel) {
-          (this._originalModel as any)[modelKey] = value;
+          (this._originalModel as any)[modelKey] = clone(modelValue);
         }
-        (this as any)[entityKey] = value;
+        (this as any)[entityKey] = clone(modelValue);
       });
   }
 
@@ -78,9 +75,7 @@ class BaseEntity<
             ? JSON.stringify(entityValue) !== JSON.stringify(modelValue)
             : entityValue !== modelValue);
         if (shouldInclude) {
-          (acc as any)[modelKey] = isObject
-            ? structuredClone(entityValue)
-            : entityValue;
+          (acc as any)[modelKey] = clone(entityValue);
         }
         return acc;
       },
