@@ -19,8 +19,8 @@ class BaseEntity<
   protected _group: BaseEntity<MODEL, CONTEXT, FIELD_REQUEST, RESPONSE>[];
   protected _lock: AsyncLock;
   protected _originalModel: Partial<MODEL>;
-  protected _aliasMapFromModel: Record<string, string> = {};
-  protected _aliasMapToModel: Record<string, string> = {};
+  protected _aliasMapFromModel: Record<string, string>;
+  protected _aliasMapToModel: Record<string, string>;
 
   protected constructor(
     context: CONTEXT,
@@ -30,6 +30,8 @@ class BaseEntity<
     this.context = context;
     this._id = crypto.randomUUID();
     this._originalModel = {};
+    this._aliasMapFromModel = {};
+    this._aliasMapToModel = {};
     this._group = group;
     this._lock = lock;
   }
