@@ -621,7 +621,11 @@ async function generate(config, isVerbose) {
       generateNonEntity(entityMap, template, config, isVerbose)
   );
   await sequential(nonEntityFunctions);
-  console.log("[AIRENT/INFO] Task completed.");
+
+  const entityCount = Object.keys(entityMap).length;
+  console.log(
+    `[AIRENT/INFO] Task completed: ${utils.toPhrase(entityCount, "entity")}.`
+  );
 }
 
 async function loadConfig(isVerbose) {

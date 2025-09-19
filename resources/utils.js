@@ -39,6 +39,10 @@ function pluralize(word) /** string */ {
   return word + "s"; // If no rule matched, add 's' as a default pluralization
 }
 
+function toPhrase(count, word) /** string */ {
+  return `${count} ${count === 1 ? word : pluralize(word)}`;
+}
+
 // example: "chat-user" => "chatUser"
 function toCamelCase(string) {
   return string
@@ -261,6 +265,7 @@ function isDefaultPresentableField(field) /* boolean */ {
 
 module.exports = {
   pluralize,
+  toPhrase,
   toCamelCase,
   toKababCase,
   toPascalCase,
