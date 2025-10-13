@@ -113,7 +113,7 @@ export class ChatEntityBase extends BaseEntity<
     this: EntityConstructor<ChatModel, Context, ENTITY>,
     model: Partial<ChatModel>,
     context: Context
-  ): Promise<ENTITY | null> {
+  ): Promise<ENTITY> {
     const createdModel = {/* TODO: create model for ChatEntity */};
     return (this as any).fromOne(createdModel, context);
   }
