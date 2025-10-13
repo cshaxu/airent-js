@@ -141,7 +141,7 @@ export class <%= entity._strings.baseClass %> extends BaseEntity<
     this: EntityConstructor<<%= entity.model %>, Context, ENTITY>,
     model: Partial<<%= entity.model %>>,
     context: Context
-  ): Promise<ENTITY | null> {
+  ): Promise<ENTITY> {
     <%_ template.functions.getSelfCreatorLines(entity).forEach((line) => { -%>
     <%- line %>
     <%_ }); -%>

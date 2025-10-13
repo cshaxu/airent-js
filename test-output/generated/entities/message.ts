@@ -112,7 +112,7 @@ export class MessageEntityBase extends BaseEntity<
     this: EntityConstructor<MessageModel, Context, ENTITY>,
     model: Partial<MessageModel>,
     context: Context
-  ): Promise<ENTITY | null> {
+  ): Promise<ENTITY> {
     const createdModel = {/* TODO: create model for MessageEntity */};
     return (this as any).fromOne(createdModel, context);
   }

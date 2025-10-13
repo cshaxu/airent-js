@@ -122,7 +122,7 @@ export class UserEntityBase extends BaseEntity<
     this: EntityConstructor<UserModel, Context, ENTITY>,
     model: Partial<UserModel>,
     context: Context
-  ): Promise<ENTITY | null> {
+  ): Promise<ENTITY> {
     const createdModel = {/* TODO: create model for UserEntity */};
     return (this as any).fromOne(createdModel, context);
   }
