@@ -360,7 +360,7 @@ function validateSchema(entity) {
       )
     ) {
       throw new Error(
-        `[AIRENT/ERROR] field.strategy '${f.strategy}' on '${entity.name}.${f.name}' is must be one of 'primitive', 'computed', 'computedAsync' or 'association'.`
+        `[AIRENT/ERROR] field.strategy '${f.strategy}' on '${entity.name}.${f.name}' must be one of 'primitive', 'computed', 'computedAsync' or 'association'.`
       );
     }
     if (
