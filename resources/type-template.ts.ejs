@@ -3,11 +3,11 @@
 <% }); -%>
 <% if (utils.isPresentableEntity(entity) || entity.types.some(utils.isCustomType)) { -%>
 // airent imports
-import { Awaitable, Select } from '<%- config._packages.typeToLibFull %>';
+import { Awaitable, Select } from '<%- config._packages.generatedTypeToLibImport %>';
 
 // entity imports
   <%_ entity.types.filter(utils.isImportType).forEach((type) => { -%>
-import { <%= type._strings.externalClass %> } from '<%- type._packages.typeToExternalFull %>';
+import { <%= type._strings.externalClass %> } from '<%- type._packages.generatedTypeToExternalImport %>';
   <%_ }); -%>
   <%_ entity.types.filter(utils.isPresentableEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
 import { <%= type._strings.fieldRequestClass %>, <%= type._strings.responseClass %> } from './<%= type._entity._strings.moduleName %>';

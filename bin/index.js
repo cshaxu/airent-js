@@ -38,6 +38,13 @@ async function writeFileContent(absoluteFilePath, fileContent) {
   await fs.promises.writeFile(absoluteFilePath, fileContent);
 }
 
+function buildRelativeModulePath(fromPath, toPath) {
+  const rawRelativePath = path.relative(fromPath, toPath).replaceAll("\\", "/");
+  return rawRelativePath.startsWith(".")
+    ? rawRelativePath
+    : `./${rawRelativePath}`;
+}
+
 // TYPES AND CONSTANTS //
 
 /** @typedef {Object} Type
@@ -85,7 +92,7 @@ async function writeFileContent(absoluteFilePath, fileContent) {
  *  @property {?string} libImportPath
  *  @property {string} schemaPath
  *  @property {string} entityPath
- *  @property {string} generatedPath
+ *  @property {?string} generatedPath advanced users only; if changed, local TypeScript/runtime aliasing for generated imports must be updated to match
  *  @property {string} contextImportPath
  *  @property {?string[]} [augmentors]
  *  @property {?Template[]} [templates]
@@ -101,7 +108,7 @@ const DEFALUT_AUGMENTOR_NAMES = [
 ];
 const BASE_TEMPLATE_NAME = path.join(
   AIRENT_RESOURCES_PATH,
-  "base-template.ts.ejs"
+  "base-entity-template.ts.ejs"
 );
 const TYPE_TEMPLATE_NAME = path.join(
   AIRENT_RESOURCES_PATH,
@@ -109,12 +116,27 @@ const TYPE_TEMPLATE_NAME = path.join(
 );
 const ENTITY_TEMPLATE_NAME = path.join(
   AIRENT_RESOURCES_PATH,
-  "entity-template.ts.ejs"
+  "derived-entity-template.ts.ejs"
+);
+const INDEX_TEMPLATE_NAME = path.join(
+  AIRENT_RESOURCES_PATH,
+  "index-template.ts.ejs"
+);
+const ENTITY_INDEX_TEMPLATE_NAME = path.join(
+  AIRENT_RESOURCES_PATH,
+  "entity-index-template.ts.ejs"
+);
+const TYPE_INDEX_TEMPLATE_NAME = path.join(
+  AIRENT_RESOURCES_PATH,
+  "type-index-template.ts.ejs"
 );
 const DEFAULT_TEMPLATE_NAMES = [
   BASE_TEMPLATE_NAME,
   TYPE_TEMPLATE_NAME,
   ENTITY_TEMPLATE_NAME,
+  INDEX_TEMPLATE_NAME,
+  ENTITY_INDEX_TEMPLATE_NAME,
+  TYPE_INDEX_TEMPLATE_NAME,
 ];
 
 const BASE_TEMPLATE_CONFIG = {
@@ -132,10 +154,28 @@ const ENTITY_TEMPLATE_CONFIG = {
   skippable: true,
   outputPath: path.join("{entityPath}", "{kababEntityName}.ts"),
 };
+const INDEX_TEMPLATE_CONFIG = {
+  name: INDEX_TEMPLATE_NAME,
+  skippable: false,
+  outputPath: path.join("{generatedPath}", "index.ts"),
+};
+const ENTITY_INDEX_TEMPLATE_CONFIG = {
+  name: ENTITY_INDEX_TEMPLATE_NAME,
+  skippable: false,
+  outputPath: path.join("{generatedPath}", "entities", "index.ts"),
+};
+const TYPE_INDEX_TEMPLATE_CONFIG = {
+  name: TYPE_INDEX_TEMPLATE_NAME,
+  skippable: false,
+  outputPath: path.join("{generatedPath}", "types", "index.ts"),
+};
 const DEFAULT_TEMPLATE_CONFIGS = [
   BASE_TEMPLATE_CONFIG,
   TYPE_TEMPLATE_CONFIG,
   ENTITY_TEMPLATE_CONFIG,
+  INDEX_TEMPLATE_CONFIG,
+  ENTITY_INDEX_TEMPLATE_CONFIG,
+  TYPE_INDEX_TEMPLATE_CONFIG,
 ];
 
 // CONFIGURE //
@@ -155,7 +195,7 @@ async function configure(config) {
   );
   config.generatedPath = await askQuestion(
     "Generated code path",
-    config.generatedPath ?? "./src/generated"
+    config.generatedPath ?? "./.airent"
   );
   config.contextImportPath = await askQuestion(
     "Context import path",
@@ -174,6 +214,9 @@ function validateConfig(config, isVerbose) {
     augmentors: extAugmentorNames,
     templates: extTemplateConfigs,
   } = config;
+  const generatedPath = config.generatedPath?.length
+    ? config.generatedPath
+    : "./.airent";
 
   // configure augmentors
   const augmentors = [
@@ -199,9 +242,6 @@ function validateConfig(config, isVerbose) {
   if (!config.entityPath?.length) {
     throw new Error(`[AIRENT/ERROR] config.entityPath is missing.`);
   }
-  if (!config.generatedPath?.length) {
-    throw new Error(`[AIRENT/ERROR] config.generatedPath is missing.`);
-  }
   if (!config.contextImportPath?.length) {
     throw new Error(`[AIRENT/ERROR] config.contextImportPath is missing.`);
   }
@@ -222,7 +262,7 @@ function validateConfig(config, isVerbose) {
       );
     }
   });
-  const validated = { ...config, augmentors, templates };
+  const validated = { ...config, generatedPath, augmentors, templates };
   if (isVerbose) {
     console.log(validated);
   }
@@ -590,6 +630,104 @@ async function generateNonEntity(entityMap, template, config, isVerbose) {
   }
 }
 
+async function generateLocalGeneratedPackage(config, isVerbose) {
+  const absoluteGeneratedPath = path.resolve(PROJECT_PATH, config.generatedPath);
+  const absoluteGeneratedPackagePath = path.join(
+    PROJECT_PATH,
+    "node_modules",
+    "@airent",
+    "generated"
+  );
+
+  await fs.promises.rm(absoluteGeneratedPackagePath, {
+    recursive: true,
+    force: true,
+  });
+
+  const generatedEntries = await fs.promises.readdir(absoluteGeneratedPath, {
+    withFileTypes: true,
+  });
+  const subpaths = generatedEntries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .filter((name) =>
+      fs.existsSync(path.join(absoluteGeneratedPath, name, "index.ts"))
+    )
+    .sort();
+
+  const exports = {
+    ".": {
+      types: "./index.d.ts",
+      import: "./index.js",
+      require: "./index.cjs",
+    },
+  };
+  subpaths.forEach((name) => {
+    exports[`./${name}`] = {
+      types: `./${name}.d.ts`,
+      import: `./${name}.js`,
+      require: `./${name}.cjs`,
+    };
+  });
+
+  await writeFileContent(
+    path.join(absoluteGeneratedPackagePath, "package.json"),
+    JSON.stringify(
+      {
+        name: "@airent/generated",
+        private: true,
+        type: "module",
+        exports,
+      },
+      null,
+      2
+    ) + "\n"
+  );
+
+  const moduleSuffix = utils.getModuleSuffix(config);
+
+  async function writeProxyFiles(fileName, runtimeTargetPath) {
+    const importTarget = buildRelativeModulePath(
+      absoluteGeneratedPackagePath,
+      runtimeTargetPath
+    );
+    const requireTarget = buildRelativeModulePath(
+      absoluteGeneratedPackagePath,
+      runtimeTargetPath.replace(/\.js$/, "")
+    );
+
+    await writeFileContent(
+      path.join(absoluteGeneratedPackagePath, `${fileName}.js`),
+      `export * from '${importTarget}';\n`
+    );
+    await writeFileContent(
+      path.join(absoluteGeneratedPackagePath, `${fileName}.cjs`),
+      `module.exports = require('${requireTarget}');\n`
+    );
+    await writeFileContent(
+      path.join(absoluteGeneratedPackagePath, `${fileName}.d.ts`),
+      `export * from '${importTarget}';\n`
+    );
+  }
+
+  await writeProxyFiles(
+    "index",
+    path.join(absoluteGeneratedPath, `index${moduleSuffix}`)
+  );
+  for (const name of subpaths) {
+    await writeProxyFiles(
+      name,
+      path.join(absoluteGeneratedPath, name, `index${moduleSuffix}`)
+    );
+  }
+
+  if (isVerbose) {
+    console.log(
+      `[AIRENT/INFO] Generated local package '${absoluteGeneratedPackagePath}'`
+    );
+  }
+}
+
 async function generate(config, isVerbose) {
   config = validateConfig(config, isVerbose);
 
@@ -621,6 +759,8 @@ async function generate(config, isVerbose) {
       generateNonEntity(entityMap, template, config, isVerbose)
   );
   await sequential(nonEntityFunctions);
+
+  await generateLocalGeneratedPackage(config, isVerbose);
 
   const entityCount = Object.keys(entityMap).length;
   console.log(

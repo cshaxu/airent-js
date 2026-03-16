@@ -24,59 +24,44 @@ function buildRelativeFull(sourcePath, targetPath, config) /* string */ {
 function augmentConfig(config) /* void */ {
   const { libImportPath, contextImportPath } = config;
 
-  packages = {};
+  const packages = {};
 
-  packages.baseToTypePath = buildRelativePath(
+  packages.generatedEntityToGeneratedTypePath = buildRelativePath(
     path.join(config.generatedPath, "entities"),
     path.join(config.generatedPath, "types")
   );
-  packages.typeToBasePath = buildRelativePath(
-    path.join(config.generatedPath, "types"),
-    path.join(config.generatedPath, "entities")
-  );
-  packages.entityToBasePath = buildRelativePath(
-    config.entityPath,
-    path.join(config.generatedPath, "entities")
-  );
-  packages.baseToEntityPath = buildRelativePath(
+  packages.generatedEntityToDerivedEntityPath = buildRelativePath(
     path.join(config.generatedPath, "entities"),
     path.join(config.entityPath)
   );
-  packages.entityToTypePath = buildRelativePath(
-    config.entityPath,
-    path.join(config.generatedPath, "types")
-  );
-  packages.typeToEntityPath = buildRelativePath(
-    path.join(config.generatedPath, "types"),
-    path.join(config.entityPath),
-    config,
-    false
-  );
 
-  packages.baseToLibFull = libImportPath
+  packages.generatedEntityToLibImport = libImportPath
     ? buildRelativeFull(
         path.join(config.generatedPath, "entities"),
         libImportPath,
         config
       )
     : "airent";
-  packages.typeToLibFull = libImportPath
+  packages.generatedTypeToLibImport = libImportPath
     ? buildRelativeFull(
         path.join(config.generatedPath, "types"),
         libImportPath,
         config
       )
     : "airent";
-  packages.entityToLibFull = libImportPath
+  packages.derivedEntityToLibImport = libImportPath
     ? buildRelativeFull(config.entityPath, libImportPath, config)
     : "airent";
 
-  packages.baseToContextFull = buildRelativeFull(
+  packages.derivedEntityToGeneratedEntityImport = "@airent/generated/entities";
+  packages.derivedEntityToGeneratedTypeImport = "@airent/generated/types";
+
+  packages.generatedEntityToContextImport = buildRelativeFull(
     path.join(config.generatedPath, "entities"),
     contextImportPath,
     config
   );
-  packages.entityToContextFull = buildRelativeFull(
+  packages.derivedEntityToContextImport = buildRelativeFull(
     config.entityPath,
     contextImportPath,
     config
@@ -172,7 +157,23 @@ function getLoadConfigGetterLines(field) /* Code[] */ {
   ];
 }
 
-function getLoadConfigLoaderLines(field) /* Code[] */ {
+function getBaseLoadConfigLoaderLines(field) /* Code[] */ {
+  const { targetModelsLoader, loaderLines } = field._code.loadConfig;
+  if (loaderLines !== undefined) {
+    return loaderLines;
+  }
+  if (utils.isEntityTypeField(field)) {
+    const { fieldClass } = field._strings;
+    return [
+      `const models = ${targetModelsLoader};`,
+      `return ${fieldClass}.fromArray(models, this.context);`,
+    ];
+  } else {
+    return [`return ${targetModelsLoader};`];
+  }
+}
+
+function getDerivedLoadConfigLoaderLines(field) /* Code[] */ {
   const { targetModelsLoader, loaderLines } = field._code.loadConfig;
   if (loaderLines !== undefined) {
     return loaderLines;
@@ -201,15 +202,15 @@ function getLoadConfigSetterLines(field) /* Code[] */ {
 
 function augmentTemplates(templates) /* void */ {
   const entityTemplate = templates.find((t) =>
-    t.name.includes("entity-template.ts.ejs")
+    t.name.includes("derived-entity-template.ts.ejs")
   );
   entityTemplate.functions = {
     getLoadConfigGetterLines,
-    getLoadConfigLoaderLines,
+    getLoadConfigLoaderLines: getDerivedLoadConfigLoaderLines,
     getLoadConfigSetterLines,
   };
   const baseTemplate = templates.find((t) =>
-    t.name.includes("base-template.ts.ejs")
+    t.name.includes("base-entity-template.ts.ejs")
   );
   baseTemplate.functions = {
     getReloaderLines,
@@ -217,7 +218,9 @@ function augmentTemplates(templates) /* void */ {
     getDeleterLines,
     getSelfCreatorLines,
     getSelfLoaderLines,
-    ...entityTemplate.functions,
+    getLoadConfigGetterLines,
+    getLoadConfigLoaderLines: getBaseLoadConfigLoaderLines,
+    getLoadConfigSetterLines,
   };
 }
 
@@ -384,22 +387,26 @@ function buildTypePackages(type, config) /* Object */ {
   if (type._entity !== undefined) {
     return {};
   } else if (utils.isImportType(type)) {
-    const baseToExternalFull = buildRelativeFull(
+    const generatedEntityToExternalImport = buildRelativeFull(
       path.join(config.generatedPath, "entities"),
       type.import,
       config
     );
-    const typeToExternalFull = buildRelativeFull(
+    const generatedTypeToExternalImport = buildRelativeFull(
       path.join(config.generatedPath, "types"),
       type.import,
       config
     );
-    const entityToExternalFull = buildRelativeFull(
+    const derivedEntityToExternalImport = buildRelativeFull(
       config.entityPath,
       type.import,
       config
     );
-    return { baseToExternalFull, typeToExternalFull, entityToExternalFull };
+    return {
+      generatedEntityToExternalImport,
+      generatedTypeToExternalImport,
+      derivedEntityToExternalImport,
+    };
   } else if (utils.isDefineType(type)) {
     return {};
   } else if (utils.isEnumType(type)) {

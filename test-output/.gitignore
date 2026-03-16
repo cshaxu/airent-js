@@ -1,0 +1,6 @@
+# leave empty intentionally
+# the generated artifacts are to be included in git diff
+# to highlight the differences for code review
+
+# in normal projects, you may want to ignore this:
+# .airent

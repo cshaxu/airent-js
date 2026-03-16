@@ -51,7 +51,7 @@ npx airent
 ```
 
 You may specify `"type": "module"` if you are using ES modules.
-You should see the `airent.config.js` file in the root directory of your project:
+You should see the `airent.config.json` file in the root directory of your project:
 
 ```json
 {
@@ -141,21 +141,34 @@ Run the airent code generation command:
 npx airent
 ```
 
-and then you will find the following generated code in your `src/entities` directory:
+and then you will find the following generated code in your project:
 
 ```
+.airent
+├── entities
+│   ├── index.ts
+│   ├── message.ts  -> generated base class for Message entity
+│   └── user.ts     -> generated base class for User entity
+├── types
+│   ├── index.ts
+│   ├── message.ts  -> generated Message field request/response types
+│   └── user.ts     -> generated User field request/response types
+└── index.ts
+
 src
 └── entities
-    ├── generated           -> generated code, don't touch
-    │   ├── message-base.ts -> base class for Message entity
-    │   ├── message-type.ts -> type definition for Message field request and response
-    │   ├── user-base.ts    -> base class for User entity
-    │   └── user-type.ts    -> type definition for User field request and response
-    ├── message.ts          -> Message entity class
-    └── user.ts             -> User entity class
+    ├── message.ts  -> editable Message entity class
+    └── user.ts     -> editable User entity class
 ```
 
 #### Use your data entity classes
+
+User-owned entity code should import generated code from `@airent/generated`, for example:
+
+```ts
+import { UserEntityBase } from "@airent/generated/entities";
+import { UserFieldRequest } from "@airent/generated/types";
+```
 
 Load your data with ORM, and create the entity instances:
 

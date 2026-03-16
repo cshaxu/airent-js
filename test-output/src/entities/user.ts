@@ -10,21 +10,21 @@ import {
   sequential,
   toArrayMap,
   toObjectMap,
-} from '../../src/index.js';
+} from '../../../src/index.js';
 
 // config imports
-import { Context } from '../../test-sources/context.js';
+import { Context } from '../context.js';
 
 // entity imports
-import { UserModel } from '../../test-sources/models.js';
+import { UserModel } from '../models.js';
 import { MessageEntity } from './message.js';
 import { ChatUserEntity } from './chat-user.js';
 import {
   UserFieldRequest,
   UserResponse,
   SelectedUserResponse,
-} from '../generated/types/user.js';
-import { UserEntityBase } from '../generated/entities/user.js';
+} from '@airent/generated/types';
+import { UserEntityBase } from '@airent/generated/entities';
 
 export class UserEntity extends UserEntityBase {
   protected initialize(model: UserModel, context: Context) {

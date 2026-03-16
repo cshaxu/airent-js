@@ -10,10 +10,10 @@ import {
   sequential,
   toArrayMap,
   toObjectMap,
-} from '../../src/index.js';
+} from '../../../src/index.js';
 
 // config imports
-import { Context } from '../../test-sources/context.js';
+import { Context } from '../context.js';
 
 // entity imports
 import { MessageEntity } from './message.js';
@@ -23,8 +23,8 @@ import {
   ChatResponse,
   SelectedChatResponse,
   ChatModel,
-} from '../generated/types/chat.js';
-import { ChatEntityBase } from '../generated/entities/chat.js';
+} from '@airent/generated/types';
+import { ChatEntityBase } from '@airent/generated/entities';
 
 export class ChatEntity extends ChatEntityBase {
   protected initialize(model: ChatModel, context: Context) {

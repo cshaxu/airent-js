@@ -22,14 +22,14 @@ import {
   sequential,
   toArrayMap,
   toObjectMap,
-} from '<%- config._packages.entityToLibFull %>';
+} from '<%- config._packages.derivedEntityToLibImport %>';
 
 // config imports
-import { Context } from '<%- config._packages.entityToContextFull %>';
+import { Context } from '<%- config._packages.derivedEntityToContextImport %>';
 
 // entity imports
 <% entity.types.filter(utils.isImportType).forEach((type) => { -%>
-import { <%= type._strings.externalClass %> } from '<%- type._packages.entityToExternalFull %>';
+import { <%= type._strings.externalClass %> } from '<%- type._packages.derivedEntityToExternalImport %>';
 <% }); -%>
 <% entity.types.filter(utils.isEntityType).filter((t) => t.name !== entity.name).forEach((type) => { -%>
 import { <%= type._strings.entityClass %> } from './<%= type._entity._strings.moduleName %>';
@@ -44,9 +44,9 @@ import {
   <%_ entity.types.filter(utils.isCustomType).forEach((type) => { -%>
   <%= type.name %>,
   <%_ }); -%>
-} from '<%- config._packages.entityToTypePath %>/<%= entity._strings.moduleName %>';
+} from '<%- config._packages.derivedEntityToGeneratedTypeImport %>';
 <% } -%>
-import { <%= entity._strings.baseClass %> } from '<%- config._packages.entityToBasePath %>/<%= entity._strings.moduleName %>';
+import { <%= entity._strings.baseClass %> } from '<%- config._packages.derivedEntityToGeneratedEntityImport %>';
 
 <% if (entity.deprecated) { -%>
 /** @deprecated */

@@ -1,0 +1,3 @@
+<% Object.keys(entityMap).sort().forEach((name) => { const entity = entityMap[name]; -%>
+export * from './<%= entity._strings.moduleName %>';
+<% }); -%>

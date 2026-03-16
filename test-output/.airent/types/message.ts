@@ -2,7 +2,7 @@
 import { Awaitable, Select } from '../../../src/index.js';
 
 // entity imports
-import { MessageModel } from '../../../test-sources/models.js';
+import { MessageModel } from '../../src/models.js';
 import { ChatFieldRequest, ChatResponse } from './chat.js';
 import { UserFieldRequest, UserResponse } from './user.js';
 

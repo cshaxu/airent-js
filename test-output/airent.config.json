@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "schemaPath": "schemas",
+  "entityPath": "src/entities",
+  "libImportPath": "../src/index",
+  "contextImportPath": "./src/context",
+  "templates": [
+    {
+      "name": "plugins/README.ejs",
+      "outputPath": "README",
+      "skippable": false
+    }
+  ]
+}

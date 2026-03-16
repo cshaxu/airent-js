@@ -15,13 +15,13 @@ import {
 } from '../../../src/index.js';
 
 // config imports
-import { Context } from '../../../test-sources/context.js';
+import { Context } from '../../src/context.js';
 
 // entity imports
-import { MessageModel } from '../../../test-sources/models.js';
-import { ChatEntity } from '../../entities/chat.js';
-import { MessageEntity } from '../../entities/message.js';
-import { UserEntity } from '../../entities/user.js';
+import { MessageModel } from '../../src/models.js';
+import type { ChatEntity } from '../../src/entities/chat.js';
+import type { MessageEntity } from '../../src/entities/message.js';
+import type { UserEntity } from '../../src/entities/user.js';
 import {
   MessageFieldRequest,
   MessageResponse,

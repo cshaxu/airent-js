@@ -15,11 +15,11 @@ import {
 } from '../../../src/index.js';
 
 // config imports
-import { Context } from '../../../test-sources/context.js';
+import { Context } from '../../src/context.js';
 
 // entity imports
-import { ChatEntity } from '../../entities/chat.js';
-import { UserEntity } from '../../entities/user.js';
+import type { ChatEntity } from '../../src/entities/chat.js';
+import type { UserEntity } from '../../src/entities/user.js';
 import {
   ChatUserFieldRequest,
   ChatUserResponse,
