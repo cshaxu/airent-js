@@ -2,7 +2,7 @@ name: User
 model: UserModel
 types:
   - name: UserModel
-    import: "./test-sources/models"
+    import: "./test-project/src/models"
 keys:
   - id
 fields:

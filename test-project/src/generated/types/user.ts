@@ -1,8 +1,8 @@
 // airent imports
-import { Awaitable, Select } from '../../../src/index.js';
+import { Awaitable, Select } from '../../../../src/index.js';
 
 // entity imports
-import { UserModel } from '../../../test-sources/models.js';
+import { UserModel } from '../../models.js';
 import { MessageFieldRequest, MessageResponse } from './message.js';
 import { ChatUserFieldRequest, ChatUserResponse } from './chat-user.js';
 

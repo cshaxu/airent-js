@@ -10,13 +10,13 @@ import {
   sequential,
   toArrayMap,
   toObjectMap,
-} from '../../src/index.js';
+} from '../../../src/index.js';
 
 // config imports
-import { Context } from '../../test-sources/context.js';
+import { Context } from '../context.js';
 
 // entity imports
-import { UserModel } from '../../test-sources/models.js';
+import { UserModel } from '../models.js';
 import { MessageEntity } from './message.js';
 import { ChatUserEntity } from './chat-user.js';
 import {

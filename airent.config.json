@@ -1,18 +1,18 @@
 {
   "type": "module",
-  "schemaPath": "test-schemas",
-  "entityPath": "test-output/entities",
-  "generatedPath": "test-output/generated",
+  "schemaPath": "test-project/schemas",
+  "entityPath": "test-project/src/entities",
+  "generatedPath": "test-project/src/generated",
   "libImportPath": "./src/index",
-  "contextImportPath": "./test-sources/context",
+  "contextImportPath": "./test-project/src/context",
   "templates": [
     {
-      "name": "test-plugins/README.ejs",
-      "outputPath": "{test.outputPath}/README",
+      "name": "test-project/plugins/README.ejs",
+      "outputPath": "{test.outputPath}/src/generated/README",
       "skippable": false
     }
   ],
   "test": {
-    "outputPath": "test-output"
+    "outputPath": "test-project"
   }
 }

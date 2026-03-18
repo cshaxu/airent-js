@@ -1,5 +1,5 @@
 // airent imports
-import { Awaitable, Select } from '../../../src/index.js';
+import { Awaitable, Select } from '../../../../src/index.js';
 
 // entity imports
 import { ChatFieldRequest, ChatResponse } from './chat.js';
