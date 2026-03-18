@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "rm -rf ./lib && tsc -p tsconfig.json && crlf --set=LF bin/*",
-    "test": "rm -rf ./test-output && node ./bin/index.js",
+    "test": "rm -rf ./test-project/src/entities && rm -rf ./test-project/src/generated && node ./bin/index.js",
     "prepublishOnly": "npm run build"
   },
   "repository": {
