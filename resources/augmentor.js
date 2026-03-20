@@ -93,50 +93,66 @@ const SHARED_LOADER_LINES = [
   "return this;",
 ];
 
-function getReloaderLines(entity) /* Code[] */ {
-  const { modelReloader, reloaderLines } = entity._code;
-  if (reloaderLines !== undefined) {
-    return reloaderLines;
+function getEntityCodeLines(
+  entity,
+  modelKey,
+  linesKey,
+  buildDefaultLines
+) /* Code[] */ {
+  const code = entity._code;
+  if (code[linesKey] !== undefined) {
+    return code[linesKey];
   }
-  return [`const model = ${modelReloader};`, ...SHARED_LOADER_LINES];
+  return buildDefaultLines(code[modelKey]);
+}
+
+function getReloaderLines(entity) /* Code[] */ {
+  return getEntityCodeLines(
+    entity,
+    "modelReloader",
+    "reloaderLines",
+    (modelReloader) => [`const model = ${modelReloader};`, ...SHARED_LOADER_LINES]
+  );
 }
 
 function getSaverLines(entity) /* Code[] */ {
-  const { modelSaver, saverLines } = entity._code;
-  if (saverLines !== undefined) {
-    return saverLines;
-  }
-  return [`const model = ${modelSaver};`, ...SHARED_LOADER_LINES];
+  return getEntityCodeLines(entity, "modelSaver", "saverLines", (modelSaver) => [
+    `const model = ${modelSaver};`,
+    ...SHARED_LOADER_LINES,
+  ]);
 }
 
 function getDeleterLines(entity) /* Code[] */ {
-  const { modelDeleter, deleterLines } = entity._code;
-  if (deleterLines !== undefined) {
-    return deleterLines;
-  }
-  return [`const model = ${modelDeleter};`, ...SHARED_LOADER_LINES];
+  return getEntityCodeLines(
+    entity,
+    "modelDeleter",
+    "deleterLines",
+    (modelDeleter) => [`const model = ${modelDeleter};`, ...SHARED_LOADER_LINES]
+  );
 }
 
 function getSelfCreatorLines(entity) /* Code[] */ {
-  const { selfModelCreator, selfCreatorLines } = entity._code;
-  if (selfCreatorLines !== undefined) {
-    return selfCreatorLines;
-  }
-  return [
-    `const createdModel = ${selfModelCreator};`,
-    "return (this as any).fromOne(createdModel, context);",
-  ];
+  return getEntityCodeLines(
+    entity,
+    "selfModelCreator",
+    "selfCreatorLines",
+    (selfModelCreator) => [
+      `const createdModel = ${selfModelCreator};`,
+      "return (this as any).fromOne(createdModel, context);",
+    ]
+  );
 }
 
 function getSelfLoaderLines(entity) /* Code[] */ {
-  const { selfModelsLoader, selfLoaderLines } = entity._code;
-  if (selfLoaderLines !== undefined) {
-    return selfLoaderLines;
-  }
-  return [
-    `const models = ${selfModelsLoader};`,
-    "return (this as any).fromArray(models, context);",
-  ];
+  return getEntityCodeLines(
+    entity,
+    "selfModelsLoader",
+    "selfLoaderLines",
+    (selfModelsLoader) => [
+      `const models = ${selfModelsLoader};`,
+      "return (this as any).fromArray(models, context);",
+    ]
+  );
 }
 
 function getLoadConfigGetterLines(field) /* Code[] */ {
