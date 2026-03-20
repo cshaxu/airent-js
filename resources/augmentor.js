@@ -1,52 +1,36 @@
 const path = require("path");
-const utils = require("./utils.js");
 
-function buildRelativePath(sourcePath, targetPath) /* string */ {
-  const rawRelativePath = path
-    .relative(sourcePath, targetPath)
-    .replaceAll("\\", "/");
-  return rawRelativePath.startsWith(".")
-    ? rawRelativePath
-    : `./${rawRelativePath}`;
-}
-
-function buildRelativeFull(sourcePath, targetPath, config) /* string */ {
-  if (!targetPath.startsWith(".")) {
-    return targetPath;
-  }
-  const suffix = utils.getModuleSuffix(config);
-  const relativePath = buildRelativePath(sourcePath, targetPath);
-  return `${relativePath}${suffix}`;
-}
+const codeUtils = require("./utils/code.js");
+const pathUtils = require("./utils/path.js");
 
 // build config
 
 function augmentConfig(config) /* void */ {
   const { libImportPath, contextImportPath } = config;
 
-  packages = {};
+  const packages = {};
 
-  packages.baseToTypePath = buildRelativePath(
+  packages.baseToTypePath = pathUtils.buildRelativePath(
     path.join(config.generatedPath, "entities"),
     path.join(config.generatedPath, "types")
   );
-  packages.typeToBasePath = buildRelativePath(
+  packages.typeToBasePath = pathUtils.buildRelativePath(
     path.join(config.generatedPath, "types"),
     path.join(config.generatedPath, "entities")
   );
-  packages.entityToBasePath = buildRelativePath(
+  packages.entityToBasePath = pathUtils.buildRelativePath(
     config.entityPath,
     path.join(config.generatedPath, "entities")
   );
-  packages.baseToEntityPath = buildRelativePath(
+  packages.baseToEntityPath = pathUtils.buildRelativePath(
     path.join(config.generatedPath, "entities"),
     path.join(config.entityPath)
   );
-  packages.entityToTypePath = buildRelativePath(
+  packages.entityToTypePath = pathUtils.buildRelativePath(
     config.entityPath,
     path.join(config.generatedPath, "types")
   );
-  packages.typeToEntityPath = buildRelativePath(
+  packages.typeToEntityPath = pathUtils.buildRelativePath(
     path.join(config.generatedPath, "types"),
     path.join(config.entityPath),
     config,
@@ -54,32 +38,38 @@ function augmentConfig(config) /* void */ {
   );
 
   packages.baseToLibFull = libImportPath
-    ? buildRelativeFull(
+    ? pathUtils.buildRelativeFull(
         path.join(config.generatedPath, "entities"),
         libImportPath,
-        config
+        config,
       )
     : "airent";
   packages.typeToLibFull = libImportPath
-    ? buildRelativeFull(
+    ? pathUtils.buildRelativeFull(
         path.join(config.generatedPath, "types"),
         libImportPath,
-        config
+        config,
       )
     : "airent";
   packages.entityToLibFull = libImportPath
-    ? buildRelativeFull(config.entityPath, libImportPath, config)
+    ? pathUtils.buildRelativeFull(
+        config.entityPath,
+        libImportPath,
+        config,
+      )
     : "airent";
 
-  packages.baseToContextFull = buildRelativeFull(
+  packages.baseToContextFull = pathUtils.buildRelativeFull(
     path.join(config.generatedPath, "entities"),
     contextImportPath,
-    config
+    config,
+    codeUtils.getModuleSuffix
   );
-  packages.entityToContextFull = buildRelativeFull(
+  packages.entityToContextFull = pathUtils.buildRelativeFull(
     config.entityPath,
     contextImportPath,
-    config
+    config,
+    codeUtils.getModuleSuffix
   );
 
   config._packages = packages;
@@ -160,14 +150,14 @@ function getLoadConfigGetterLines(field) /* Code[] */ {
   if (getterLines !== undefined) {
     return getterLines;
   }
-  const sourceFields = utils.getSourceFields(field);
-  const targetFields = utils.getTargetFields(field);
-  const targetFilters = utils.getTargetFilters(field);
+  const sourceFields = codeUtils.getSourceFields(field);
+  const targetFields = codeUtils.getTargetFields(field);
+  const targetFilters = codeUtils.getTargetFilters(field);
   // reject nullable sourceField whose targetField is required
   const filters = sourceFields
     .filter(
       (sf, i) =>
-        utils.isNullableField(sf) && !utils.isNullableField(targetFields[i])
+        codeUtils.isNullableField(sf) && !codeUtils.isNullableField(targetFields[i])
     )
     .map((sf) => `  .filter((one) => one.${sf._strings.fieldGetter} !== null)`);
   const mappedFields = sourceFields.map((sf, i) => {
@@ -193,7 +183,7 @@ function getLoadConfigLoaderLines(field) /* Code[] */ {
   if (loaderLines !== undefined) {
     return loaderLines;
   }
-  if (utils.isEntityTypeField(field)) {
+  if (codeUtils.isEntityTypeField(field)) {
     const { fieldClass } = field._strings;
     return [
       `const models = ${targetModelsLoader};`,
@@ -244,7 +234,7 @@ function buildTypes(entity) /* void */ {
   const allEntityNameSet = new Set(Object.keys(entityMap));
   const selectedEntityNames = entity.fields
     .map((field) => field.type)
-    .map(utils.toSingularTypeName)
+    .map(codeUtils.toSingularTypeName)
     .filter((n) => allEntityNameSet.has(n));
   const entityTypes = Array.from(new Set(selectedEntityNames))
     .sort()
@@ -260,7 +250,7 @@ function buildFields(entity) /* void */ {
     ...field,
     _parent: entity,
     _type: entity.types.find(
-      (type) => type.name === utils.toSingularTypeName(field.type)
+      (type) => type.name === codeUtils.toSingularTypeName(field.type)
     ),
   }));
 }
@@ -275,9 +265,9 @@ function addMetadata(entity, entityMap) /* void */ {
 
 function buildEntityStrings(entity, config) /* Object */ {
   const { name } = entity;
-  const entName = utils.toPascalCase(name);
-  const prefix = utils.toKababCase(name);
-  const suffix = utils.getModuleSuffix(config);
+  const entName = codeUtils.toPascalCase(name);
+  const prefix = codeUtils.toKababCase(name);
+  const suffix = codeUtils.getModuleSuffix(config);
   return {
     moduleName: `${prefix}${suffix}`,
     baseClass: `${entName}EntityBase`,
@@ -290,19 +280,19 @@ function buildEntityStrings(entity, config) /* Object */ {
 
 function buildTypeStrings(type) /* Object */ {
   if (type._entity !== undefined) {
-    const entName = utils.toPascalCase(type.name);
+    const entName = codeUtils.toPascalCase(type.name);
     return {
       entityClass: `${entName}Entity`,
       fieldRequestClass: `${entName}FieldRequest`,
       responseClass: `${entName}Response`,
     };
-  } else if (utils.isImportType(type)) {
+  } else if (codeUtils.isImportType(type)) {
     const aliasSuffix = type.aliasOf ? ` as ${type.name}` : "";
     const externalClass = `${type.aliasOf ?? type.name}${aliasSuffix}`;
     return { externalClass };
-  } else if (utils.isDefineType(type)) {
+  } else if (codeUtils.isDefineType(type)) {
     return { typeDefinition: type.define };
-  } else if (utils.isEnumType(type)) {
+  } else if (codeUtils.isEnumType(type)) {
     if (typeof type.enum === "string") {
       return { typeDefinition: type.enum };
     } else if (Array.isArray(type.enum)) {
@@ -317,14 +307,14 @@ function buildTypeStrings(type) /* Object */ {
 }
 
 function buildFieldStrings(field) /* Object */ {
-  const singularTypeName = utils.toSingularTypeName(field.type);
+  const singularTypeName = codeUtils.toSingularTypeName(field.type);
   const isEntityTypeField = field._type?._entity !== undefined;
-  const fieldGetter = utils.isPrimitiveField(field)
+  const fieldGetter = codeUtils.isPrimitiveField(field)
     ? field.name
-    : `get${utils.toPascalCase(field.name)}()`;
+    : `get${codeUtils.toPascalCase(field.name)}()`;
 
   if (isEntityTypeField) {
-    const entName = utils.toPascalCase(singularTypeName);
+    const entName = codeUtils.toPascalCase(singularTypeName);
     const entityClass = `${entName}Entity`;
     const responseClass = `${entName}Response`;
 
@@ -336,38 +326,38 @@ function buildFieldStrings(field) /* Object */ {
       fieldGetter,
     };
   } else {
-    const singularTypeName = utils.toSingularTypeName(field.type);
+    const singularTypeName = codeUtils.toSingularTypeName(field.type);
     const fieldModelName = `model.${field.aliasOf ?? field.name}`;
     const clonedFieldModelName = `structuredClone(${fieldModelName})`;
 
     const regularEnumCastFieldInitializer = `${fieldModelName} as ${singularTypeName}`;
     const nullableEnumCastFieldInitializer = `${fieldModelName} === null ? null : ${regularEnumCastFieldInitializer}`;
     const arrayEnumCastFieldInitializer = `${fieldModelName} as ${singularTypeName}[]`;
-    const enumCastFieldInitializer = utils.isArrayField(field)
+    const enumCastFieldInitializer = codeUtils.isArrayField(field)
       ? arrayEnumCastFieldInitializer
-      : utils.isNullableField(field)
+      : codeUtils.isNullableField(field)
       ? nullableEnumCastFieldInitializer
       : regularEnumCastFieldInitializer;
 
     const trueCastFieldInitializer = `${clonedFieldModelName} as unknown as ${field.type}`;
 
-    const fieldInitializer = utils.isPrimitiveField(field)
+    const fieldInitializer = codeUtils.isPrimitiveField(field)
       ? field.cast === "enum"
         ? enumCastFieldInitializer
         : field.cast === true
         ? trueCastFieldInitializer
-        : utils.isClonedField(field)
+        : codeUtils.isClonedField(field)
         ? clonedFieldModelName
         : fieldModelName
       : undefined;
 
-    const fieldUninitializerPrefix = utils.isClonedField(field)
+    const fieldUninitializerPrefix = codeUtils.isClonedField(field)
       ? `structuredClone(this.${field.name})`
       : `this.${field.name}`;
     const fieldUninitializerSuffix = field.cast === true ? " as any" : "";
     const fieldUninitializer = `${fieldUninitializerPrefix}${fieldUninitializerSuffix}`;
 
-    const fieldDirtyChecker = utils.isClonedField(field)
+    const fieldDirtyChecker = codeUtils.isClonedField(field)
       ? `JSON.stringify(this._originalModel['${
           field.aliasOf ?? field.name
         }']) !== JSON.stringify(this.${field.name})`
@@ -399,26 +389,26 @@ function addStrings(entity, config) /* void */ {
 function buildTypePackages(type, config) /* Object */ {
   if (type._entity !== undefined) {
     return {};
-  } else if (utils.isImportType(type)) {
-    const baseToExternalFull = buildRelativeFull(
+  } else if (codeUtils.isImportType(type)) {
+    const baseToExternalFull = pathUtils.buildRelativeFull(
       path.join(config.generatedPath, "entities"),
       type.import,
       config
     );
-    const typeToExternalFull = buildRelativeFull(
+    const typeToExternalFull = pathUtils.buildRelativeFull(
       path.join(config.generatedPath, "types"),
       type.import,
       config
     );
-    const entityToExternalFull = buildRelativeFull(
+    const entityToExternalFull = pathUtils.buildRelativeFull(
       config.entityPath,
       type.import,
       config
     );
     return { baseToExternalFull, typeToExternalFull, entityToExternalFull };
-  } else if (utils.isDefineType(type)) {
+  } else if (codeUtils.isDefineType(type)) {
     return {};
-  } else if (utils.isEnumType(type)) {
+  } else if (codeUtils.isEnumType(type)) {
     return {};
   }
 }
@@ -456,27 +446,27 @@ function buildFieldPresenter(field) /* Code */ {
   const { name, _strings } = field;
   const { fieldGetter } = _strings;
   const childFieldRequest = `fieldRequest.${name}!`;
-  if (utils.isEntityTypeField(field)) {
-    if (utils.isComputedSyncField(field)) {
-      if (utils.isArrayField(field)) {
+  if (codeUtils.isEntityTypeField(field)) {
+    if (codeUtils.isComputedSyncField(field)) {
+      if (codeUtils.isArrayField(field)) {
         return `await Promise.all(this.${fieldGetter}.map((one) => one.present(${childFieldRequest})))`;
-      } else if (utils.isNullableField(field)) {
+      } else if (codeUtils.isNullableField(field)) {
         return `this.${fieldGetter} === null ? null : await this.${fieldGetter}.present(${childFieldRequest})`;
       } else {
         return `await this.${fieldGetter}.present(${childFieldRequest})`;
       }
     } else {
       const prefix = `await this.${fieldGetter}.then`;
-      if (utils.isArrayField(field)) {
+      if (codeUtils.isArrayField(field)) {
         return `${prefix}((a) => Promise.all(a.map((one) => one.present(${childFieldRequest}))))`;
-      } else if (utils.isNullableField(field)) {
+      } else if (codeUtils.isNullableField(field)) {
         return `${prefix}((one) => one === null ? Promise.resolve(null) : one.present(${childFieldRequest}))`;
       } else {
         return `${prefix}((one) => one.present(${childFieldRequest}))`;
       }
     }
   } else {
-    return utils.isSyncField(field)
+    return codeUtils.isSyncField(field)
       ? `this.${fieldGetter}`
       : `await this.${fieldGetter}`;
   }
@@ -489,8 +479,8 @@ function buildFieldAssociationKeyString(sourceFields, targetFields) /* Code */ {
 }
 
 function buildFieldLoadConfigTargetMapper(field) /* Code */ {
-  const mapBuilder = utils.isArrayField(field) ? "toArrayMap" : "toObjectMap";
-  const targetFields = utils.getTargetFields(field);
+  const mapBuilder = codeUtils.isArrayField(field) ? "toArrayMap" : "toObjectMap";
+  const targetFields = codeUtils.getTargetFields(field);
   const targetKeyString = buildFieldAssociationKeyString(
     targetFields,
     targetFields
@@ -499,26 +489,26 @@ function buildFieldLoadConfigTargetMapper(field) /* Code */ {
 }
 
 function buildFieldLoadConfigSourceSetter(field) /* Code */ {
-  const sourceFields = utils.getSourceFields(field);
-  const targetFields = utils.getTargetFields(field);
+  const sourceFields = codeUtils.getSourceFields(field);
+  const targetFields = codeUtils.getTargetFields(field);
   const nullConditions = sourceFields
     .filter(
       (sf, i) =>
-        utils.isNullableField(sf) && !utils.isNullableField(targetFields[i])
+        codeUtils.isNullableField(sf) && !codeUtils.isNullableField(targetFields[i])
     )
     .map((sf) => `one.${sf._strings.fieldGetter} === null`)
     .join(" || ");
   const nullSetter =
     nullConditions.length === 0
       ? ""
-      : `(${nullConditions}) ? ${utils.isArrayField(field) ? "[]" : "null"} : `;
+      : `(${nullConditions}) ? ${codeUtils.isArrayField(field) ? "[]" : "null"} : `;
   const sourceKeyString = buildFieldAssociationKeyString(
     sourceFields,
     targetFields
   );
-  const fallback = utils.isArrayField(field)
+  const fallback = codeUtils.isArrayField(field)
     ? " ?? []"
-    : utils.isNullableField(field)
+    : codeUtils.isNullableField(field)
     ? " ?? null"
     : "!";
   return `${nullSetter}map.get(${sourceKeyString})${fallback}`;
@@ -551,7 +541,7 @@ function buildFieldCode(field) /* Object */ {
   code.presenter = buildFieldPresenter(field);
 
   // build code - field association
-  if (utils.isAssociationField(field)) {
+  if (codeUtils.isAssociationField(field)) {
     code.loadConfig = buildFieldLoadConfig(field);
   }
   return code;
