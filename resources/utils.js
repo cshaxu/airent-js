@@ -156,25 +156,29 @@ function isPresentableEntity(entity) /* boolean */ {
   return entity.internal !== true;
 }
 
+function hasContent(object, key) /* boolean */ {
+  return !!object[key]?.length;
+}
+
 // example
 // - name: Message as PrismaMessage
 //   import: "@prisma/client"
 function isImportType(type) /* boolean */ {
-  return !!type.import?.length;
+  return hasContent(type, "import");
 }
 
 // example
 // - name: Attachment
 //   define: "{ [key: string] : string }"
 function isDefineType(type) /* boolean */ {
-  return !!type.define?.length;
+  return hasContent(type, "define");
 }
 
 // example
 // - name: SenderType
 //   enum: '{ USER = "USER", CHATBOT = "CHATBOT" }'
 function isEnumType(type) /* boolean */ {
-  return !!type.enum?.length;
+  return hasContent(type, "enum");
 }
 
 function isCustomType(type) /* boolean */ {
@@ -189,20 +193,24 @@ function isNullableField(field) /* boolean */ {
   return field.type.endsWith(" | null");
 }
 
+function isStrategyField(field, strategy) /* boolean */ {
+  return field.strategy === strategy;
+}
+
 function isPrimitiveField(field) /* boolean */ {
-  return field.strategy === "primitive";
+  return isStrategyField(field, "primitive");
 }
 
 function isAssociationField(field) /* boolean */ {
-  return field.strategy === "association";
+  return isStrategyField(field, "association");
 }
 
 function isComputedSyncField(field) /* boolean */ {
-  return field.strategy === "computed";
+  return isStrategyField(field, "computed");
 }
 
 function isComputedAsyncField(field) /* boolean */ {
-  return field.strategy === "computedAsync";
+  return isStrategyField(field, "computedAsync");
 }
 
 function isSyncField(field) /* boolean */ {
