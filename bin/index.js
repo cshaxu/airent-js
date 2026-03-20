@@ -6,13 +6,17 @@ const ejs = require("ejs");
 const fs = require("fs");
 const yaml = require("js-yaml");
 const path = require("path");
-const readline = require("readline");
-const utils = require("../resources/utils.js");
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+const codeUtils = require("../resources/utils/code.js");
+const configUtils = require("../resources/utils/configurator.js");
+
+const {
+  createPrompt,
+  loadJsonConfig,
+  writeJsonConfig,
+} = configUtils;
+const prompt = createPrompt();
+const { askQuestion } = prompt;
 
 // UTILITIES //
 
@@ -23,13 +27,6 @@ async function sequential(functions) {
     results.push(result);
   }
   return results;
-}
-
-async function askQuestion(question, defaultAnswer) {
-  const a = await new Promise((resolve) =>
-    rl.question(`${question} (${defaultAnswer}): `, resolve)
-  );
-  return a?.length ? a : defaultAnswer;
 }
 
 async function writeFileContent(absoluteFilePath, fileContent) {
@@ -161,8 +158,7 @@ async function configure(config) {
     "Context import path",
     config.contextImportPath ?? "./src/context"
   );
-  const content = JSON.stringify(config, null, 2) + "\n";
-  await fs.promises.writeFile(CONFIG_FILE_PATH, content);
+  await writeJsonConfig(CONFIG_FILE_PATH, config);
   console.log(`[AIRENT/INFO] Configuration located at '${CONFIG_FILE_PATH}'`);
 }
 
@@ -405,7 +401,7 @@ async function loadEntityMap(schemaPath, isVerbose) {
 function validateEntityMap(entityMap) {
   Object.values(entityMap).forEach((entity) => {
     entity.fields.forEach((f) => {
-      const singularType = utils.toSingularTypeName(f.type);
+      const singularType = codeUtils.toSingularTypeName(f.type);
       switch (singularType) {
         case "bigint":
         case "boolean":
@@ -441,8 +437,8 @@ function validateEntityMap(entityMap) {
               `[AIRENT/ERROR] field.targetKey '${tk}' on '${entity.name}.${f.name}' is not found.`
             );
           }
-          const spf = utils.toSingularTypeName(sf.type);
-          const tpf = utils.toSingularTypeName(tf.type);
+          const spf = codeUtils.toSingularTypeName(sf.type);
+          const tpf = codeUtils.toSingularTypeName(tf.type);
           if (spf !== tpf) {
             throw new Error(
               `[AIRENT/ERROR] field.sourceKey '${sk}' and field.targetKey '${tk}' on '${entity.name}.${f.name}' must have the same type.`
@@ -465,13 +461,13 @@ function augment(augmentorName, entityMap, templates, config, isVerbose) {
     );
   }
   const augmentor = require(absoluteAugmentorFilePath);
-  return augmentor.augment({ entityMap, templates, config, utils }, isVerbose);
+  return augmentor.augment({ entityMap, templates, config, utils: codeUtils }, isVerbose);
 }
 
 function buildAbsoluteOutputPath(entity, template, config) {
   const { entityPath } = config;
-  const kababEntityName = utils.toKababCase(entity?.name ?? "");
-  const kababEntitiesName = utils.pluralize(kababEntityName);
+  const kababEntityName = codeUtils.toKababCase(entity?.name ?? "");
+  const kababEntitiesName = codeUtils.pluralize(kababEntityName);
   const { outputPath: outputPathRaw } = template;
   let outputPath = "";
   let variableStart = -1;
@@ -540,7 +536,7 @@ async function generateEntity(
   const entity = entityMap[name];
   for (const template of entityTemplates) {
     const absoluteFilePath = buildAbsoluteOutputPath(entity, template, config);
-    const data = { entity, template, config, utils };
+    const data = { entity, template, config, utils: codeUtils };
     try {
       const fileContent =
         template.skippable && fs.existsSync(absoluteFilePath)
@@ -568,7 +564,7 @@ async function generateNonEntity(entityMap, template, config, isVerbose) {
     console.log(`[AIRENT/INFO] Generating ${template.name} ...`);
   }
   const absoluteFilePath = buildAbsoluteOutputPath(null, template, config);
-  const data = { entityMap, template, config, utils };
+  const data = { entityMap, template, config, utils: codeUtils };
   try {
     const fileContent =
       template.skippable && fs.existsSync(absoluteFilePath)
@@ -624,7 +620,7 @@ async function generate(config, isVerbose) {
 
   const entityCount = Object.keys(entityMap).length;
   console.log(
-    `[AIRENT/INFO] Task completed: ${utils.toPhrase(entityCount, "entity")}.`
+    `[AIRENT/INFO] Task completed: ${codeUtils.toPhrase(entityCount, "entity")}.`
   );
 }
 
@@ -632,8 +628,7 @@ async function loadConfig(isVerbose) {
   if (isVerbose) {
     console.log(`[AIRENT/INFO] Loading config ${CONFIG_FILE_PATH} ...`);
   }
-  const configContent = await fs.promises.readFile(CONFIG_FILE_PATH, "utf8");
-  return JSON.parse(configContent);
+  return await loadJsonConfig(CONFIG_FILE_PATH);
 }
 
 async function main(args) {
@@ -650,4 +645,4 @@ async function main(args) {
 
 main(process.argv.slice(2))
   .catch((error) => console.error(error))
-  .finally(() => rl.close());
+  .finally(() => prompt.close());
