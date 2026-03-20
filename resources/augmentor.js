@@ -63,13 +63,11 @@ function augmentConfig(config) /* void */ {
     path.join(config.generatedPath, "entities"),
     contextImportPath,
     config,
-    codeUtils.getModuleSuffix
   );
   packages.entityToContextFull = pathUtils.buildRelativeFull(
     config.entityPath,
     contextImportPath,
     config,
-    codeUtils.getModuleSuffix
   );
 
   config._packages = packages;
